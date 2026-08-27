@@ -1,0 +1,21 @@
+[Unit]
+Description=Versine — pull, migrate, and restart if there is a new version
+Documentation=file://__ROOT__/README.md
+# Docker brings the container up on its own via `restart: unless-stopped`, so
+# the app is already serving by the time this runs. That is deliberate: the
+# update is an improvement on a working system, never a prerequisite for one.
+After=network-online.target docker.service
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=__USER__
+WorkingDirectory=__ROOT__
+ExecStart=__ROOT__/scripts/update.sh
+# A cold rebuild pulls a Python base image and reinstalls dependencies.
+TimeoutStartSec=900
+# The script decides what "safe to update" means and exits 0 when it declines;
+# a non-zero exit means a real failure worth seeing in `systemctl status`.
+StandardOutput=journal
+StandardError=journal

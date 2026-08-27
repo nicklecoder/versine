@@ -1,0 +1,49 @@
+# ── Student data ─────────────────────────────────────────────────────────────
+# Progress belongs to the family running the server, not to the repository.
+# This covers the live database and every pre-update backup beside it, while
+# leaving data/.gitkeep tracked so a fresh clone still has the directory.
+data/*.db
+data/*.db-journal
+data/*.db-wal
+data/*.db-shm
+
+# ── Auto-update ──────────────────────────────────────────────────────────────
+# scripts/update.sh takes this lock in the repo root so that the boot run and
+# the nightly run cannot overlap. It appears on the server, never in git.
+.update.lock
+
+# ── Local configuration ──────────────────────────────────────────────────────
+# docker compose reads .env automatically for variable substitution, which
+# makes it the natural place for host-specific settings. Keep it local.
+.env
+.env.*
+!.env.example
+
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ── Node ─────────────────────────────────────────────────────────────────────
+# The app itself needs no build step and ships no npm dependencies, but the
+# browser-driving tests pull puppeteer-core into a scratch install.
+node_modules/
+package-lock.json
+
+# ── Editors and operating systems ────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Logs and scratch ─────────────────────────────────────────────────────────
+*.log
+*.pid

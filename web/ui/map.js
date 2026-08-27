@@ -1,0 +1,454 @@
+import { api } from '../engine/api.js';
+import { SKILLS, CATEGORIES, getSkill, dependenciesOf, levelDependencies }
+  from '../engine/registry.js';
+import { MODES, MODE_ORDER, trialSettings, formatDuration } from '../engine/modes.js';
+import { computeRating, biggestGain, needsReview, staleDependencies }
+  from '../engine/rating.js';
+import { clockFor, clockExplanation } from '../engine/clock.js';
+import { soundEnabled, setSoundEnabled } from '../engine/audio.js';
+import { openWalkthrough } from './walkthrough.js';
+import { el, mount } from './dom.js';
+import { state, go, rerender } from './router.js';
+
+const recordFor = (skillId) =>
+  state.progress?.skills?.[skillId] ?? { level: 0, mastered: [], solved: 0, best: {} };
+
+/** Mute. Per device, not per account — it is about where you are sitting. */
+export function soundToggle() {
+  const btn = el('button.btn.btn--sm.btn--ghost.sound-toggle', {
+    title: 'Sound on or off',
+    'aria-label': 'Sound on or off',
+    // Never pull focus out of the answer field mid-run.
+    onmousedown: (e) => e.preventDefault(),
+  }, soundEnabled() ? '🔊' : '🔇');
+  btn.addEventListener('click', () => {
+    setSoundEnabled(!soundEnabled());
+    btn.textContent = soundEnabled() ? '🔊' : '🔇';
+  });
+  return btn;
+}
+
+/** Level, recomputed from what the student can currently do. */
+export const currentRating = () =>
+  computeRating(SKILLS, state.progress, state.progress?.levels ?? []);
+
+export function topbar({ wide = false } = {}) {
+  const { level, rating } = currentRating();
+  const into = rating - Math.floor(rating);
+  return el(`div.topbar${wide ? '.topbar--wide' : ''}`, {},
+    el('div.whoami', {},
+      el('div.avatar', { style: { '--accent': state.me.accent } }, state.me.icon),
+      el('div', {},
+        el('div.row__title', {}, state.me.name),
+        el('div.eyebrow', {}, `Level ${level} · ${Math.round(into * 100)}% to Level ${level + 1}`))),
+    el('div.row-flex', {},
+      soundToggle(),
+      state.me.role === 'teacher' &&
+        el('button.btn.btn--sm.btn--ghost', { onclick: () => go({ name: 'teacher' }) }, 'Console'),
+      el('button.btn.btn--sm.btn--ghost', {
+        onclick: async () => { await api.logout(); location.reload(); },
+      }, 'Sign out')));
+}
+
+/**
+ * Breadcrumb trail. Every screen inside a skill shows where it sits and how to
+ * get back out -- previously the only route back to a skill was a button
+ * labelled "Change mode", which nobody reads as "return to Integer Add &
+ * Subtract".
+ *
+ * @param {Array<{label:string, go?:Function}>} items  last item is the current page
+ */
+export function crumbs(items) {
+  const nodes = [];
+  items.forEach((item, i) => {
+    if (i) nodes.push(el('span.crumb-sep', {}, '/'));
+    nodes.push(item.go
+      ? el('button.crumb', {
+          onclick: item.go,
+          onmousedown: (e) => e.preventDefault(),  // never steal focus mid-run
+        }, item.label)
+      : el('span.crumb.is-here', {}, item.label));
+  });
+  return el('nav.crumbs', {}, nodes);
+}
+
+/**
+ * Page heading with a plain back button. Navigation is forward/back by
+ * default; the breadcrumb trail above is there for when you want to skip
+ * several levels at once.
+ */
+export function pageHead(backLabel, onBack, title, sub) {
+  return el('div.page-head', {},
+    el('button.btn.btn--sm.btn--ghost.btn--back', { onclick: onBack }, backLabel),
+    el('div.page-head__text', {},
+      el('h2', {}, title),
+      sub ? el('p.tiny.muted', {}, sub) : null));
+}
+
+export function levelBar() {
+  const { level, rating, ceiling } = currentRating();
+  const into = rating - Math.floor(rating);
+  return el('div.xp', {},
+    el('span.xp__level', {}, `LV ${level}`),
+    el('div.xp__track', {}, el('div.xp__fill', { style: { width: `${into * 100}%` } })),
+    el('span.tiny.muted', {}, `${rating.toFixed(1)} of ${ceiling.toFixed(0)} possible`));
+}
+
+/** The map: every skill, with how far in you are. */
+/**
+ * Why the Level is what it is. Shown on the Map because a number that can go
+ * *down* has to be explainable, or it just feels arbitrary and unfair.
+ */
+function levelBreakdown() {
+  const result = currentRating();
+  if (!result.rows.length) {
+    return el('div.card.stack--sm', {},
+      el('div.eyebrow', {}, 'Your level'),
+      el('p.tiny.muted', {},
+        'Clear a level in a Time Trial and it starts counting towards your Level.'));
+  }
+
+  // Only the handful that matter by default. Every cleared level appears here
+  // otherwise, which is 24 rows already and grows with the catalogue -- long
+  // enough to bury the skills it is meant to support.
+  const SHOWN = 5;
+  const worthShowing = result.rows.filter((r) => r.contribution > 0);
+  let expanded = false;
+
+  const rowFor = (r) => {
+    const share = r.contribution / r.weight;          // 0..1 of what it could be
+    const reason = share > 0.9 ? 'as good as it gets'
+      : r.accuracy < 0.9 ? `accuracy ${Math.round(r.accuracy * 100)}%`
+      : `${r.medianSeconds?.toFixed(1)}s vs ${r.allowedSeconds.toFixed(1)}s allowed`;
+
+    return el('div.contrib', {},
+      el('div.contrib__name', {},
+        el('div.row__title', {}, r.levelName),
+        el('div.row__sub', {}, r.skillName)),
+      el('div.contrib__bar', {},
+        el('div.contrib__fill', {
+          style: { width: `${share * 100}%`, background: share > 0.8
+            ? 'var(--grow)' : share > 0.5 ? 'var(--gold)' : 'var(--hot)' },
+        })),
+      el('div.contrib__value', {}, `+${r.contribution.toFixed(2)}`),
+      el('div.contrib__why', {},
+        reason,
+        r.staleness !== 'fresh'
+          ? el('span', { class: `stale-flag is-${r.staleness}` },
+              r.staleness === 'stale' ? 'needs review' : 'due soon')
+          : null));
+  };
+
+  const list = el('div.contribs');
+  const more = el('button.btn.btn--sm.btn--ghost');
+  const paint = () => {
+    const shown = expanded ? worthShowing : worthShowing.slice(0, SHOWN);
+    mount(list, shown.map(rowFor));
+    more.textContent = expanded
+      ? 'Show fewer'
+      : `Show all ${worthShowing.length}`;
+  };
+  more.addEventListener('click', () => { expanded = !expanded; paint(); });
+  paint();
+
+  const best = biggestGain(result);
+  const rusty = needsReview(result);
+  return el('div.card.stack--sm', {},
+    el('div.between', {},
+      el('div.eyebrow', {}, 'Why you are this level'),
+      el('span.tiny.muted', {},
+        'only your latest answers count — nothing drops just from time passing')),
+    rusty.length
+      ? el('div.banner.banner--violet', {},
+          el('span', {}, '↻'),
+          el('span', {},
+            `${rusty.length} level${rusty.length === 1 ? '' : 's'} not practised lately. `
+            + 'Revisiting re-establishes where you stand.'))
+      : null,
+    list,
+    worthShowing.length > SHOWN ? more : null,
+    best && best.headroom > 0.15
+      ? el('p.tiny.muted', {},
+          `Biggest gain available: ${best.levelName} in ${best.skillName} `
+          + `(+${best.headroom.toFixed(2)} if you nail it).`)
+      : null);
+}
+
+export function mapScreen() {
+  // One continuous grid rather than a grid per category. A category heading
+  // above each group would force a row break, so with two skills per category
+  // every row held two cards and left a track empty. Categories still keep
+  // their skills together -- they just travel on the card instead of above it.
+  const ordered = CATEGORIES.flatMap((cat) =>
+    SKILLS.filter((s) => s.category === cat.id).map((skill) => ({ skill, cat })));
+
+  return el('div.shell', {},
+    topbar(),
+    el('div.card.stack--sm', {}, el('div.eyebrow', {}, 'Progress'), levelBar()),
+    el('div.eyebrow', {}, 'Skills'),
+    el('div.grid.grid--skills', {}, ordered.map(({ skill, cat }) => skillTile(skill, cat))),
+    levelBreakdown(),
+    el('p.tiny.muted.center', {},
+      'More skills land here as they are built — exponents, equations, ratios.'));
+}
+
+function skillTile(skill, cat) {
+  const rec = recordFor(skill.id);
+  return el('button.tile', {
+    class: `${rec.doneToday ? 'tile--done ' : ''}cat-${skill.category}`,
+    onclick: () => go({ name: 'skill', skillId: skill.id }),
+  },
+    el('div.tile__head', {},
+      el('div.tile__glyph', {}, skill.glyph),
+      el('div.grow', {},
+        el('div.tile__name', {}, skill.name),
+        el('div.eyebrow', {},
+          cat ? `${cat.glyph} ${cat.name} · ${rec.solved} solved` : `${rec.solved} solved`)),
+      rec.doneToday ? el('div.done-tick', { title: 'Done for today' }, '✓') : null),
+    el('div.tile__blurb', {}, skill.blurb),
+    el('div.pips', {}, skill.levels.map((_, i) =>
+      el('div', {
+        class: `pip ${rec.mastered.includes(i) ? 'is-mastered' : i <= rec.level ? 'is-open' : ''}`,
+      }))));
+}
+
+/** Last 28 days of practice on this skill, as a strip. */
+function streakCard(skillId) {
+  const card = el('div.card.stack--sm', {},
+    el('div.eyebrow', {}, 'Your streak'),
+    el('p.tiny.muted', {}, 'Loading…'));
+
+  api.activity(skillId).then((a) => {
+    const byDay = new Map(a.days.map((d) => [d.day, d]));
+    const today = new Date();
+    const cells = [];
+
+    for (let i = 27; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      const hit = byDay.get(key);
+      const accuracy = hit?.attempts ? hit.correct / hit.attempts : 0;
+      const done = hit?.completed;
+      cells.push(el('div.day', {
+        class: `${hit ? 'is-on' : ''} ${done ? 'is-done' : ''}`,
+        title: !hit ? `${key}: nothing`
+          : hit.attempts
+            ? `${key}: ${hit.attempts} answered, ${Math.round(accuracy * 100)}% right`
+              + (done ? ' — finished' : ' — practised, not finished')
+            : `${key}: finished`,
+        style: hit && !done
+          ? { background: heatColor(accuracy), opacity: 0.3 + Math.min(hit.attempts / 30, 1) * 0.35 }
+          : null,
+      }));
+    }
+
+    const headline = a.currentStreak > 0
+      ? `${a.currentStreak} day${a.currentStreak === 1 ? '' : 's'} in a row`
+      : a.completedDays > 0 ? 'Streak broken — start a new one' : 'No finished days yet';
+
+    mount(card,
+      el('div.between', {},
+        el('div.eyebrow', {}, 'Finishing streak'),
+        el('span.tiny.muted', {},
+          `best ${a.bestStreak} · finished ${a.completedDays} of ${a.practiceDays} days practised`)),
+      el('div.streak-headline', {}, el('span.streak-flame', {}, '🔥'), headline),
+      el('div.days', {}, cells),
+      el('p.tiny.muted', {},
+        'A day only counts once you clear the last level against the clock. '
+        + 'Faded squares are days you practised without finishing.'),
+      a.levelsCleared.length
+        ? el('div.stack--sm', {},
+            el('div.eyebrow', {}, 'Levels cleared'),
+            el('div.chips', {}, a.levelsCleared.map((t) =>
+              el('span.chip', { style: { cursor: 'default' } },
+                `T${t.level + 1} · ${t.day}`))))
+        : null);
+  }).catch(() => mount(card,
+    el('div.eyebrow', {}, 'Your streak'),
+    el('p.tiny.muted', {}, 'Unavailable.')));
+
+  return card;
+}
+
+const heatColor = (accuracy) =>
+  accuracy >= 0.85 ? 'var(--grow)' : accuracy >= 0.6 ? 'var(--gold)' : 'var(--hot)';
+
+/**
+ * "Done for today" is the headline state of a skill. It is earned only by
+ * clearing the last level in a Time Trial -- grinding level 1 all afternoon
+ * does not count.
+ */
+function dailyBanner(skill, rec) {
+  const lastLevel = skill.levels.length - 1;
+  const unlocked = rec.level >= lastLevel;
+
+  if (rec.doneToday) {
+    return el('div.banner.banner--gold', {},
+      el('span', {}, '✓'),
+      el('span', {}, `${skill.name} is done for today.`));
+  }
+  if (!unlocked) {
+    return el('div.banner.banner--violet', {},
+      el('span', {}, '🔒'),
+      el('span', {},
+        `Work up to ${skill.levels[lastLevel].name} — clearing it against the `
+        + 'clock is what finishes this skill for the day.'));
+  }
+  return el('div.banner.banner--cool', {},
+    el('span', {}, '◷'),
+    el('span', {},
+      `Not finished today. Clear ${skill.levels[lastLevel].name} in a Time Trial.`));
+}
+
+/** Step one of the wizard: pick a level. */
+export function skillScreen(skillId) {
+  const skill = SKILLS.find((s) => s.id === skillId);
+  const rec = recordFor(skillId);
+
+  const levelRows = el('div.card.card--flush', {},
+    el('div.rows', {}, skill.levels.map((t, i) => {
+      const locked = i > rec.level;
+      const isLastLevel = i === skill.levels.length - 1;
+      const isStrategy = t.kind === 'strategy';
+      return el('button', {
+        class: `row ${rec.mastered.includes(i) ? 'is-mastered' : ''}`
+          + `${isLastLevel ? ' is-last-level' : ''}`
+          + `${isStrategy ? ' is-strategy' : ''}`,
+        disabled: locked,
+        onclick: () => go({ name: 'mode', skillId, level: i }),
+      },
+        el('div.row__n', {}, locked ? '🔒' : i + 1),
+        el('div.row__main', {},
+          el('div.row__title', {}, t.name,
+            isStrategy ? el('span.row__kind', {}, 'judgement') : null),
+          el('div.row__sub', {},
+            locked ? 'Clear the Time Trial on the level above to unlock' : t.blurb),
+          leansOn(skill, i)),
+        isLastLevel && rec.doneToday ? el('div.row__right', {}, '✓ today')
+          : rec.mastered.includes(i) ? el('div.row__right', {}, '★') : null,
+        locked ? null : el('div.row__go', {}, '›'));
+    })));
+
+  return el('div.shell', {},
+    topbar(),
+    crumbs([
+      { label: 'Map', go: () => go({ name: 'map' }) },
+      { label: skill.name },
+    ]),
+    pageHead('← Map', () => go({ name: 'map' }), skill.name, skill.blurb),
+    buildsOn(skill),
+    dailyBanner(skill, rec),
+    el('div.eyebrow', {}, 'Pick a level'),
+    levelRows,
+    streakCard(skillId));
+}
+
+/**
+ * "Builds on" — a soft note about what this skill leans on. Never a gate:
+ * a student who wants to jump straight in is allowed to.
+ */
+/** The precise edges: which level of which other skill this one leans on. */
+function leansOn(skill, index) {
+  const links = levelDependencies(skill, index);
+  if (!links.length) return null;
+  const text = links.map((l) => {
+    const other = getSkill(l.skill);
+    return `${other?.name ?? l.skill} · ${other?.levels[l.level]?.name ?? `Level ${l.level + 1}`}`;
+  }).join(', ');
+  return el('div.row__leans', {}, `leans on ${text}`);
+}
+
+function buildsOn(skill) {
+  const deps = dependenciesOf(skill);
+  if (!deps.length) return null;
+  const names = deps.map((id) => getSkill(id)?.name ?? id);
+  return el('p.tiny.muted.builds-on', {},
+    el('span.builds-on__label', {}, 'Builds on'),
+    names.join(', '));
+}
+
+/**
+ * If a skill this one builds on has gone quiet, offer a warm-up. A suggestion
+ * with a one-tap route, never a lock: `depends_on` is soft, and a student who
+ * wants to press on is allowed to.
+ */
+function warmUpPrompt(skill) {
+  const stale = staleDependencies(skill, currentRating());
+  if (!stale.length) return null;
+  const first = stale[0];
+  return el('div.banner.banner--violet', {},
+    el('span', {}, '↻'),
+    el('span.grow', {},
+      `${first.skillName} · ${first.levelName} hasn't been practised in `
+      + `${Math.round(first.daysSince)} days. A quick warm-up there will make this easier.`),
+    el('button.btn.btn--sm.btn--ghost', {
+      onclick: () => go({ name: 'mode', skillId: first.skillId, level: first.level }),
+    }, 'Warm up'));
+}
+
+/**
+ * A way in for someone who hasn't met this yet. Deliberately a banner rather
+ * than a third mode card: the choice between Practice and Time Trial was cut
+ * to two on purpose, and this is not a third way to practise — it is the thing
+ * you do before you practise at all.
+ */
+function lessonPrompt(skill, level) {
+  return el('div.banner.banner--cool.lesson-prompt', {},
+    el('span', {}, '▶'),
+    el('span.grow', {}, `New to ${skill.levels[level].name}? Walk through one first.`),
+    el('button.btn.btn--sm.btn--ghost', {
+      onclick: () => openWalkthrough({ skill, level }),
+    }, 'Show me'));
+}
+
+/** Step two: pick how to practise it. Choosing here starts the run. */
+export function modeScreen(skillId, level) {
+  const skill = SKILLS.find((s) => s.id === skillId);
+  const rec = recordFor(skillId);
+  const levelDef = skill.levels[level];
+  const clock = clockFor(levelDef, state.progress, skillId, level);
+  const atLastLevel = level === skill.levels.length - 1;
+
+  const cards = MODE_ORDER.map((id) => {
+    const mode = MODES[id];
+    const blurb = mode.gate && atLastLevel
+      ? 'Solve enough before the clock runs out to finish this skill for the '
+        + 'day. Mistakes cost you time, not lives.'
+      : mode.blurb;
+    // A trial needs a clock, and a clock is earned by practising first.
+    const locked = mode.gate && clock.source === 'unready';
+
+    return el('button.tile.tile--mode', {
+      class: locked ? 'tile--locked' : '',
+      disabled: locked,
+      onclick: () => go({ name: 'play', skillId, level, modeId: id }),
+    },
+      el('div.tile__head', {},
+        el('div.tile__glyph', {}, locked ? '🔒' : mode.glyph),
+        el('div.tile__name', {}, mode.name)),
+      el('div.tile__blurb', {}, blurb),
+      mode.target
+        ? el('div.stack--sm', {},
+            el('div.eyebrow', {},
+              locked ? 'Locked'
+                : `${clock.target} correct in ${formatDuration(clock.duration)}`
+                  + (rec.best[id] ? ` · best ${rec.best[id]}` : '')),
+            el('div.clock-note', {}, clockExplanation(clock)))
+        : null,
+      el('div.tile__cta', {}, locked ? 'Practise first' : 'Start ›'));
+  });
+
+  return el('div.shell', {},
+    topbar(),
+    crumbs([
+      { label: 'Map', go: () => go({ name: 'map' }) },
+      { label: skill.name, go: () => go({ name: 'skill', skillId }) },
+      { label: levelDef.name },
+    ]),
+    pageHead('← Levels', () => go({ name: 'skill', skillId }), levelDef.name, levelDef.blurb),
+    warmUpPrompt(skill),
+    lessonPrompt(skill, level),
+    el('div.eyebrow', {}, 'How do you want to practise?'),
+    el('div.grid.grid--modes', {}, cards));
+}

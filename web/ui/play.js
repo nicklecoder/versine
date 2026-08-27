@@ -1,0 +1,490 @@
+import { api } from '../engine/api.js';
+import { SKILLS } from '../engine/registry.js';
+import { MODES, trialSettings } from '../engine/modes.js';
+import { clockFor } from '../engine/clock.js';
+import { play as sound } from '../engine/audio.js';
+import { openWalkthrough } from './walkthrough.js';
+import { Session } from '../engine/session.js';
+import { el, mount, minus } from './dom.js';
+import { getType } from '../math/answer.js';
+import { renderVisual, hasVisual } from './visuals.js';
+import { makeAnswerInput } from './answerinput.js';
+import { state, go } from './router.js';
+import { topbar, crumbs, soundToggle } from './map.js';
+
+const CORRECT_PAUSE = 850;
+const REVEAL_PAUSE = 1900;
+
+/** @param {{skillId:string, level:number, modeId:string, duration?:number}} route */
+export function playScreen(route) {
+  const skill = SKILLS.find((s) => s.id === route.skillId);
+  const mode = MODES[route.modeId];
+  // Derived here rather than carried in the route, so it can never go stale.
+  const trial = clockFor(skill.levels[route.level], state.progress, skill.id, route.level);
+
+  // ── Elements ────────────────────────────────────────────────────────────
+  const hud = el('div.hud');
+  const timeFill = el('div.timebar__fill');
+  const timebar = el('div.timebar', {}, timeFill);
+  const problemEl = el('div.problem');
+  const retryFlag = el('div.retry-flag.hidden', {}, '↻ Second look');
+  // Whatever picture this skill wants lives here; the play screen never needs
+  // to know whether it's a number line, a sign model, or something later.
+  const visualBox = el('div.visual');
+  const feedback = el('div.feedback');
+  // The widget is chosen by the skill's answer type -- an integer box, or
+  // stacked numerator over denominator for fractions. This screen never needs
+  // to know which: every widget offers the same small surface.
+  const answerSlot = el('div.answer-slot');
+  const hintEl = el('p.tiny.muted.center');
+  let answer = null;
+  let answerKind = null;
+
+  /** Swap the input widget when a problem asks for a different kind of answer. */
+  function useAnswerWidget(kind, spec) {
+    // Choice widgets carry their options, which change every problem, so they
+    // are rebuilt each time rather than only when the kind changes.
+    if (kind === answerKind && kind !== 'choice') return;
+    answerKind = kind;
+    answer = makeAnswerInput(kind, spec);
+    hintEl.textContent = keyboardHint();
+      mount(answerSlot, answer.node);
+  }
+  useAnswerWidget(skill.answerInput ?? 'int', null);
+
+  // Keyboard-first: a button that grabs focus is a button that breaks the
+  // flow. Suppressing mousedown's default keeps focus in the answer field
+  // while still firing the click.
+  const noSteal = { onmousedown: (e) => e.preventDefault() };
+
+  const explainBtn = mode.allowExplain
+    ? el('button.btn.btn--sm.btn--ghost', { onclick: showExplain, ...noSteal }, 'Why?')
+    : null;
+  const checkBtn = el('button.btn.btn--primary', { onclick: submit, ...noSteal }, 'Check');
+
+  let locked = false;         // between answering and the next problem
+  let timerId = null;
+  let lessonOpen = false;     // a walkthrough overlay owns the keyboard
+
+  // The number line draws at 1:1 pixel scale, so visuals are redrawn whenever
+  // the box changes width -- including the first layout, since playScreen
+  // builds the tree before it is mounted.
+  let lastDraw = null;
+  let lastWidth = 0;
+  const paintVisual = (spec, opts) => {
+    lastDraw = { spec, opts };
+    lastWidth = Math.round(visualBox.getBoundingClientRect().width);
+    renderVisual(visualBox, spec, opts);
+  };
+  const observer = new ResizeObserver(() => {
+    const w = Math.round(visualBox.getBoundingClientRect().width);
+    if (!lastDraw || w === lastWidth || w === 0) return;
+    lastWidth = w;
+    renderVisual(visualBox, lastDraw.spec, { ...lastDraw.opts, animateFrom: null });
+  });
+  observer.observe(visualBox);
+
+  // ── Session ─────────────────────────────────────────────────────────────
+  const session = new Session({
+    skill, level: route.level, mode,
+    duration: mode.duration ? trial.duration : undefined,
+    target: mode.target ? trial.target : undefined,
+    onEvent: handleEvent,
+  });
+
+  function handleEvent(e) {
+    switch (e.type) {
+      case 'problem': return showProblem(e.problem, e.isRetry);
+      case 'tick':    return paintTime();
+      case 'levelUp':  return flash(`▲ Level up — ${e.name}`, 'is-info');
+      case 'end':     return finish(e.summary);
+      default:        paintHud();
+    }
+  }
+
+  // ── Rendering ───────────────────────────────────────────────────────────
+  function paintHud() {
+    const stats = [];
+    if (session.timed) {
+      const m = Math.floor(session.timeLeft / 60);
+      const s = session.timeLeft % 60;
+      stats.push(['Time', m ? `${m}:${String(s).padStart(2, '0')}` : `${s}`,
+        'time', session.timeLeft <= 10]);
+    }
+    if (session.target) {
+      stats.push(['Goal', `${session.solved}/${session.target}`, 'goal', false]);
+    } else {
+      stats.push(['Solved', session.solved, 'score', false]);
+    }
+    if (mode.scored) stats.push(['Score', session.points, 'score', false]);
+    stats.push(['Streak', session.streak, 'streak', false]);
+
+    mount(hud, stats.map(([label, value, kind, urgent]) =>
+      el(`div.stat.stat--${kind}${urgent ? '.is-urgent' : ''}`, {},
+        el('div.stat__label', {}, label),
+        el('div.stat__value', {}, String(value)))));
+  }
+
+  function paintTime() {
+    paintHud();
+    if (!session.timed) return;
+    const pct = (session.timeLeft / session.totalTime) * 100;
+    timeFill.style.width = `${pct}%`;
+    timeFill.classList.toggle('is-urgent', session.timeLeft <= 10);
+    // The last few seconds tick audibly, so you feel the clock without
+    // having to look away from the problem.
+    if (session.timeLeft > 0 && session.timeLeft <= 5) sound('tick');
+  }
+
+  function showProblem(problem, isRetry) {
+    locked = false;
+    useAnswerWidget(problem.answer.type, problem.answer);
+    problemEl.innerHTML = problem.prompt;
+    retryFlag.classList.toggle('hidden', !isRetry);
+    feedback.textContent = '';
+    feedback.className = 'feedback';
+    answer.clear();
+    answer.setState(null);
+    checkBtn.disabled = false;
+    if (explainBtn) explainBtn.disabled = false;
+
+    if (hasVisual(problem.visual)) {
+      visualBox.classList.remove('hidden');
+      // Ask-state: number lines draw only their opening hop, the sign model
+      // holds both answers back. Neither leaks the result.
+      paintVisual(problem.visual, { reveal: 1, animateFrom: 0 });
+    } else {
+      visualBox.classList.add('hidden');
+    }
+
+    paintHud();
+    answer.focus();
+  }
+
+  /** Called only once an answer is committed. @param {'ok'|'bad'} verdict */
+  function revealAnswer(verdict) {
+    const p = session.problem;
+    const type = getType(p.answer.type);
+    const shown = type.html ? type.html(p.answer.value) : minus(p.answer.value);
+    problemEl.innerHTML = p.prompt.replace(
+      /<span class="q">\?<\/span>/, `<span class="a">${shown}</span>`);
+    if (hasVisual(p.visual)) {
+      visualBox.classList.remove('hidden');
+      paintVisual(p.visual, { showAnswer: true, animateFrom: 1, verdict });
+    }
+  }
+
+  /**
+   * The stepped version of "why?", walking this very problem. It runs in an
+   * overlay so the run underneath keeps its state, and focus-stealing is
+   * paused while it is open or the answer field would fight it for the caret.
+   */
+  function showExplain() {
+    if (!session.problem || lessonOpen) return;
+    lessonOpen = true;
+    openWalkthrough({
+      skill,
+      level: route.level,
+      problem: session.problem,
+      onClose: () => { lessonOpen = false; refocus(); },
+    });
+  }
+
+  const flash = (text, cls) => {
+    feedback.textContent = text;
+    feedback.className = `feedback ${cls}`;
+  };
+
+  // ── Input ───────────────────────────────────────────────────────────────
+  function submit() {
+    if (locked || session.over) return;
+    const result = session.submit(answer.value());
+
+    if (result.status === 'invalid') {
+      flash(result.hint ?? 'Type a number first.', 'is-info');
+      return;
+    }
+
+    if (result.status === 'correct') {
+      locked = true;
+      answer.setState('right');
+      checkBtn.disabled = true;
+      sound('correct');
+      const bonus = result.gained ? ` +${result.gained}` : '';
+      flash(session.streak >= 3 ? `${session.streak} in a row!${bonus}` : `Correct${bonus}`, 'is-correct');
+      revealAnswer('ok');
+      queueNext(CORRECT_PAUSE);
+      return;
+    }
+
+    // Wrong: always another go. The cost is time, never a life.
+    sound('wrong');
+    answer.setState('wrong');
+    setTimeout(() => answer.setState(null), 360);
+    flash(result.hint ?? 'Not quite — try again', 'is-wrong');
+    paintHud();
+  }
+
+  let pendingNext = null;
+  function queueNext(delay) {
+    clearTimeout(pendingNext);
+    pendingNext = setTimeout(advanceNow, delay);
+  }
+
+  /** Don't make a fast kid wait out the animation. */
+  function advanceNow() {
+    clearTimeout(pendingNext);
+    pendingNext = null;
+    if (!session.over) session.nextProblem();
+  }
+
+  // Ordinary typing goes straight into the input, so every platform's native
+  // keyboard just works. This handles the rest.
+  const onKeyDown = (e) => {
+    if (e.key === 'Escape') { quit(); return; }
+    if (e.key === '?' && mode.allowExplain) { showExplain(); return; }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      // During the reveal pause Enter means "go on then"; otherwise it submits.
+      if (pendingNext) advanceNow();
+      else submit();
+      return;
+    }
+    // Any other keystroke means they meant to type an answer.
+    if (!e.ctrlKey && !e.metaKey && !e.altKey) refocus();
+  };
+  document.addEventListener('keydown', onKeyDown);
+
+  /** The answer field keeps focus for the whole run. */
+  function refocus() {
+    if (lessonOpen || session.over) return;
+    if (!answer.contains(document.activeElement)) answer.focus();
+  }
+  answer.node.addEventListener('focusout', () => setTimeout(refocus, 0));
+
+  function teardown() {
+    document.removeEventListener('keydown', onKeyDown);
+    observer.disconnect();
+    clearInterval(timerId);
+    clearTimeout(pendingNext);
+    clearTimeout(countdownTimer);
+    pendingNext = null;
+  }
+
+  /** Where to land after the run is filed away; null means the summary. */
+  let exitTo = null;
+
+  function leave(dest) {
+    if (session.over) { teardown(); go(dest); return; }
+    if (session.answered > 0) {
+      // Save what they did, then honour where they asked to go.
+      exitTo = dest;
+      session.end('quit');
+    } else {
+      teardown();
+      go(dest);
+    }
+  }
+
+  /** Quit shows the summary, since they didn't ask for anywhere in particular. */
+  function quit() {
+    if (session.answered > 0 && !session.over) session.end('quit');
+    else { teardown(); go({ name: 'skill', skillId: route.skillId }); }
+  }
+
+  // ── End of run ──────────────────────────────────────────────────────────
+  async function finish(summary) {
+    teardown();
+    if (mode.gate) sound(summary.passed ? 'pass' : 'fail');
+    let outcome = null;
+    try {
+      outcome = await api.submitRun({
+        skill_id: skill.id, level: session.baseLevel, mode_id: mode.id,
+        level_count: skill.levels.length,
+        duration: mode.duration ? trial.duration : 0,
+        summary: { ...summary, endReason: summary.endReason },
+        attempts: session.log,
+      });
+      state.progress = outcome.progress;
+    } catch {
+      /* Server unreachable: the run still gets shown, it just isn't saved. */
+    }
+    if (exitTo) { go(exitTo); return; }
+    go({ name: 'summary', skillId: skill.id, level: session.baseLevel,
+         modeId: mode.id, summary, outcome });
+  }
+
+  /** What the keys do, phrased for whichever input this skill uses. */
+  function keyboardHint() {
+    const tail = (mode.allowExplain ? ', ? to explain' : '') + ', Esc to quit.';
+    if (answerKind === 'mixed') {
+      return 'Whole number, then / for the fraction. Enter answers' + tail;
+    }
+    if (answerKind === 'frac') {
+      // Enter moves down rather than submitting, because submitting a
+      // half-typed fraction would cost an attempt. A whole number therefore
+      // takes two presses, which is worth saying out loud.
+      return 'Type the top, then / for the bottom. Enter answers' + tail;
+    }
+    return 'Type and press Enter. Minus key for negatives' + tail;
+  }
+
+  // ── Go ──────────────────────────────────────────────────────────────────
+  let countdownTimer = null;
+
+  function begin() {
+    paintHud();
+    session.start();
+    if (session.timed) timerId = setInterval(() => session.tick(), 1000);
+    // playScreen builds the tree before app.js mounts it, so the opening focus
+    // has to wait for the element to actually be in the document.
+    setTimeout(refocus, 0);
+  }
+
+  /** Three beats before the clock starts, so nobody loses seconds to surprise. */
+  function countdownThen(done) {
+    const num = el('div.countdown__num', {}, '3');
+    const overlay = el('div.countdown', {},
+      el('div.countdown__label', {}, mode.name),
+      num,
+      el('div.countdown__hint', {}, `${trial.target} correct to clear this level`));
+    card.append(overlay);
+
+    let n = 3;
+    const step = () => {
+      n -= 1;
+      if (n === 0) {
+        sound('go');
+        num.textContent = 'GO';
+        num.className = 'countdown__num is-go';
+        countdownTimer = setTimeout(() => { overlay.remove(); done(); }, 450);
+        return;
+      }
+      sound('beep');
+      num.textContent = String(n);
+      num.className = 'countdown__num';
+      void num.offsetWidth;              // restart the pulse animation
+      num.classList.add('is-pulse');
+      countdownTimer = setTimeout(step, 800);
+    };
+    sound('beep');
+    num.classList.add('is-pulse');
+    countdownTimer = setTimeout(step, 800);
+  }
+
+  // Named so the countdown overlay has something to sit on.
+  const card = el('div.card.stack', { onclick: refocus },
+    retryFlag,
+    problemEl,
+    visualBox,
+    feedback,
+    el('div.answer-row', {}, answerSlot, checkBtn, explainBtn));
+
+  paintHud();
+  if (session.timed) countdownThen(begin);
+  else begin();
+
+  return el('div.shell', {},
+    el('div.topbar', {},
+      el('div', {},
+        crumbs([
+          { label: 'Map', go: () => leave({ name: 'map' }) },
+          { label: skill.name, go: () => leave({ name: 'skill', skillId: skill.id }) },
+          { label: skill.levels[route.level].name },
+        ]),
+        // The crumb carries the level, so the heading carries the mode.
+        el('div.row__title', {}, mode.name)),
+      el('div.row-flex', {},
+        soundToggle(),
+        el('button.btn.btn--sm.btn--ghost', { onclick: quit, ...noSteal }, 'Quit'))),
+    hud,
+    session.timed ? timebar : null,
+    card,
+    hintEl);
+}
+
+/** Post-run screen: what happened, and what it earned. */
+export function summaryScreen(route) {
+  const { summary, outcome } = route;
+  const skill = SKILLS.find((s) => s.id === route.skillId);
+  const mode = MODES[route.modeId];
+
+  const verdict = mode.gate
+    ? (summary.passed ? 'Level cleared' : 'Out of time')
+    : 'Session ended';
+
+  const stat = (label, value) =>
+    el('div.stat', {}, el('div.stat__label', {}, label), el('div.stat__value', {}, String(value)));
+
+  const banners = [];
+  if (outcome?.unlockedLevel != null && skill.levels[outcome.unlockedLevel]) {
+    banners.push(el('div.banner.banner--gold', {},
+      `★ Level unlocked — ${skill.levels[outcome.unlockedLevel].name}`));
+  }
+  if (outcome?.newBest && mode.scored) {
+    banners.push(el('div.banner.banner--cool', {}, '⚡ New personal best'));
+  }
+  if (outcome?.clockNext && outcome.clockWas) {
+    const delta = outcome.clockNext - outcome.clockWas;
+    const fmt = (sec) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+    if (delta !== 0) {
+      banners.push(el('div.banner.banner--cool', {},
+        el('span', {}, delta > 0 ? '⏱' : '⚡'),
+        el('span', {}, delta > 0
+          ? `More time next go: ${fmt(outcome.clockNext)}. The clock follows you.`
+          : `Tighter next go: ${fmt(outcome.clockNext)}. You had time to spare.`)));
+    } else {
+      banners.push(el('div.banner.banner--cool', {},
+        el('span', {}, '⏱'),
+        el('span', {}, outcome.clockAtFloor
+          ? `Clock stays at ${fmt(outcome.clockNext)} — as tight as this level goes.`
+          : `Clock stays at ${fmt(outcome.clockNext)} — that was about right.`)));
+    }
+  }
+  if (!outcome) {
+    banners.push(el('div.banner.banner--violet', {}, '⚠ Not saved — server unreachable'));
+  }
+
+  /** One way off this screen: back to the levels list. */
+  const dismiss = () => { cleanup(); go({ name: 'skill', skillId: route.skillId }); };
+
+  // Enter is deaf for a moment first -- the keystroke that finished the last
+  // problem often arrives just after the run ends, and would skip the score.
+  let armed = false;
+  setTimeout(() => { armed = true; }, 700);
+
+  const onKey = (e) => {
+    if (e.key === 'Enter' || e.key === 'Escape') {
+      e.preventDefault();
+      if (e.key === 'Enter' && !armed) return;
+      dismiss();
+    }
+  };
+  const cleanup = () => document.removeEventListener('keydown', onKey);
+  document.addEventListener('keydown', onKey);
+
+  return el('div.shell', { style: { maxWidth: '560px' } },
+    topbar(),
+    crumbs([
+      { label: 'Map', go: () => { cleanup(); go({ name: 'map' }); } },
+      { label: skill.name, go: dismiss },
+      { label: `${skill.levels[route.level].name} · ${mode.name}` },
+    ]),
+    el('div.card.summary', {},
+      el('div', { class: `summary__verdict ${mode.gate ? (summary.passed ? 'is-pass' : 'is-fail') : ''}` }, verdict),
+      el('div.summary__score', {}, String(mode.scored ? summary.points : summary.solved)),
+      el('div.eyebrow', {}, mode.scored ? 'points' : 'problems solved'),
+      mode.gate
+        ? el('p.muted', {},
+            summary.passed
+              ? `${summary.solved} solved with ${summary.timeLeft ?? 0}s to spare.`
+              : `${summary.solved} of ${summary.target} solved. Close the gap and the level is yours.`)
+        : null,
+      el('div.summary__grid', {},
+        stat('Solved', summary.solved),
+        stat('First try', `${Math.round(summary.accuracy * 100)}%`),
+        stat('Best run', summary.bestStreak),
+        stat('Avg', `${summary.avgSeconds.toFixed(1)}s`)),
+      ...banners,
+      el('button.btn.btn--go.btn--ok', { onclick: dismiss }, 'OK ⏎')));
+}

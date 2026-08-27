@@ -1,0 +1,14 @@
+[Unit]
+Description=Versine — check for updates at boot and overnight
+
+[Timer]
+# Shortly after boot, once the network has settled.
+OnBootSec=45s
+# And again overnight, so a machine that stays up still keeps current.
+OnCalendar=*-*-* 04:30:00
+# If the machine was off at 04:30, run once after it comes back.
+Persistent=true
+Unit=versine-update.service
+
+[Install]
+WantedBy=timers.target

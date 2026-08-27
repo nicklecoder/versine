@@ -1,0 +1,648 @@
+# Versine
+
+Math practice for people who are going somewhere with it.
+
+A self-hosted practice game covering arithmetic, algebra, geometry and trig as
+one connected subject rather than four separate ones. The measure of success is
+simple: a student who is proficient across this catalogue is genuinely ready to
+begin calculus.
+
+Runs on a machine on your own network. Kids reach it from a laptop or a phone
+with nothing to install; parents get a console to see how it is going.
+
+> The **versine** is an old trigonometric function, `versin θ = 1 − cos θ`. It
+> filled the navigation tables that got ships across oceans, and then quietly
+> fell out of use when calculators arrived. It seemed a fitting name for a
+> project about the parts of mathematics that are worth knowing in your bones.
+
+MIT licensed. Use it however you like.
+
+## Vocabulary
+
+One name per thing, used in the code, the database, the UI and in conversation.
+If a word appears here, it does not have a synonym anywhere else.
+
+| Term | Means |
+|---|---|
+| **Skill** | A named area of practice, e.g. *Integer Add & Subtract*. Contains Levels. Listed on the Map. |
+| **Level** | One step inside a Skill, teaching one idea. The unit of practice, progress, unlocking and scheduling. |
+| **Last level** | Exactly what it says: the final Level of a Skill. By convention it mixes every Level before it, and clearing it in a Time Trial finishes the Skill for the day. Not a separate kind of thing — a position. |
+| **Mode** | How a Level is practised: *Practice* or *Time Trial*. |
+| **Run** | One session of one Level in one Mode. |
+| **Attempt** | One answer to one Problem. Every attempt is recorded. |
+| **Problem** | A single generated question. |
+| **Map** | The screen listing every Skill. |
+| **Student / Teacher** | The two roles. Teachers see the console. |
+| **depends_on** | A soft "builds on" link. Never a gate. |
+
+There is no *tier*. It was renamed to Level everywhere — including the database
+columns — precisely so that no one has to translate between what the code says
+and what the screen says.
+
+There is deliberately no *capstone* either. "Capstone" has established meanings
+in education, and this vocabulary should not spend that word on "the last item
+in a list" when plain words do the job.
+
+A practice game for pre-algebra and Algebra 1 skills, built for two teenagers
+who are past the age where a cartoon mascot helps.
+
+It runs on one machine on the home network. The kids reach it from their
+laptops or phones with a browser — nothing to install on their devices.
+
+## Running it
+
+On the server (needs only Docker):
+
+```bash
+git clone <your-repo> versine && cd versine
+docker compose up -d
+```
+
+Then open `http://<server-ip>:8000` from any device on the LAN.
+
+## Accounts
+
+The very first screen creates the **teacher** account — that's the one that can
+see everyone's progress and remove people.
+
+After that, anyone signs themselves up: the sign-in screen has a **New profile**
+tile, and whoever taps it picks an icon and a colour, types a name, and chooses
+a 4-digit PIN. No grown-up needed to get started. Self-serve profiles are always
+students, so nobody can grant themselves the teacher role.
+
+A teacher can **delete** a student from the console (which erases that student's
+entire history, so it asks twice), and can add a second teacher for another
+adult. PINs are hashed, never stored in the clear, and rate-limited after five
+wrong tries — enough to stop a bored sibling, which is the actual threat model
+on a home network.
+
+To update:
+
+```bash
+git pull                      # frontend changes are live on a browser refresh
+docker compose restart        # …and backend changes after this
+```
+
+`web/` and `server/` are bind-mounted, so a rebuild is only needed when
+`requirements.txt` changes (`docker compose up -d --build`). Progress lives in
+`data/progress.db` on the host and is never touched by either.
+
+## Staying up to date
+
+The server updates itself. At boot, and again at 04:30, it checks the git
+remote and — if there is something new and it can be applied safely — pulls it,
+restarts, and confirms the result actually works.
+
+```
+scripts/install-autoupdate.sh     # run once, on the server
+```
+
+That checks prerequisites, installs a systemd timer and service, and starts
+them. After that there is nothing to do: pushing to the remote is how the
+server gets new code.
+
+```
+systemctl list-timers versine-update.timer   # when it next runs
+journalctl -u versine-update.service -n 50   # what it did last time
+sudo systemctl start versine-update.service  # do it now
+curl localhost:8000/api/health                    # which commit is serving
+```
+
+### What it does, in order
+
+1. **Takes a lock.** Boot and the nightly run can overlap; only one proceeds.
+2. **Fetches.** No remote, no network, or nothing new — it logs that and stops.
+   The app keeps running either way.
+3. **Backs up the database**, before any new code can migrate it, using
+   sqlite's backup API rather than `cp` — the database runs in WAL mode and
+   copying the file alone can capture a torn state. Ten backups are kept, each
+   named for the commit it was taken ahead of.
+4. **Fast-forwards only.** Uncommitted edits on the server, or a diverged
+   branch, mean it declines rather than merging or discarding.
+5. **Rebuilds only if it must.** `web/` and `server/` are bind-mounted, so most
+   updates need no image build — only a change to `Dockerfile`,
+   `requirements.txt`, or `docker-compose.yml` triggers one.
+6. **Proves it works.** It polls `/api/health`, which opens the database and
+   counts users, so a build whose migrations failed cannot pass. If it does not
+   come up healthy within 90 seconds, the checkout is reset to the previous
+   commit and restarted.
+
+### The rule it follows
+
+**A kid sitting down to practise must find a working app.** Every decision
+above falls out of that. The update is an improvement on a running system, not
+a precondition for one — `restart: unless-stopped` has the container up long
+before the timer fires, so an unreachable remote or a failed update costs
+nothing but staying on yesterday's version. When the script declines to update
+it exits 0, because declining is correct behaviour; a non-zero exit means a
+genuine failure worth looking at in `systemctl status`.
+
+### Knobs
+
+Set these in the unit file if the defaults do not suit:
+
+| Variable | Default | |
+|---|---|---|
+| `VERSINE_BRANCH` | current branch | branch to track |
+| `VERSINE_PORT` | `8000` | where to health-check |
+| `VERSINE_HEALTH_TIMEOUT` | `90` | seconds to wait before rolling back |
+| `VERSINE_KEEP_BACKUPS` | `10` | pre-update backups to retain |
+
+### Before any of this works
+
+The repository needs a remote to pull from, and at least one commit:
+
+```
+git add -A && git commit -m "Initial commit"
+git remote add origin <url>
+git push -u origin master
+```
+
+Until then the timer installs and runs happily, finds no remote, and leaves the
+checkout alone.
+
+## Backing up
+
+Everything — accounts, XP, unlocked tiers, every attempt ever answered — is in
+the single file `data/progress.db`. It is gitignored, so it exists in exactly
+one place unless you copy it.
+
+```bash
+cp data/progress.db "data/progress.backup-$(date +%F).db"
+```
+
+SQLite runs in WAL mode, so copy it while the server is stopped, or use
+`sqlite3 data/progress.db ".backup data/backup.db"` to copy it safely while
+it's running.
+
+### Developing
+
+```bash
+./dev.sh          # venv + uvicorn with auto-reload on http://localhost:8000
+```
+
+No build step and no frontend toolchain — the browser loads the ES modules in
+`web/` directly, so a change is live on refresh.
+
+## How it fits together
+
+Two skills are built: **Integer Add & Subtract** and **Integer Multiply &
+Divide**, six tiers each.
+
+```
+server/           FastAPI + SQLite. No ORM; the queries are the interesting part.
+  app.py          routes, auth gating, run recording
+  db.py           schema and progress queries
+  auth.py         PIN hashing, session tokens, lockout
+web/
+  engine/         mode-agnostic game machinery
+    session.js    one run: serving, scoring, retry queue, end conditions
+    modes.js      Practice / Sprint / Survival / Mastery as policy objects
+    scoring.js    points, XP, level curve
+    rng.js        seeded RNG, so a run can be replayed from its seed
+  math/answer.js  answer *types* — parsing, comparison, formatting
+  ui/             screens and the shared visual widgets
+    visuals.js    registry: skill names a visual kind, this dispatches it
+  skills/         one module per skill  ← this is where new content goes
+```
+
+The engine knows nothing about any particular skill. A skill module is
+responsible for three things and nothing else: generating a problem, saying
+what a correct answer looks like, and describing how to picture it.
+
+## Adding a skill
+
+Write `web/skills/your-skill.js`, then add it to `web/engine/registry.js`.
+Nothing else in the codebase needs to change.
+
+```js
+export default {
+  id: 'frac-addsub',
+  name: 'Add & Subtract Fractions',
+  category: 'fractions',      // groups it on the map
+  glyph: '⁄',
+  blurb: 'Common denominators, the short way.',
+  tiers: [{ name: 'Same Denominator', blurb: '…' }, /* … */],
+
+  generate(rng, tier) {
+    return {
+      prompt: '<span class="t1">1/2</span><span class="op">+</span>…',  // HTML
+      text: '1/2 + 1/3',            // plain text, for the attempt log
+      answer: { type: 'frac', value: … },
+      tags: ['unlike-denominators', 'needs-simplifying'],
+      parSeconds: 14,
+      visual: { kind: 'barmodel', … },
+      explain: 'Rewrite both over 6 first…',
+    };
+  },
+};
+```
+
+Two things in there matter more than they look.
+
+**Answer types** (`web/math/answer.js`) exist so fractions and expressions
+don't get string-compared. The input widget follows the *problem*, not the
+skill — Improper & Mixed Numbers asks for three boxes one moment and two the
+next, and the play screen swaps them without knowing what either is.
+`Enter` always submits, in every input; `/` and Space navigate between boxes.
+
+A level may set `requireSimplest`, and the engine enforces it: an answer that
+is the right *value* in the wrong *form* is refused with the reason —
+*"3/9 is right, but it isn't in lowest terms yet."* Value and form are separate
+checks, so a level can demand one without the other. Only `int` is defined so far. A `frac` type needs
+to distinguish *equivalent* (`2/4` = `1/2`) from *in simplest form*, because
+"right but unsimplified" is a specific, teachable wrong answer rather than
+just wrong.
+
+## The learning graph
+
+Nodes are exactly what a student sees — Skills, and the Levels inside them.
+There is no separate vocabulary of tags or concepts to keep in sync, because
+the things being related are the same things the UI already renders.
+
+```js
+// in a skill module
+dependsOn: ['int-addsub'],                     // Skill -> Skills, coarse
+
+levels: [
+  { name: 'Sign Rules',
+    dependsOn: [{ skill: 'int-addsub', level: 1 }] },   // Level -> Level, precise
+]
+```
+
+**`depends_on` is soft.** It means "this builds on that", not "this is
+forbidden until that is finished". Level unlocking *inside* a Skill is a
+separate, hard rule; these edges only inform. A student who wants to jump
+straight into multiplication may.
+
+A Level may only depend on Skills its parent Skill already declares, so the
+precise edges can never contradict the coarse ones. `validateGraph()` in
+`web/engine/registry.js` checks that, plus unknown ids, out-of-range levels and
+cycles.
+
+An earlier design described problems with a faceted tag vocabulary
+(`rule:sub-a-negative` and so on). It was removed: it needed its own grammar,
+its own curation policy, and it invited a combinatorial explosion of
+relationships between attributes. The graph above says the same useful things
+using artefacts that already exist. Every Attempt still stores the literal
+problem text, so finer-grained analysis remains possible after the fact if it
+is ever actually needed.
+
+## Strategy levels
+
+Most levels drill a procedure. A **strategy level** drills the choice *between*
+procedures — which form to convert to, which method to reach for, when a
+shortcut is worth taking and when it is a trap. It is marked `kind: 'strategy'`
+and shows a "judgement" tag on the map.
+
+Being able to convert both ways and having no idea which one the situation
+wants is most of what "bad at fractions" actually means. The same is true
+further up: expanding and factoring are both easy, and knowing that you factor
+to solve and expand to evaluate is the part that decides whether algebra feels
+like a machine or a mystery.
+
+### Where they go
+
+Two rules, and the second is the one that is easy to get wrong.
+
+**Place a strategy level where the choice first costs something.** That is
+usually *not* the skill that introduced the concept. Converting between
+improper and mixed numbers is taught in `frac-mixed`, but the choice only
+starts to matter once you are multiplying — so the strategy level sits after
+both the conversions and the multiplication, at the first point where picking
+wrong is expensive.
+
+**Never let a strategy level be where a topic is first met.** Working a
+judgement question in early, by referring to something the student has not
+covered, buys the strategic layer at the cost of teaching the topic badly. If a
+strategy level needs a topic, the skill must depend on it — and the level
+declares a level-precise `dependsOn` naming the skill that creates the need.
+`validateGraph()` enforces that the level's dependencies are declared by its
+skill, so this cannot drift silently.
+
+Placed correctly, the level lands close to the need and the ideas link
+together. Placed early, it is trivia.
+
+### Answering them
+
+Strategy levels use the `choice` answer type: two or more options, picked with
+the number keys or the arrows, submitted with Enter like everything else. They
+carry **no visual** — every model leans toward one representation, and a
+leaning model answers a question that is entirely about which way to lean.
+
+## Level
+
+A student's Level is **not accumulated experience**. XP in games measures how
+long you have played rather than what you can do, and it can only ever go up —
+which misrepresents arithmetic, because a skill you stop practising genuinely
+does get slower and less accurate.
+
+So Level is computed fresh from present ability, and it can fall:
+
+```
+for every level the student has cleared:
+    contribution = weight × quality
+Level = floor(sum of contributions) + 1
+```
+
+- **weight** — harder material counts for more. Depth in the dependency graph
+  (`+0.5` per step) times position within the skill (`+0.15` per level).
+- **quality** — how well they perform it *now*, measured over the **last 40
+  answers** at that level. Accuracy **multiplies** rather than averages, so
+  being fast can never rescue being wrong.
+
+Note what is absent: **time**. The Level never drifts down because a student
+stopped playing. Decaying on the calendar would be a guess about what happened
+while nobody was looking, and this number is meant to record what was actually
+demonstrated. The Level falls only when a lower standard is genuinely shown,
+and rises again the moment a better one is.
+
+Because `quality` is measured over the last *N answers* rather than the last
+*N days*, a level nobody has touched for months keeps its last demonstrated
+standard rather than collapsing to zero.
+
+## The Time Trial clock calibrates itself
+
+Nobody sets a clock by hand — not the teacher, not the student, not the author
+of a skill. It arrives one of three ways:
+
+1. **Not yet.** A level with no history keeps its Time Trial locked. You must
+   practise it first; Practice quietly times you while you learn it.
+2. **Seeded.** After 8 answers, the clock is set to the pace you actually
+   practised at: `median × target`. Keep up your own practice pace and you pass
+   exactly.
+3. **Adapted.** After every trial the clock moves, stored per student per
+   level in `level_clocks`.
+
+The controller reads one signal from each outcome:
+
+| Outcome | Clock next time |
+|---|---|
+| Ran out of time | **+15%** |
+| Finished with more than 20% of the clock unused | **−10%** |
+| Finished narrowly | unchanged — this is the right level of hard |
+
+Asymmetric on purpose: relief arrives faster than pressure, so a struggling
+student is helped quickly while a strong one is squeezed gently. Bounded to
+3–40 seconds per problem so it can never reach an absurd value, and rounded to
+5 seconds so it reads like a clock rather than a measurement.
+
+Accuracy needs no separate rule here — wrong answers eat the clock, so
+inaccuracy shows up as failing to finish, and the clock loosens in response.
+
+### Why the Level does not use this clock
+
+`rating.js` measures quality against the level's **authored reference pace**,
+not the student's personal clock. If it used the personal clock, every student
+would be measured against their own moving bar, everyone would converge on
+similar Levels regardless of ability, and comparing two students would become
+meaningless. So the gate adapts; the yardstick does not.
+
+## Review, not decay
+
+Time still matters — it just asks a different question: *is this worth
+revisiting?* rather than *should this count for less?*
+
+A cleared level is `fresh`, `due` (14 days untouched) or `stale` (35 days).
+That state never touches the Level. It drives two suggestions:
+
+- the Map flags levels that have gone quiet, and notes that revisiting them
+  re-establishes where the student stands;
+- opening a skill whose **direct dependency** has gone stale offers a one-tap
+  warm-up on that specific level.
+
+Both are prompts, never locks — `depends_on` is soft, so a student who wants
+to press on may. Targeting the warm-up at direct dependencies keeps the
+suggestion small and relevant, rather than blocking everything behind a chore
+list of everything that has aged.
+
+Full activity history is still recorded for the teacher console; it simply
+isn't what determines the Level.
+
+## Lessons
+
+A lesson is a **worked example stepped at the student's pace**, using the
+level's own visual. Nothing extra had to be written for it: `explain` was
+already the sentences of an argument, so splitting it gives the commentary,
+and the visual holds its *asking* state until the final sentence — the moment
+the answer is being explained rather than merely shown.
+
+```
+1/2 + 2/5   [two bars, different pieces]   "Both sides rewritten before they combine."
+     ↓      [still asking]                 "2 and 5 both divide into 10…"
+     ↓      [bars re-divide, result fills] "Now the pieces match: 9/10."
+```
+
+Because of that, every level has a lesson today — 36 of them, averaging three
+steps — with no per-level authoring. A skill can override with its own
+`lesson(problem, level)` when the derived version isn't good enough.
+
+That also imposes a rule on the prose: **an explanation must end on its
+conclusion**, since the last sentence is the one the reveal lands on. Two
+skills had explanations trailing off into an aside after the answer; both were
+reordered.
+
+### Video, when you want it
+
+A level can point at a recording instead:
+
+```js
+{ name: 'Unlike Denominators', lesson: { video: 'lessons/unlike.mp4' } }
+```
+
+Where a file exists it is offered; where none does, the walkthrough runs. Videos
+can be recorded one level at a time, whenever, with nothing to rework in
+between and no level ever left without something.
+
+### Where it appears
+
+- a slim **banner on the mode screen**, above Practice and Time Trial —
+  deliberately not a third mode card, since that choice was cut to two on
+  purpose and this is what you do *before* practising;
+- the **"Why?" button inside Practice**, which now steps through the problem
+  actually on screen.
+
+It is an overlay, not a screen, so a run never loses its state because someone
+asked how something works. It captures the keyboard while open — `Enter` or
+`Space` advances, `Escape` closes — and hands it back on close.
+
+## Modes
+
+Two, deliberately. Every extra mode is another decision standing between a kid
+and the maths.
+
+| Mode | Shape |
+|---|---|
+| **Practice** | Untimed, unlimited, explanations on tap. Wrong answers just come back around. The place to learn something. |
+| **Time Trial** | Solve the target before the clock runs out and the next tier unlocks. Mistakes cost seconds, not lives. The place to prove it. |
+
+Time Trial is the gate — there's no separate mastery test to sit. A wrong
+answer is never fatal in either mode: you get another go, and in a Trial the
+penalty is simply the time it took.
+
+Scoring gives the speed bonus only on a first-try solve, so guessing fast is
+always worse than answering slowly and correctly. Missed problems return a few
+questions later in the same session.
+
+## Levels, the last level, and "done for the day"
+
+Every skill ends with a **last level** that mixes all the levels before it, in
+random order with no warning which shape is coming. Earlier levels teach one
+idea at a time; the last level checks you can tell them apart.
+
+A skill is **not done for the day** until that last level is cleared in a Time
+Trial. Practising an easy level all afternoon does not tick the box, and
+neither does practising the last level without the clock, nor failing the
+trial.
+That single rule is what the streak counts: consecutive days *finished*, not
+days merely touched. The day strip shows both — solid gold for a finished day,
+faded for a day practised without finishing.
+
+The skill's tier count travels with each submitted run, so the server knows
+which level is last without hardcoding anything per skill. Add a seventh level
+to a skill and it becomes the new finish line automatically.
+
+## Visuals
+
+Each skill names the kind of picture its problems want, and `web/ui/visuals.js`
+dispatches on it. The play screen never learns what kinds exist, so adding a
+bar model for fractions means adding one entry to that registry.
+
+Eight exist so far:
+
+- **`numberline`** — integer addition and subtraction. Chained hops.
+- **`signmodel`** — integer multiplication and division. Splits the problem
+  into the two questions it really is: what *sign* is the answer, and how *big*
+  is it? Kids who "can't do negatives" can nearly always do 3 × 4; what they
+  lose track of is the sign, so the widget separates the two and answers
+  neither until the student has.
+- **`areamodel`** — multiplying fractions. One square is one whole; the first
+  fraction shades a strip of the width, the second a strip of the height, and
+  the product is where they cross. It carries the two things students most
+  often miss: why you multiply top-by-top and bottom-by-bottom (the grid holds
+  `d1 × d2` pieces, the overlap `n1 × n2`), and why multiplying by a proper
+  fraction makes the answer *smaller*.
+- **`fitsmodel`** — dividing fractions. No area can show division, so this uses
+  length: the dividend laid along a whole, then chopped into copies of the
+  divisor and counted. Getting that idea first is what stops "flip the second
+  one" being a spell.
+- **`wholesmodel`** — improper fractions and mixed numbers. Each bar is one
+  whole. Going *to* a mixed number, the ask shows one piece and says how many
+  of them you have — laying them all out would be the answer. Going the other
+  way, the wholes are drawn as **undivided blocks**: you can see two wholes and
+  a third, but counting thirds means knowing a whole is three of them, which is
+  the arithmetic.
+- **`equivmodel`** — equivalent fractions and simplifying. The same length of
+  bar cut into different pieces. Only the fraction you were *given* is drawn
+  while the question is open; the second bar would let you count the answer
+  straight off it, so it arrives with the reveal, aligned underneath, where
+  both shadings stopping in the same place is the whole point.
+- **`evalmodel`** — order of operations. The working written out line by line,
+  each labelled with the rule that justified it. While the question is open
+  only the first line shows — that line *is* the question; everything after it
+  is the answer. The stepped lesson uses the same renderer with one more line
+  each press, which is what makes a walkthrough of this skill worth having.
+- **`barmodel`** — adding and subtracting fractions. Two bars of *identical*
+  length, divided by their own denominators. That alignment is the point: it
+  makes visible that a half and a third are different-sized pieces, which is
+  the misconception behind `1/2 + 1/3 = 2/5`. Research consistently points at
+  aligned rectangles rather than pie charts for exactly this — you cannot
+  compare a third against three eighths by eye on a circle. On reveal both bars
+  re-divide into the common denominator and a result bar appears.
+
+Both obey the same rule: nothing derived from the answer is drawn until an
+answer has been committed.
+
+## The number line
+
+While a problem is being *asked*, only the first hop is drawn: `0 → a`. That
+anchors where you start without handing over where you finish.
+
+Once an answer is committed, the second hop is drawn from `a` to the result,
+the answer lands as a gold dot, and a green tick or red cross says how it went.
+
+This distinction matters. An earlier version drew the whole chain up front,
+which quietly turned the teaching aid into an answer key — you could read the
+result off the picture without doing any arithmetic.
+
+## Getting back
+
+Every screen inside a skill carries a breadcrumb trail — `Map / Integer Add &
+Subtract / Adding Negatives` — and each part is clickable, from the run screen
+and from the summary alike. Leaving a run part-way through still files it away
+first, so nothing practised is ever lost by navigating away.
+
+## Sound
+
+Every sound is synthesised with the Web Audio API — no files to download,
+nothing to go missing offline, and the whole palette costs a few hundred bytes
+rather than a folder of samples.
+
+| Moment | Sound |
+|---|---|
+| Countdown | three beeps at 660 Hz, then 990 Hz for *go* |
+| Correct | two rising notes, 880 → 1319 Hz |
+| Wrong | a short low buzz, 174 Hz |
+| Final five seconds | a clock tick each second |
+| Trial cleared | a rising four-note arpeggio |
+| Ran out of time | two falling notes |
+
+Two rules shape it. **Short** — these fire dozens of times a session, and
+anything with a tail is unbearable by the twentieth problem. And the
+wrong-answer sound is deliberately **soft**: a harsh buzzer every time a child
+makes a mistake teaches them to fear the mistake, which is the opposite of what
+Practice is for.
+
+Mute lives in the top bar of every screen *including mid-run*, since that is
+when you would most want it. It is stored per device rather than per account —
+it is about the room you are sitting in — and the button suppresses mousedown
+so it never pulls focus out of the answer field.
+
+## Keyboard first
+
+The answer field keeps focus for the whole run: buttons suppress mousedown so
+they can't steal it, clicking the card returns it, and any stray keystroke puts
+it back. `Enter` submits, `Enter` again skips the reveal, `?` explains, `Esc`
+quits. On the summary, `Enter` runs it again and `Esc` steps back.
+
+## Measuring ability
+
+The teacher console's **Ability by level** panel answers one question: how able
+is this student, on a yardstick that is the same for everybody?
+
+For each level, per student:
+
+- **median** seconds on correct answers, against the level's fixed **standard**
+- **their clock** — where the self-adjusting Time Trial gate has settled for
+  them, and over how many trials
+- **accuracy** — share of answers that were right
+- a **trend**: one bar per day, green below the standard and red above it, with
+  the standard drawn as a dashed line
+
+Median rather than mean, deliberately: one interrupted problem produces a
+400-second outlier that drags an average into nonsense.
+
+The verdict chip reads `fast` / `at standard` / `near standard` /
+`below standard`. Note what it is *not*: a warning that the clock is set wrong.
+The clock corrects itself now, so that question answers itself. This is a
+statement about the student.
+
+The two numbers are different on purpose. A student's own clock adapts to them,
+so it can never tell you whether they are strong or weak — everyone eventually
+passes their own bar. The median against the fixed standard can, and it stays
+comparable between siblings and across months.
+
+## Roadmap
+
+Skills the engine is built for but that aren't written yet:
+simplifying fractions, GCF/LCM, exponent rules, order of operations,
+distributing and combining like terms, one- and two-step equations, ratios and
+proportions, percent ↔ decimal ↔ fraction, radicals, scientific notation.
+
+Ideas parked for later: live head-to-head races over the LAN (the server is
+already the right shape for it), a spaced-repetition "daily mix" across skills,
+and cosmetic unlocks bought with XP.
+
+A Survival mode (three lives, escalating difficulty) was built and then removed
+when the mode list got too long. It's in the git history if it's ever wanted
+back.

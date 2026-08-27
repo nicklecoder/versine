@@ -1,0 +1,22 @@
+services:
+  versine:
+    build: .
+    container_name: versine
+    restart: unless-stopped
+    # Run as the host user so data/ stays writable from outside the container.
+    user: "1000:1000"
+    environment:
+      # Stamped by scripts/update.sh so /api/health reports which commit is
+      # actually serving -- the thing you want to know when a kid says it broke.
+      - VERSINE_VERSION=${VERSINE_VERSION:-dev}
+    ports:
+      - "8000:8000"
+    volumes:
+      # Progress lives on the host, so rebuilds never touch it.
+      - ./data:/app/data
+      # App code is mounted rather than only baked into the image, so a
+      # `git pull` updates the running app: the frontend on a browser refresh,
+      # the backend on `docker compose restart`. Only dependency changes in
+      # requirements.txt need a rebuild.
+      - ./web:/app/web:ro
+      - ./server:/app/server:ro

@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Number Line Quest</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1b2d;
+    --surface: #162236;
+    --surface2: #1e3050;
+    --accent1: #ff6b6b;
+    --accent2: #ffd93d;
+    --accent3: #6bcb77;
+    --accent4: #4d96ff;
+    --text: #f0f4ff;
+    --muted: #8899bb;
+    --radius: 16px;
+    --vec-a: #ff6b6b;
+    --vec-b: #4d96ff;
+    --result: #ffd93d;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow-x: hidden;
+    padding: 20px;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 20%, rgba(77,150,255,0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(255,107,107,0.10) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(255,217,61,0.05) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 760px;
+    display: flex; flex-direction: column; align-items: center; gap: 20px;
+  }
+
+  .title {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(2rem, 6vw, 3.2rem);
+    letter-spacing: 1px;
+    background: linear-gradient(135deg, var(--accent2) 0%, var(--accent1) 50%, var(--accent4) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    text-align: center;
+  }
+
+  .status-bar {
+    display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; width: 100%;
+  }
+
+  .stat-box {
+    background: var(--surface);
+    border: 2px solid var(--surface2);
+    border-radius: var(--radius);
+    padding: 10px 24px;
+    text-align: center;
+    min-width: 110px;
+  }
+  .stat-label { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+  .stat-value { font-family: 'Fredoka One', cursive; font-size: 2rem; line-height: 1.1; }
+  .stat-value.timer { color: var(--accent2); transition: color .3s; }
+  .stat-value.timer.urgent { color: var(--accent1); animation: pulse .5s ease-in-out infinite alternate; }
+  .stat-value.score { color: var(--accent3); }
+  .stat-value.streak { color: var(--accent4); }
+
+  @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.08); } }
+
+  .settings-card {
+    background: var(--surface);
+    border: 2px solid var(--surface2);
+    border-radius: var(--radius);
+    padding: 20px 28px;
+    width: 100%;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .settings-card h3 { font-size: .85rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 700; }
+  .settings-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .settings-row label { font-weight: 700; font-size: .95rem; }
+  .duration-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .dur-btn {
+    background: var(--surface2);
+    border: 2px solid transparent;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif; font-weight: 700; font-size: .9rem;
+    padding: 6px 16px; border-radius: 50px; cursor: pointer;
+    transition: all .2s;
+  }
+  .dur-btn:hover { border-color: var(--accent4); }
+  .dur-btn.active { background: var(--accent4); border-color: var(--accent4); color: #fff; }
+
+  .game-card {
+    background: var(--surface);
+    border: 2px solid var(--surface2);
+    border-radius: calc(var(--radius) * 1.5);
+    padding: 28px 28px 24px;
+    width: 100%;
+    display: flex; flex-direction: column; gap: 22px;
+    min-height: 300px;
+  }
+
+  .problem-display {
+    text-align: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    letter-spacing: 1px;
+    line-height: 1.2;
+    min-height: 60px;
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+  }
+  .num-a { color: var(--vec-a); }
+  .op { color: var(--muted); }
+  .num-b { color: var(--vec-b); }
+  .eq { color: var(--muted); }
+  .num-ans { color: var(--result); }
+
+  .number-line-wrap {
+    position: relative;
+    width: 100%;
+    user-select: none;
+  }
+  .nl-svg-container { width: 100%; overflow: visible; }
+
+  .legend {
+    display: flex; gap: 18px; justify-content: center; font-size: .82rem; font-weight: 700; flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+
+  .input-row {
+    display: flex; gap: 12px; justify-content: center; align-items: center; flex-wrap: wrap;
+  }
+
+  .answer-input {
+    background: var(--surface2);
+    border: 3px solid var(--surface2);
+    color: var(--text);
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    width: 100px; text-align: center;
+    padding: 8px 12px;
+    border-radius: var(--radius);
+    outline: none;
+    transition: border-color .2s;
+    -moz-appearance: textfield;
+  }
+  .answer-input::-webkit-inner-spin-button,
+  .answer-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .answer-input:focus { border-color: var(--accent4); }
+  .answer-input.wrong { border-color: var(--accent1); animation: shake .35s ease; }
+  .answer-input.right { border-color: var(--accent3); }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(4px); }
+  }
+
+  .btn {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem;
+    padding: 12px 32px;
+    border: none; border-radius: 50px;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+    letter-spacing: .5px;
+  }
+  .btn:active { transform: scale(.96); }
+
+  .btn-play {
+    background: linear-gradient(135deg, var(--accent3), #38c74a);
+    color: #0f1b2d;
+    font-size: 1.3rem;
+    padding: 14px 48px;
+    box-shadow: 0 4px 20px rgba(107,203,119,.35);
+  }
+  .btn-play:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(107,203,119,.5); }
+
+  .btn-check {
+    background: linear-gradient(135deg, var(--accent4), #2979e0);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(77,150,255,.3);
+  }
+  .btn-check:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(77,150,255,.45); }
+  .btn-check:disabled { opacity: .4; cursor: default; transform: none; }
+
+  .feedback {
+    text-align: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.25rem;
+    min-height: 32px;
+    transition: opacity .3s;
+  }
+  .feedback.correct { color: var(--accent3); }
+  .feedback.wrong { color: var(--accent1); }
+
+  .start-overlay {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 18px; padding: 16px 0; text-align: center;
+  }
+  .start-overlay p { color: var(--muted); font-size: 1rem; max-width: 380px; line-height: 1.6; }
+
+  .gameover-overlay {
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+    padding: 8px 0; text-align: center;
+  }
+  .gameover-title { font-family: 'Fredoka One', cursive; font-size: 2.2rem; color: var(--accent2); }
+  .gameover-score { font-family: 'Fredoka One', cursive; font-size: 4rem; color: var(--accent3); line-height: 1; }
+  .gameover-sub { color: var(--muted); font-size: 1rem; }
+
+  .timer-bar-wrap {
+    width: 100%;
+    background: var(--surface2);
+    border-radius: 50px;
+    height: 8px;
+    overflow: hidden;
+  }
+  .timer-bar {
+    height: 100%;
+    border-radius: 50px;
+    background: linear-gradient(90deg, var(--accent3), var(--accent2));
+    transition: width .5s linear, background .5s;
+  }
+  .timer-bar.urgent { background: linear-gradient(90deg, var(--accent1), var(--accent2)); }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="title">Number Line Quest ➕➖</div>
+
+  <div class="settings-card" id="settingsCard">
+    <h3>⚙️ Game Settings</h3>
+    <div class="settings-row">
+      <label>Timer Duration:</label>
+      <div class="duration-btns" id="durationBtns">
+        <button class="dur-btn" data-s="30">30s</button>
+        <button class="dur-btn active" data-s="60">1 min</button>
+        <button class="dur-btn" data-s="90">90s</button>
+        <button class="dur-btn" data-s="120">2 min</button>
+        <button class="dur-btn" data-s="180">3 min</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <div class="stat-box">
+      <div class="stat-label">⏱ Time</div>
+      <div class="stat-value timer" id="timerDisplay">1:00</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">✅ Score</div>
+      <div class="stat-value score" id="scoreDisplay">0</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">🔥 Streak</div>
+      <div class="stat-value streak" id="streakDisplay">0</div>
+    </div>
+  </div>
+
+  <div class="timer-bar-wrap">
+    <div class="timer-bar" id="timerBar"></div>
+  </div>
+
+  <div class="game-card" id="gameCard">
+    <!-- Start -->
+    <div class="start-overlay" id="startOverlay">
+      <p>Add and subtract positive and negative numbers. A number line shows arrows for each number so you can visualise what's happening!</p>
+      <button class="btn btn-play" id="playBtn">▶ Play</button>
+    </div>
+
+    <!-- Active game -->
+    <div id="activeGame" class="hidden">
+      <div class="problem-display" id="problemDisplay"></div>
+
+      <div class="number-line-wrap">
+        <svg id="nlSvg" class="nl-svg-container" viewBox="0 0 680 170" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#ff6b6b"></div><span id="legendA">First number</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#4d96ff"></div><span id="legendB">Second number</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ffd93d"></div><span>Answer</span></div>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+
+      <div class="input-row">
+        <input type="number" class="answer-input" id="answerInput" placeholder="?" autocomplete="off">
+        <button class="btn btn-check" id="checkBtn">Check ✓</button>
+      </div>
+    </div>
+
+    <!-- Game over -->
+    <div class="gameover-overlay hidden" id="gameoverOverlay">
+      <div class="gameover-title">Time's Up! 🎉</div>
+      <div class="gameover-score" id="finalScore">0</div>
+      <div class="gameover-sub">problems solved correctly</div>
+      <button class="btn btn-play" id="replayBtn" style="margin-top:8px;">▶ Play Again</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── State ────────────────────────────────────────────────────────────────────
+let totalSeconds = 60;
+let timeLeft = 60;
+let score = 0;
+let streak = 0;
+let timerInterval = null;
+let gameRunning = false;
+let currentA = 0, currentOp = '+', currentB = 0, currentAnswer = 0;
+let attemptedThisQ = false;
+
+// ─── DOM ──────────────────────────────────────────────────────────────────────
+const timerDisplay  = document.getElementById('timerDisplay');
+const scoreDisplay  = document.getElementById('scoreDisplay');
+const streakDisplay = document.getElementById('streakDisplay');
+const timerBar      = document.getElementById('timerBar');
+const startOverlay  = document.getElementById('startOverlay');
+const activeGame    = document.getElementById('activeGame');
+const gameoverOverlay = document.getElementById('gameoverOverlay');
+const problemDisplay  = document.getElementById('problemDisplay');
+const nlSvg         = document.getElementById('nlSvg');
+const answerInput   = document.getElementById('answerInput');
+const checkBtn      = document.getElementById('checkBtn');
+const feedback      = document.getElementById('feedback');
+const finalScore    = document.getElementById('finalScore');
+const settingsCard  = document.getElementById('settingsCard');
+const legendA       = document.getElementById('legendA');
+const legendB       = document.getElementById('legendB');
+
+// ─── Duration buttons ─────────────────────────────────────────────────────────
+document.getElementById('durationBtns').addEventListener('click', e => {
+  const btn = e.target.closest('.dur-btn');
+  if (!btn || gameRunning) return;
+  document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  totalSeconds = parseInt(btn.dataset.s);
+  timeLeft = totalSeconds;
+  updateTimerDisplay();
+  timerBar.style.width = '100%';
+});
+
+// ─── Play / Replay ────────────────────────────────────────────────────────────
+document.getElementById('playBtn').addEventListener('click', startGame);
+document.getElementById('replayBtn').addEventListener('click', startGame);
+
+function startGame() {
+  score = 0; streak = 0; timeLeft = totalSeconds;
+  scoreDisplay.textContent = '0';
+  streakDisplay.textContent = '0';
+  updateTimerDisplay();
+  timerBar.style.width = '100%';
+  timerBar.classList.remove('urgent');
+  timerDisplay.classList.remove('urgent');
+
+  startOverlay.classList.add('hidden');
+  gameoverOverlay.classList.add('hidden');
+  activeGame.classList.remove('hidden');
+  settingsCard.style.pointerEvents = 'none';
+  settingsCard.style.opacity = '.45';
+
+  gameRunning = true;
+  nextQuestion();
+  timerInterval = setInterval(tick, 1000);
+}
+
+// ─── Timer ────────────────────────────────────────────────────────────────────
+function tick() {
+  timeLeft--;
+  updateTimerDisplay();
+  const pct = timeLeft / totalSeconds * 100;
+  timerBar.style.width = pct + '%';
+  const urgent = timeLeft <= 10;
+  timerBar.classList.toggle('urgent', urgent);
+  timerDisplay.classList.toggle('urgent', urgent);
+  if (timeLeft <= 0) endGame();
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timeLeft / 60);
+  const s = timeLeft % 60;
+  timerDisplay.textContent = m > 0 ? `${m}:${s.toString().padStart(2,'0')}` : `${s}s`;
+}
+
+function endGame() {
+  clearInterval(timerInterval);
+  gameRunning = false;
+  activeGame.classList.add('hidden');
+  gameoverOverlay.classList.remove('hidden');
+  finalScore.textContent = score;
+  settingsCard.style.pointerEvents = '';
+  settingsCard.style.opacity = '';
+}
+
+// ─── Question generation ──────────────────────────────────────────────────────
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function generateProblem() {
+  for (let i = 0; i < 300; i++) {
+    const a = randInt(-10, 10);
+    const b = randInt(-10, 10);
+    const op = Math.random() < 0.5 ? '+' : '-';
+    const ans = op === '+' ? a + b : a - b;
+    // Valid range, not trivially zero both
+    if (ans >= -10 && ans <= 10 && !(a === 0 && b === 0) && b !== 0) {
+      return { a, b, op, ans };
+    }
+  }
+  return { a: 4, b: -3, op: '+', ans: 1 };
+}
+
+function nextQuestion() {
+  const prob = generateProblem();
+  currentA = prob.a;
+  currentB = prob.b;
+  currentOp = prob.op;
+  currentAnswer = prob.ans;
+  attemptedThisQ = false;
+
+  // Build the problem string: e.g.  3 + (−5) = ?
+  const opSym = prob.op === '+' ? '+' : '−';
+  const bFormatted = prob.b < 0 ? `(${prob.b})` : `${prob.b}`;
+  problemDisplay.innerHTML =
+    `<span class="num-a">${prob.a}</span>` +
+    `<span class="op">&nbsp;${opSym}&nbsp;</span>` +
+    `<span class="num-b">${bFormatted}</span>` +
+    `<span class="eq">&nbsp;=&nbsp;</span>` +
+    `<span class="num-ans">?</span>`;
+
+  legendA.textContent = `0 → ${prob.a}`;
+  const bLabel = prob.op === '+'
+    ? (prob.b > 0 ? `0 → +${prob.b}` : `0 → (${prob.b})`)
+    : (prob.b > 0 ? `0 → −${prob.b}` : `0 → +(${Math.abs(prob.b)})`);
+  legendB.textContent = bLabel;
+
+  answerInput.value = '';
+  answerInput.className = 'answer-input';
+  feedback.textContent = '';
+  feedback.className = 'feedback';
+  checkBtn.disabled = false;
+  answerInput.focus();
+
+  drawNumberLine(prob.a, prob.op, prob.b, null);
+}
+
+// ─── Check answer ─────────────────────────────────────────────────────────────
+checkBtn.addEventListener('click', checkAnswer);
+answerInput.addEventListener('keydown', e => { if (e.key === 'Enter') checkAnswer(); });
+
+function checkAnswer() {
+  const val = parseInt(answerInput.value, 10);
+  if (isNaN(val)) {
+    feedback.textContent = 'Enter a number!';
+    feedback.className = 'feedback wrong';
+    return;
+  }
+  if (val === currentAnswer) {
+    if (!attemptedThisQ) { score++; streak++; }
+    else { streak = 0; }
+    scoreDisplay.textContent = score;
+    streakDisplay.textContent = streak;
+    feedback.textContent = streak >= 3 ? `🔥 ${streak} in a row!` : '✓ Correct!';
+    feedback.className = 'feedback correct';
+    answerInput.className = 'answer-input right';
+    checkBtn.disabled = true;
+    drawNumberLine(currentA, currentOp, currentB, currentAnswer);
+    // Update problem display to show answer
+    const opSym = currentOp === '+' ? '+' : '−';
+    const bFormatted = currentB < 0 ? `(${currentB})` : `${currentB}`;
+    problemDisplay.innerHTML =
+      `<span class="num-a">${currentA}</span>` +
+      `<span class="op">&nbsp;${opSym}&nbsp;</span>` +
+      `<span class="num-b">${bFormatted}</span>` +
+      `<span class="eq">&nbsp;=&nbsp;</span>` +
+      `<span class="num-ans">${currentAnswer}</span>`;
+    setTimeout(() => { if (gameRunning) nextQuestion(); }, 1000);
+  } else {
+    attemptedThisQ = true;
+    streak = 0;
+    streakDisplay.textContent = '0';
+    feedback.textContent = '✗ Try again!';
+    feedback.className = 'feedback wrong';
+    answerInput.className = 'answer-input wrong';
+    setTimeout(() => { answerInput.classList.remove('wrong'); answerInput.select(); }, 400);
+  }
+}
+
+// ─── Number Line ──────────────────────────────────────────────────────────────
+function drawNumberLine(a, op, b, ans) {
+  const W = 680, H = 170;
+  const marginX = 52;
+  const axisY = 128;
+  const NL_MIN = -10, NL_MAX = 10;
+
+  function xOf(n) {
+    return marginX + (n - NL_MIN) / (NL_MAX - NL_MIN) * (W - 2 * marginX);
+  }
+
+  const vecAend = a;   // 0 → a  (vector A)
+  const vecBend = b;   // 0 → b  (vector B, raw second number, operator ignored)
+
+  let svg = `<defs>
+    <marker id="mA"  markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0,9 3.5,0 7" fill="#ff6b6b"/></marker>
+    <marker id="mB"  markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0,9 3.5,0 7" fill="#4d96ff"/></marker>
+    <marker id="mAr" markerWidth="9" markerHeight="7" refX="1" refY="3.5" orient="auto"><polygon points="9 0,0 3.5,9 7" fill="#ff6b6b"/></marker>
+    <marker id="mBr" markerWidth="9" markerHeight="7" refX="1" refY="3.5" orient="auto"><polygon points="9 0,0 3.5,9 7" fill="#4d96ff"/></marker>
+  </defs>`;
+
+  // Axis
+  svg += `<line x1="${marginX}" y1="${axisY}" x2="${W-marginX}" y2="${axisY}" stroke="#2a3d5a" stroke-width="3" stroke-linecap="round"/>`;
+  // Axis arrow right
+  svg += `<polygon points="${W-marginX},${axisY} ${W-marginX-8},${axisY-5} ${W-marginX-8},${axisY+5}" fill="#2a3d5a"/>`;
+
+  // Ticks + labels
+  for (let n = NL_MIN; n <= NL_MAX; n++) {
+    const x = xOf(n);
+    const major = (n % 5 === 0) || n === 0;
+    const tickH = major ? 11 : 6;
+    svg += `<line x1="${x}" y1="${axisY - tickH}" x2="${x}" y2="${axisY + tickH}" stroke="${major ? '#3d5580' : '#253550'}" stroke-width="${major ? 2 : 1.5}"/>`;
+    if (major) {
+      svg += `<text x="${x}" y="${axisY + 28}" text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="700" fill="${n===0?'#7788aa':'#3d5580'}">${n}</text>`;
+    }
+  }
+
+  // ── Vector A: 0 → a ──────────────────────────────────────────────────────
+  const arcAY = axisY - 38;
+  const x0 = xOf(0);
+  const xa = xOf(vecAend);
+
+  if (a !== 0) {
+    const cpx = (x0 + xa) / 2;
+    const goRight = xa >= x0;
+    // Arc
+    svg += `<path d="M ${x0} ${axisY} Q ${cpx} ${arcAY} ${xa} ${axisY}" fill="none" stroke="#ff6b6b" stroke-width="3.5" stroke-linecap="round" marker-end="url(#mA)"/>`;
+    const lbl = a > 0 ? `+${a}` : `${a}`;
+    svg += `<text x="${cpx}" y="${arcAY - 7}" text-anchor="middle" font-family="Fredoka One,cursive" font-size="15" fill="#ff6b6b">${lbl}</text>`;
+  }
+
+  // ── Vector B: a → ans ────────────────────────────────────────────────────
+  const arcBY = axisY - 72;
+  const xbe = xOf(vecBend); // vecBend = raw b, starting from 0
+
+  if (b !== 0) {
+    const cpx2 = (x0 + xbe) / 2;
+    const goRight2 = xbe >= x0;
+      svg += `<path d="M ${x0} ${axisY} Q ${cpx2} ${arcBY} ${xbe} ${axisY}" fill="none" stroke="#4d96ff" stroke-width="3.5" stroke-linecap="round" marker-end="url(#mB)"/>`;
+    const lbl2 = b > 0 ? `+${b}` : `${b}`;
+    svg += `<text x="${cpx2}" y="${arcBY - 7}" text-anchor="middle" font-family="Fredoka One,cursive" font-size="15" fill="#4d96ff">${lbl2}</text>`;
+  }
+
+  // ── Answer dot ────────────────────────────────────────────────────────────
+  if (ans !== null) {
+    const xans = xOf(ans);
+    svg += `<circle cx="${xans}" cy="${axisY}" r="10" fill="#ffd93d" stroke="#0f1b2d" stroke-width="3"/>`;
+    svg += `<text x="${xans}" y="${axisY - 16}" text-anchor="middle" font-family="Fredoka One,cursive" font-size="16" fill="#ffd93d">${ans}</text>`;
+  }
+
+  // ── Key points ────────────────────────────────────────────────────────────
+  // Origin dot
+  svg += `<circle cx="${x0}" cy="${axisY}" r="5" fill="#4a6080" stroke="#0f1b2d" stroke-width="2"/>`;
+  // Dot at a
+  if (a !== 0) {
+    svg += `<circle cx="${xa}" cy="${axisY}" r="7" fill="#ff6b6b" stroke="#0f1b2d" stroke-width="2.5"/>`;
+  }
+
+  nlSvg.innerHTML = svg;
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+updateTimerDisplay();
+timerBar.style.width = '100%';
+drawNumberLine(0, '+', 0, null); // blank line on start
+</script>
+</body>
+</html>
