@@ -39,10 +39,23 @@ flock -n 9 || { log "another update is already running; nothing to do"; exit 0; 
 
 compose() { docker compose "$@"; }
 
+# The commit this run intends to serve, exported so that every compose call --
+# including the exit trap's -- agrees on it. Compose treats a changed
+# environment as a changed container and recreates it, which is what makes an
+# update actually take effect: web/ and server/ are bind-mounted, so the files
+# change on disk the moment we pull, but the running Python process has already
+# imported them and will not notice until it is replaced.
+export VERSINE_VERSION="$(git rev-parse --short=8 HEAD 2>/dev/null || echo dev)"
+
 # ── Always end with something serving ────────────────────────────────────────
 # Whatever happens below, the app comes up. If the update failed we would
 # rather run yesterday's version than nothing at all.
 ensure_running() {
+  # Only step in when nothing is serving. Without this check the trap fires
+  # after a successful update and recreates the container a second time,
+  # costing another restart and overwriting the version stamp.
+  if [ -n "$(compose ps --status running --quiet 2>/dev/null)" ]; then return; fi
+  log "nothing is serving; starting the container"
   compose up -d >/dev/null 2>&1 || log "WARNING: could not start the container"
 }
 trap ensure_running EXIT
@@ -132,8 +145,8 @@ if git diff --name-only "$OLD_REV" "$NEW_REV" | grep -qE '^(Dockerfile|requireme
   BUILD_ARGS=(--build)
 fi
 
-VERSINE_VERSION="${NEW_REV:0:8}" compose up -d "${BUILD_ARGS[@]}" \
-  || { log "compose failed to start the new version"; }
+VERSINE_VERSION="${NEW_REV:0:8}"
+compose up -d "${BUILD_ARGS[@]}" || log "compose failed to start the new version"
 
 # ── 4. Prove it works, or put the old one back ───────────────────────────────
 if wait_healthy; then
@@ -144,7 +157,8 @@ fi
 
 log "new version did not become healthy within ${HEALTH_TIMEOUT}s; rolling back"
 git reset --hard "$OLD_REV" >/dev/null 2>&1 || log "WARNING: could not reset to $OLD_REV"
-VERSINE_VERSION="${OLD_REV:0:8}" compose up -d "${BUILD_ARGS[@]}" >/dev/null 2>&1
+VERSINE_VERSION="${OLD_REV:0:8}"
+compose up -d "${BUILD_ARGS[@]}" >/dev/null 2>&1
 
 if wait_healthy; then
   log "rolled back to ${OLD_REV:0:8} and healthy again"
