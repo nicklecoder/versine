@@ -9,9 +9,11 @@
 #
 # Order matters:
 #   1. back up the database BEFORE any new code can migrate it
-#   2. fast-forward only, so local edits are never clobbered
+#   2. fast-forward only, and stash/reapply local edits around it, so a
+#      deployer's own tweaks (a different port, whatever their box needs)
+#      are never clobbered and never block an update
 #   3. start the new version and prove it healthy
-#   4. if it is not healthy, put the old version back
+#   4. if it is not healthy, put the old version back -- local edits included
 #
 set -uo pipefail
 
@@ -147,21 +149,51 @@ if [ "$OLD_REV" = "$NEW_REV" ]; then
   exit 0
 fi
 
-# Uncommitted work on the server means somebody was editing in place. Pulling
-# over it would either fail halfway or silently discard their work.
+# Uncommitted work on the server is normal here, not a mistake: every
+# deployer's box is different (ports already taken, whatever else), and this
+# script is what runs on machines we've never seen. So local edits are
+# stashed out of the way for the pull and reapplied on top rather than
+# blocking the update -- see abort_to_old_rev() below.
+# flock above guarantees this run never overlaps another, so at most one
+# stash ever exists at a time and plain `git stash` (no ref) is unambiguous.
+STASHED=0
 if ! git diff --quiet || ! git diff --cached --quiet; then
-  log "working tree has uncommitted changes; refusing to update over them"
-  log "  commit or stash them on the server, then re-run this script"
-  exit 0
+  log "stashing local changes before updating"
+  git stash push -m "versine-update: local changes as of ${OLD_REV:0:8}" >/dev/null 2>&1 \
+    && STASHED=1 \
+    || die "could not stash local changes; refusing to update over them"
 fi
+
+# Puts the checkout back exactly as it was before this run touched anything:
+# code at OLD_REV, local edits reapplied. Only ever called with HEAD reset to
+# OLD_REV first, which is exactly the tree the stash was taken from, so the
+# pop is guaranteed to apply cleanly.
+abort_to_old_rev() {
+  git reset --hard "$OLD_REV" >/dev/null 2>&1 || log "WARNING: could not reset to $OLD_REV"
+  [ "$STASHED" = 1 ] || return 0
+  git stash pop >/dev/null 2>&1 || log "WARNING: could not reapply local changes; see 'git stash list'"
+}
 
 log "updating ${OLD_REV:0:8} -> ${NEW_REV:0:8} on $BRANCH"
 
-backup_db || die "database backup failed; refusing to update"
+backup_db || { abort_to_old_rev; die "database backup failed; refusing to update"; }
 
 # --ff-only: if the branches have diverged this stops rather than merging.
 if ! git merge --ff-only "origin/$BRANCH" >/dev/null 2>&1; then
   log "cannot fast-forward (the branches have diverged); leaving the checkout alone"
+  abort_to_old_rev
+  exit 0
+fi
+
+# Reapply local changes on top of the new commit now, before anything below
+# reads the files they touch (compose config, health-check port, ...).
+# `apply`, not `pop`: the stash stays available as a way back to a clean
+# OLD_REV if a later step fails, and is only dropped once the new version is
+# confirmed healthy.
+if [ "$STASHED" = 1 ] && ! git stash apply >/dev/null 2>&1; then
+  log "local changes conflict with ${NEW_REV:0:8}; leaving the checkout on ${OLD_REV:0:8}"
+  log "  resolve by hand with: git stash show -p"
+  abort_to_old_rev
   exit 0
 fi
 
@@ -169,7 +201,7 @@ fi
 if ! libraries_valid; then
   log "the problem libraries in ${NEW_REV:0:8} are not valid"
   log "  refusing to deploy; staying on ${OLD_REV:0:8}"
-  git reset --hard "$OLD_REV" >/dev/null 2>&1 || log "WARNING: could not reset to $OLD_REV"
+  abort_to_old_rev
   exit 1
 fi
 
@@ -188,12 +220,15 @@ compose up -d "${BUILD_ARGS[@]}" || log "compose failed to start the new version
 # ── 5. Prove it works, or put the old one back ───────────────────────────────
 if wait_healthy; then
   log "healthy on ${NEW_REV:0:8}"
+  if [ "$STASHED" = 1 ]; then
+    git stash drop >/dev/null 2>&1 || log "WARNING: could not drop the local-changes stash"
+  fi
   prune_backups
   exit 0
 fi
 
 log "new version did not become healthy within ${HEALTH_TIMEOUT}s; rolling back"
-git reset --hard "$OLD_REV" >/dev/null 2>&1 || log "WARNING: could not reset to $OLD_REV"
+abort_to_old_rev
 VERSINE_VERSION="${OLD_REV:0:8}"
 compose up -d "${BUILD_ARGS[@]}" >/dev/null 2>&1
 
