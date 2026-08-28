@@ -12,8 +12,11 @@ export class Session {
    * @param {{skill:any, level:number, mode:any, seed?:number,
    *          duration?:number, onEvent?:(e:any)=>void}} opts
    */
-  constructor({ skill, level, mode, seed, duration, target, onEvent = () => {} }) {
+  constructor({ skill, level, mode, seed, duration, target, deal = null, onEvent = () => {} }) {
     this.skill = skill;
+    // Supplied when the level's pre-built library loaded; null falls back to
+    // generating, so a missing library degrades rather than breaks.
+    this.deal = deal;
     this.mode = mode;
     this.baseLevel = level;
     this.level = level;
@@ -70,11 +73,18 @@ export class Session {
       }
     }
     if (!problem) {
-      // Small levels have a small problem space; back-to-back repeats feel
-      // broken even when they are honest randomness.
-      for (let i = 0; i < 6; i++) {
-        problem = this.skill.generate(this.rng, this.level);
-        if (problem.text !== this.lastText) break;
+      if (this.deal) {
+        // A dealt problem is already drawn without replacement, so it cannot
+        // repeat until the level's whole deck has been through.
+        problem = this.deal();
+      } else {
+        // Generated fallback, for a level whose library has not been built or
+        // could not be fetched. Small levels have a small problem space, so
+        // back-to-back repeats feel broken even when they are honest.
+        for (let i = 0; i < 6; i++) {
+          problem = this.skill.generate(this.rng, this.level);
+          if (problem.text !== this.lastText) break;
+        }
       }
     }
     this.lastText = problem.text;

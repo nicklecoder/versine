@@ -5,6 +5,7 @@ import { clockFor } from '../engine/clock.js';
 import { play as sound } from '../engine/audio.js';
 import { openWalkthrough } from './walkthrough.js';
 import { Session } from '../engine/session.js';
+import { loadLevel, dealer } from '../engine/library.js';
 import { el, mount, minus } from './dom.js';
 import { getType } from '../math/answer.js';
 import { renderVisual, hasVisual } from './visuals.js';
@@ -91,6 +92,22 @@ export function playScreen(route) {
     target: mode.target ? trial.target : undefined,
     onEvent: handleEvent,
   });
+
+  // Fetch the level's pre-built library. Problems dealt from it come without
+  // replacement, so a run cannot repeat one until the whole deck has been
+  // through -- which matters most on the small levels, where drawing at
+  // random shows a student the same sums several times in one sitting.
+  //
+  // Started here rather than at `begin`, so the countdown covers the fetch.
+  const libraryReady = loadLevel(skill.id, route.level)
+    .then((lib) => {
+      const deck = dealer(lib.problems);
+      session.deal = () => deck.next();
+    })
+    .catch(() => {
+      // No library, or it would not load. The generator still works; a run on
+      // generated problems is far better than a run that will not start.
+    });
 
   function handleEvent(e) {
     switch (e.type) {
@@ -334,11 +351,13 @@ export function playScreen(route) {
 
   function begin() {
     paintHud();
-    session.start();
-    if (session.timed) timerId = setInterval(() => session.tick(), 1000);
-    // playScreen builds the tree before app.js mounts it, so the opening focus
-    // has to wait for the element to actually be in the document.
-    setTimeout(refocus, 0);
+    // The countdown has usually covered the fetch already; the timeout is for
+    // the case where it has not. A timed run must never wait on the network.
+    Promise.race([libraryReady, new Promise((r) => setTimeout(r, 1500))]).then(() => {
+      session.start();
+      if (session.timed) timerId = setInterval(() => session.tick(), 1000);
+      setTimeout(refocus, 0);
+    });
   }
 
   /** Three beats before the clock starts, so nobody loses seconds to surprise. */

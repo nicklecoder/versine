@@ -1,0 +1,349 @@
+{
+  "built": 43,
+  "levels": [
+    {
+      "skill": "int-addsub",
+      "level": 0,
+      "name": "First Steps",
+      "count": 342,
+      "exhaustive": true,
+      "file": "int-addsub-0.json"
+    },
+    {
+      "skill": "int-addsub",
+      "level": 1,
+      "name": "Adding Negatives",
+      "count": 240,
+      "exhaustive": true,
+      "file": "int-addsub-1.json"
+    },
+    {
+      "skill": "int-addsub",
+      "level": 2,
+      "name": "Subtracting Negatives",
+      "count": 576,
+      "exhaustive": true,
+      "file": "int-addsub-2.json"
+    },
+    {
+      "skill": "int-addsub",
+      "level": 3,
+      "name": "Mixed Integers",
+      "count": 1000,
+      "exhaustive": false,
+      "file": "int-addsub-3.json"
+    },
+    {
+      "skill": "int-addsub",
+      "level": 4,
+      "name": "Chains",
+      "count": 1000,
+      "exhaustive": false,
+      "file": "int-addsub-4.json"
+    },
+    {
+      "skill": "int-addsub",
+      "level": 5,
+      "name": "All Together",
+      "count": 1000,
+      "exhaustive": false,
+      "file": "int-addsub-5.json"
+    },
+    {
+      "skill": "int-muldiv",
+      "level": 0,
+      "name": "Sign Rules",
+      "count": 128,
+      "exhaustive": true,
+      "file": "int-muldiv-0.json"
+    },
+    {
+      "skill": "int-muldiv",
+      "level": 1,
+      "name": "Two Negatives",
+      "count": 64,
+      "exhaustive": true,
+      "file": "int-muldiv-1.json"
+    },
+    {
+      "skill": "int-muldiv",
+      "level": 2,
+      "name": "Dividing",
+      "count": 256,
+      "exhaustive": true,
+      "file": "int-muldiv-2.json"
+    },
+    {
+      "skill": "int-muldiv",
+      "level": 3,
+      "name": "Bigger Facts",
+      "count": 968,
+      "exhaustive": true,
+      "file": "int-muldiv-3.json"
+    },
+    {
+      "skill": "int-muldiv",
+      "level": 4,
+      "name": "Chains",
+      "count": 1000,
+      "exhaustive": false,
+      "file": "int-muldiv-4.json"
+    },
+    {
+      "skill": "int-muldiv",
+      "level": 5,
+      "name": "All Together",
+      "count": 1000,
+      "exhaustive": false,
+      "file": "int-muldiv-5.json"
+    },
+    {
+      "skill": "frac-addsub",
+      "level": 0,
+      "name": "Same Denominator",
+      "count": 801,
+      "exhaustive": true,
+      "file": "frac-addsub-0.json"
+    },
+    {
+      "skill": "frac-addsub",
+      "level": 1,
+      "name": "One Fits the Other",
+      "count": 80,
+      "exhaustive": true,
+      "file": "frac-addsub-1.json"
+    },
+    {
+      "skill": "frac-addsub",
+      "level": 2,
+      "name": "Unlike Denominators",
+      "count": 116,
+      "exhaustive": true,
+      "file": "frac-addsub-2.json"
+    },
+    {
+      "skill": "frac-addsub",
+      "level": 3,
+      "name": "Taking Away",
+      "count": 312,
+      "exhaustive": true,
+      "file": "frac-addsub-3.json"
+    },
+    {
+      "skill": "frac-addsub",
+      "level": 4,
+      "name": "Simplify the Answer",
+      "count": 312,
+      "exhaustive": true,
+      "file": "frac-addsub-4.json"
+    },
+    {
+      "skill": "frac-addsub",
+      "level": 5,
+      "name": "All Together",
+      "count": 1000,
+      "exhaustive": false,
+      "file": "frac-addsub-5.json"
+    },
+    {
+      "skill": "frac-muldiv",
+      "level": 0,
+      "name": "A Part of a Part",
+      "count": 121,
+      "exhaustive": true,
+      "file": "frac-muldiv-0.json"
+    },
+    {
+      "skill": "frac-muldiv",
+      "level": 1,
+      "name": "Multiplying Any Two",
+      "count": 1000,
+      "exhaustive": false,
+      "file": "frac-muldiv-1.json"
+    },
+    {
+      "skill": "frac-muldiv",
+      "level": 2,
+      "name": "How Many Fit",
+      "count": 68,
+      "exhaustive": true,
+      "file": "frac-muldiv-2.json"
+    },
+    {
+      "skill": "frac-muldiv",
+      "level": 3,
+      "name": "Dividing Fractions",
+      "count": 1000,
+      "exhaustive": false,
+      "file": "frac-muldiv-3.json"
+    },
+    {
+      "skill": "frac-muldiv",
+      "level": 4,
+      "name": "Simplify the Answer",
+      "count": 1000,
+      "exhaustive": false,
+      "file": "frac-muldiv-4.json"
+    },
+    {
+      "skill": "frac-muldiv",
+      "level": 5,
+      "name": "All Together",
+      "count": 1000,
+      "exhaustive": false,
+      "file": "frac-muldiv-5.json"
+    },
+    {
+      "skill": "frac-mixed",
+      "level": 0,
+      "name": "Into Wholes",
+      "count": 729,
+      "exhaustive": true,
+      "file": "frac-mixed-0.json"
+    },
+    {
+      "skill": "frac-mixed",
+      "level": 1,
+      "name": "Back Again",
+      "count": 729,
+      "exhaustive": true,
+      "file": "frac-mixed-1.json"
+    },
+    {
+      "skill": "frac-mixed",
+      "level": 2,
+      "name": "Exactly Whole",
+      "count": 128,
+      "exhaustive": true,
+      "file": "frac-mixed-2.json"
+    },
+    {
+      "skill": "frac-mixed",
+      "level": 3,
+      "name": "Both Ways",
+      "count": 1000,
+      "exhaustive": false,
+      "file": "frac-mixed-3.json"
+    },
+    {
+      "skill": "frac-mixed",
+      "level": 4,
+      "name": "Simplify Too",
+      "count": 1000,
+      "exhaustive": false,
+      "file": "frac-mixed-4.json"
+    },
+    {
+      "skill": "frac-mixed",
+      "level": 5,
+      "name": "Which Form?",
+      "count": 1000,
+      "exhaustive": false,
+      "file": "frac-mixed-5.json"
+    },
+    {
+      "skill": "frac-mixed",
+      "level": 6,
+      "name": "All Together",
+      "count": 1000,
+      "exhaustive": false,
+      "file": "frac-mixed-6.json"
+    },
+    {
+      "skill": "frac-equiv",
+      "level": 0,
+      "name": "Build It Up",
+      "count": 122,
+      "exhaustive": true,
+      "file": "frac-equiv-0.json"
+    },
+    {
+      "skill": "frac-equiv",
+      "level": 1,
+      "name": "Which Bottom?",
+      "count": 122,
+      "exhaustive": true,
+      "file": "frac-equiv-1.json"
+    },
+    {
+      "skill": "frac-equiv",
+      "level": 2,
+      "name": "Cut It Down",
+      "count": 95,
+      "exhaustive": true,
+      "file": "frac-equiv-2.json"
+    },
+    {
+      "skill": "frac-equiv",
+      "level": 3,
+      "name": "All the Way Down",
+      "count": 55,
+      "exhaustive": true,
+      "file": "frac-equiv-3.json"
+    },
+    {
+      "skill": "frac-equiv",
+      "level": 4,
+      "name": "Missing Piece",
+      "count": 122,
+      "exhaustive": true,
+      "file": "frac-equiv-4.json"
+    },
+    {
+      "skill": "frac-equiv",
+      "level": 5,
+      "name": "All Together",
+      "count": 516,
+      "exhaustive": true,
+      "file": "frac-equiv-5.json"
+    },
+    {
+      "skill": "order-ops",
+      "level": 0,
+      "name": "Times Before Plus",
+      "count": 1000,
+      "exhaustive": false,
+      "file": "order-ops-0.json"
+    },
+    {
+      "skill": "order-ops",
+      "level": 1,
+      "name": "Left to Right",
+      "count": 1000,
+      "exhaustive": false,
+      "file": "order-ops-1.json"
+    },
+    {
+      "skill": "order-ops",
+      "level": 2,
+      "name": "Brackets First",
+      "count": 1000,
+      "exhaustive": false,
+      "file": "order-ops-2.json"
+    },
+    {
+      "skill": "order-ops",
+      "level": 3,
+      "name": "Powers Too",
+      "count": 1000,
+      "exhaustive": false,
+      "file": "order-ops-3.json"
+    },
+    {
+      "skill": "order-ops",
+      "level": 4,
+      "name": "Nested",
+      "count": 1000,
+      "exhaustive": false,
+      "file": "order-ops-4.json"
+    },
+    {
+      "skill": "order-ops",
+      "level": 5,
+      "name": "All Together",
+      "count": 1000,
+      "exhaustive": false,
+      "file": "order-ops-5.json"
+    }
+  ]
+}
