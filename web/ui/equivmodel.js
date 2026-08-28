@@ -1,5 +1,4 @@
-import { el, mount } from './dom.js';
-import { gcd } from '../math/frac.js';
+import { drawSegments } from './segments.js';
 
 /**
  * Equivalent fractions: the same length of bar, cut into different pieces.
@@ -13,23 +12,7 @@ import { gcd } from '../math/frac.js';
  * @typedef {{from:Frac, to:Frac}} EquivSpec
  */
 
-function bar(f, tone) {
-  const cells = [];
-  for (let i = 0; i < f.d; i++) {
-    cells.push(el('div', {
-      class: `equiv-cell${i < f.n ? ' is-filled' : ''}`,
-      style: { '--tone': tone },
-    }));
-  }
-  return el('div.equiv-bar', { style: { '--segments': f.d } }, cells);
-}
-
-const label = (f) => el('div.equiv-label', {},
-  el('span.bar__num', {}, String(f.n)),
-  el('span.bar__line'),
-  el('span.bar__den', {}, String(f.d)));
-
-const row = (f, tone) => el('div.equiv-row', {}, label(f), bar(f, tone));
+const row = (f, tone) => ({ label: f, bars: [{ total: f.d, filled: f.n, tone }] });
 
 /**
  * @param {HTMLElement} container
@@ -40,23 +23,21 @@ export function drawEquivModel(container, spec, { reveal = false, verdict = null
   const { from, to } = spec;
 
   if (!reveal) {
-    mount(container, el('div.equiv', {},
-      row(from, 'var(--vec-1)'),
-      el('p.bar-hint', {},
-        `${from.n} of ${from.d} equal pieces. The same amount can be cut a different way.`)));
-    return;
+    return drawSegments(container, {
+      rows: [row(from, 'var(--vec-1)')],
+      note: `${from.n} of ${from.d} equal pieces. The same amount can be cut a different way.`,
+    }, { verdict });
   }
 
   const growing = to.d > from.d;
   const factor = growing ? to.d / from.d : from.d / to.d;
 
-  mount(container, el('div.equiv', {},
-    row(from, 'var(--vec-1)'),
-    el('div.equiv-op', {},
-      el('span', {}, growing ? `× ${factor} top and bottom` : `÷ ${factor} top and bottom`),
-      verdict ? el('span', { class: `bar-verdict is-${verdict}` },
-        verdict === 'ok' ? '✓' : '✗') : null),
-    row(to, 'var(--result)'),
-    el('p.bar-hint', {},
-      'Both shadings stop in the same place — same amount, different pieces.')));
+  drawSegments(container, {
+    rows: [
+      row(from, 'var(--vec-1)'),
+      { sep: `${growing ? '×' : '÷'} ${factor} top and bottom`, tone: 'note', verdict: true },
+      row(to, 'var(--result)'),
+    ],
+    note: 'Both shadings stop in the same place — same amount, different pieces.',
+  }, { verdict });
 }

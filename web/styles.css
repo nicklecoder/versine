@@ -781,45 +781,9 @@ h1, h2, h3, .display { font-family: var(--display); font-weight: 700; letter-spa
 }
 
 /* ── Bar model ────────────────────────────────────────────────────────── */
-.bars { display: flex; flex-direction: column; gap: 8px; width: 100%; }
-
-.bar-row { display: flex; align-items: center; gap: 14px; }
-
-.bar__label {
-  flex: 0 0 46px;
-  display: flex; flex-direction: column; align-items: center;
-  font-family: var(--display); font-weight: 700; font-size: 1rem;
-  line-height: 1.05; font-variant-numeric: tabular-nums;
-}
 .bar__line { display: block; width: 22px; height: 2px; background: var(--muted); margin: 3px 0; }
 .bar__num, .bar__den { color: var(--text); }
 
-.bar {
-  flex: 1;
-  display: grid;
-  grid-template-columns: repeat(var(--segments), 1fr);
-  gap: 2px;
-  height: 34px;
-}
-.bar__cell {
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: 2px;
-  transition: background .25s ease-out;
-}
-.bar__cell.is-filled { background: var(--tone); border-color: var(--tone); }
-/* What subtraction takes away: outlined, not solid. */
-.bar__cell.is-ghost {
-  border-color: var(--tone);
-  background: repeating-linear-gradient(135deg,
-    color-mix(in srgb, var(--tone) 34%, transparent) 0 4px, transparent 4px 8px);
-}
-
-.bar-op, .bar-eq {
-  font-family: var(--display); font-weight: 700; font-size: 1.2rem;
-  color: var(--dim); padding-left: 18px;
-  display: flex; align-items: center; gap: 10px;
-}
 .bar-verdict {
   display: inline-grid; place-items: center;
   width: 1.5em; height: 1.5em; border-radius: 50%;
@@ -903,55 +867,6 @@ h1, h2, h3, .display { font-family: var(--display); font-weight: 700; letter-spa
 .area-key.is-both { color: var(--result); }
 
 /* ── Fits model (dividing fractions) ──────────────────────────────────── */
-.fits { display: flex; flex-direction: column; gap: 10px; width: 100%; }
-.fits__row { display: flex; align-items: center; gap: 14px; }
-
-.fits__label {
-  flex: 0 0 74px;
-  display: flex; flex-direction: column; align-items: center;
-  font-family: var(--display); font-weight: 700; font-size: 1rem; line-height: 1.05;
-  font-variant-numeric: tabular-nums;
-}
-.fits__tag {
-  font-size: .56rem; letter-spacing: .12em; text-transform: uppercase;
-  color: var(--dim); margin-top: 3px;
-}
-
-.fits__bar {
-  flex: 1;
-  display: grid;
-  grid-template-columns: repeat(var(--total), 1fr);
-  height: 34px;
-  background: var(--bg-2);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-}
-.fits__cell { border-right: 1px solid rgba(255,255,255,.05); }
-.fits__cell:last-child { border-right: 0; }
-.fits__cell.is-filled { background: color-mix(in srgb, var(--vec-1) 70%, transparent); }
-.fits__cell.is-unit   { background: color-mix(in srgb, var(--vec-2) 70%, transparent); }
-/* On reveal, alternate the copies so the count is visible at a glance. */
-.fits__cell.copy-0 { background: var(--vec-1); }
-.fits__cell.copy-1 { background: color-mix(in srgb, var(--vec-1) 55%, var(--bg)); }
-.fits__cell.starts-copy { border-left: 2px solid var(--bg); }
-.fits__bar.is-unit { height: 24px; opacity: .9; }
-
-.fits__count {
-  display: flex; align-items: center; justify-content: center; gap: 12px;
-  font-family: var(--display); font-weight: 600; font-size: .95rem;
-  color: var(--muted); margin-top: 4px;
-}
-.fits__answer { color: var(--result); font-size: 1.3rem; }
-
-@media (max-width: 560px) {
-  .fits__label { flex-basis: 58px; font-size: .88rem; }
-  .fits__bar { height: 28px; }
-  .area { width: min(240px, 72vw); }
-}
-
-/* Category colour, carried on the card since there is no group heading.
-   Keeps a category's skills visually together in a continuous grid. */
 .tile.cat-integers  { border-left: 3px solid color-mix(in srgb, var(--cool) 55%, transparent); }
 .tile.cat-fractions { border-left: 3px solid color-mix(in srgb, var(--violet) 55%, transparent); }
 .tile.cat-powers    { border-left: 3px solid color-mix(in srgb, var(--gold) 55%, transparent); }
@@ -978,81 +893,6 @@ h1, h2, h3, .display { font-family: var(--display); font-weight: 700; letter-spa
 .mixed-term { display: inline-flex; align-items: center; gap: .16em; }
 
 /* ── Wholes model (improper fractions and mixed numbers) ──────────────── */
-.wholes { display: flex; flex-direction: column; gap: 8px; width: 100%; }
-.wholes__row { display: flex; align-items: center; gap: 14px; }
-.wholes__tag {
-  flex: 0 0 84px; text-align: right;
-  font-family: var(--display); font-weight: 600; font-size: .78rem;
-  color: var(--muted); font-variant-numeric: tabular-nums;
-}
-.wholes__stack { flex: 1; display: flex; flex-direction: column; gap: 6px; }
-
-.whole-bar {
-  display: grid;
-  grid-template-columns: repeat(var(--segments, 1), 1fr);
-  gap: 2px;
-  height: 30px;
-  background: var(--bg-2);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  padding: 2px;
-}
-/* Grow across the row, but never along the stack's axis: `flex: 1` inside a
-   column stack sets the basis on the *height* and collapses the bar. */
-.wholes__row > .whole-bar { flex: 1; }
-.wholes__stack .whole-bar { width: 100%; flex: none; }
-
-.whole-bar.is-solid { background: var(--tone); border-color: var(--tone); display: block; }
-.whole-cell { background: var(--surface-2); border-radius: 2px; transition: background .25s; }
-.whole-cell.is-filled { background: var(--tone); }
-
-.wholes__answer {
-  display: flex; align-items: center; justify-content: center; gap: 12px;
-  font-family: var(--display); font-weight: 600; font-size: .95rem;
-  color: var(--result); margin-top: 6px;
-}
-
-@media (max-width: 560px) {
-  .wholes__tag { flex-basis: 62px; font-size: .7rem; }
-  .whole-bar { height: 24px; }
-}
-
-/* ── Equivalent fractions ─────────────────────────────────────────────── */
-.equiv { display: flex; flex-direction: column; gap: 10px; width: 100%; }
-.equiv-row { display: flex; align-items: center; gap: 14px; }
-.equiv-label {
-  flex: 0 0 46px;
-  display: flex; flex-direction: column; align-items: center;
-  font-family: var(--display); font-weight: 700; font-size: 1rem; line-height: 1.05;
-  font-variant-numeric: tabular-nums;
-}
-.equiv-bar {
-  flex: 1;
-  display: grid;
-  grid-template-columns: repeat(var(--segments), 1fr);
-  gap: 2px;
-  height: 34px;
-}
-.equiv-cell {
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: 2px;
-  transition: background .25s ease-out;
-}
-.equiv-cell.is-filled { background: var(--tone); border-color: var(--tone); }
-.equiv-op {
-  display: flex; align-items: center; gap: 10px;
-  padding-left: 60px;
-  font-family: var(--display); font-weight: 600; font-size: .85rem;
-  color: var(--cool);
-}
-@media (max-width: 560px) {
-  .equiv-label { flex-basis: 38px; font-size: .88rem; }
-  .equiv-bar { height: 28px; gap: 1px; }
-  .equiv-op { padding-left: 50px; }
-}
-
-/* ── Walkthrough overlay ──────────────────────────────────────────────── */
 .wt {
   position: fixed; inset: 0; z-index: 50;
   display: flex; align-items: center; justify-content: center;
@@ -1172,3 +1012,103 @@ h1, h2, h3, .display { font-family: var(--display); font-weight: 700; letter-spa
 /* A term rendered by the prompt vocabulary that nothing knows how to draw.
    Visible on purpose: a silent gap would be found by a student, not by us. */
 .is-unknown { color: var(--hot); }
+
+/* ── Segments: a length cut into pieces, with some emphasised ─────────────
+   One family replacing four. `.bar__cell` and `.equiv-cell` were identical
+   rules under different names and `.whole-cell` was the same without the
+   border; only the fine bars genuinely needed different drawing. The three
+   skins carry the differences that are real -- how densely a bar is divided
+   changes how wide its label needs to be and whether per-cell borders help or
+   drown it. */
+/* One row gap for every skin. Equivalence bars used to sit 10px apart and
+   addition bars 8px, for no reason anyone recorded; two stacks of bars should
+   breathe the same. */
+.seg { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.seg__row { display: flex; align-items: center; gap: 14px; }
+.seg__label {
+  flex: 0 0 46px;
+  display: flex; flex-direction: column; align-items: center;
+  font-family: var(--display); font-weight: 700; font-size: 1rem;
+  line-height: 1.05; font-variant-numeric: tabular-nums;
+}
+.seg__tag {
+  font-family: var(--display); font-weight: 400;
+  font-size: .56rem; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--dim); margin-top: 3px;
+}
+.seg__stack { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.seg__stack .seg__bar { width: 100%; flex: none; }
+.seg__bar {
+  flex: 1; display: grid; height: 34px;
+  grid-template-columns: repeat(var(--segments, 1), 1fr);
+}
+.seg__sep {
+  font-family: var(--display); font-weight: 700; font-size: 1.2rem;
+  color: var(--dim); padding-left: 18px;
+  display: flex; align-items: center; gap: 10px;
+}
+.seg__sep.is-note {
+  padding-left: 60px; font-weight: 600; font-size: .85rem; color: var(--cool);
+}
+.seg__answer {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  font-family: var(--display); font-weight: 600; font-size: .95rem;
+  color: var(--result); margin-top: 4px;
+}
+/* An answer whose value is picked out: the sentence recedes, the number does not. */
+.seg__answer.has-value { color: var(--muted); }
+.seg__value { color: var(--result); font-size: 1.3rem; }
+
+/* Ruled: bordered cells. The default, readable to about twenty pieces. */
+.seg--ruled .seg__bar { gap: 2px; }
+.seg--ruled .seg__cell {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  transition: background .25s ease-out;
+}
+.seg--ruled .seg__cell.is-filled { background: var(--tone); border-color: var(--tone); }
+/* What subtraction takes away: outlined, not solid. */
+.seg--ruled .seg__cell.is-ghost {
+  background: transparent; border-color: var(--tone); border-style: dashed;
+}
+
+/* Plain: whole bars, where how many wholes there are matters more than how
+   each one is divided, so the cells lose their borders and the bar gains one. */
+.seg--plain .seg__label { flex-basis: 84px; text-align: right; align-items: flex-end;
+  font-weight: 600; font-size: .78rem; color: var(--muted); }
+.seg--plain .seg__bar {
+  gap: 2px; height: 30px;
+  background: var(--bg-2); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); padding: 2px;
+}
+.seg--plain .seg__bar.is-solid {
+  display: block; background: var(--tone); border-color: var(--tone);
+}
+.seg--plain .seg__cell { background: var(--surface-2); border-radius: 2px; transition: background .25s; }
+.seg--plain .seg__cell.is-filled { background: var(--tone); }
+.seg--plain .seg__answer { margin-top: 6px; }
+
+/* Fine: up to forty pieces, where a border on each would be all you could see.
+   Hairline dividers, and copies in alternating bands so they can be counted at
+   a glance. */
+.seg--fine .seg__label { flex-basis: 74px; }
+.seg--fine .seg__bar {
+  background: var(--bg-2); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); overflow: hidden;
+}
+.seg--fine .seg__bar.is-slim { height: 24px; opacity: .9; }
+.seg--fine .seg__cell { border-right: 1px solid rgba(255,255,255,.05); }
+.seg--fine .seg__cell:last-child { border-right: 0; }
+.seg--fine .seg__cell.is-filled { background: color-mix(in srgb, var(--vec-1) 70%, transparent); }
+.seg--fine .seg__cell.is-unit   { background: color-mix(in srgb, var(--vec-2) 70%, transparent); }
+.seg--fine .seg__cell.copy-0 { background: var(--vec-1); }
+.seg--fine .seg__cell.copy-1 { background: color-mix(in srgb, var(--vec-1) 55%, var(--bg)); }
+.seg--fine .seg__cell.starts-copy { border-left: 2px solid var(--bg); }
+
+/* Narrow screens: the fine bars give up label width before bar width, since
+   forty segments in less than a phone's width is already the tight case. */
+@media (max-width: 560px) {
+  .seg--fine .seg__label { flex-basis: 58px; font-size: .88rem; }
+  .seg--fine .seg__bar { height: 28px; }
+}

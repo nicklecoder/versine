@@ -1,4 +1,4 @@
-import { el, mount } from './dom.js';
+import { drawSegments } from './segments.js';
 
 /**
  * "How many of these fit into that?" — the picture for dividing fractions.
@@ -10,8 +10,12 @@ import { el, mount } from './dom.js';
  *
  * Getting this idea first is what stops "flip the second one" being a spell.
  *
+ * Drawn on the 'fine' skin: both fractions have to land on shared cell edges,
+ * so the bar is cut into their common units — up to forty of them, where
+ * per-cell borders would be all you could see.
+ *
  * @typedef {{n:number, d:number}} Frac
- * @typedef {{a:Frac, b:Frac, quotient:Frac, fine:number}} FitsSpec
+ * @typedef {{a:Frac, b:Frac, fine:number, quotient?:Frac}} FitsSpec
  */
 
 /**
@@ -26,41 +30,26 @@ export function drawFitsModel(container, spec, { reveal = false, verdict = null 
   const total = fine;
   const span = a.n * (fine / a.d);          // fine units the dividend covers
   const copy = b.n * (fine / b.d);          // fine units one copy covers
-
-  const label = (f, text) => el('div.fits__label', {},
-    el('span.bar__num', {}, String(f.n)),
-    el('span.bar__line'),
-    el('span.bar__den', {}, String(f.d)),
-    text ? el('span.fits__tag', {}, text) : null);
-
-  /** The dividend along a whole, optionally cut into copies. */
-  const cells = [];
-  for (let i = 0; i < total; i++) {
-    const inside = i < span;
-    const copyIndex = Math.floor(i / copy);
-    const startsCopy = reveal && inside && i % copy === 0 && i !== 0;
-    cells.push(el('div', {
-      class: `fits__cell${inside ? ' is-filled' : ''}${startsCopy ? ' starts-copy' : ''}`
-        + (reveal && inside ? ` copy-${copyIndex % 2}` : ''),
-    }));
-  }
-
   const whole = Math.floor(span / copy);
   const leftover = span % copy;
 
-  mount(container, el('div.fits', {},
-    el('div.fits__row', {}, label(a), el('div.fits__bar', { style: { '--total': total } }, cells)),
-    el('div.fits__row', {},
-      label(b, 'one piece'),
-      el('div.fits__bar.is-unit', { style: { '--total': total } },
-        Array.from({ length: total }, (_, i) =>
-          el('div', { class: `fits__cell${i < copy ? ' is-unit' : ''}` })))),
-    reveal
-      ? el('div.fits__count', {},
-          el('span', {}, `${whole} whole `
-            + `${whole === 1 ? 'piece' : 'pieces'}${leftover ? ` and ${leftover}/${copy} of another` : ''}`),
-          el('span.fits__answer', {}, `= ${quotient.d === 1 ? quotient.n : `${quotient.n}/${quotient.d}`}`),
-          verdict ? el('span', { class: `bar-verdict is-${verdict}` },
-            verdict === 'ok' ? '✓' : '✗') : null)
-      : el('p.bar-hint', {}, `How many ${b.n}/${b.d} pieces fit into ${a.n}/${a.d}?`)));
+  const rows = [
+    { label: a, bars: [{ total, filled: span, ...(reveal ? { copies: copy } : {}) }] },
+    { label: b, tag: 'one piece', bars: [{ total, filled: 0, unit: copy, slim: true }] },
+  ];
+
+  if (!reveal) {
+    return drawSegments(container, {
+      skin: 'fine', rows,
+      note: `How many ${b.n}/${b.d} pieces fit into ${a.n}/${a.d}?`,
+    }, { verdict });
+  }
+
+  const count = `${whole} whole ${whole === 1 ? 'piece' : 'pieces'}`
+    + (leftover ? ` and ${leftover}/${copy} of another` : '');
+  const value = quotient.d === 1 ? quotient.n : `${quotient.n}/${quotient.d}`;
+
+  drawSegments(container, {
+    skin: 'fine', rows: [...rows, { answer: count, value: `= ${value}`, verdict: true }],
+  }, { verdict });
 }
