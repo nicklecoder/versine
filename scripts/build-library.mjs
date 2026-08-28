@@ -57,6 +57,7 @@ function sourceFiles() {
     .filter((f) => f.endsWith(suffix))
     .map((f) => `${dir}/${f}`);
   return [
+    ...globbed('tools/generators', '.js'),
     ...globbed('web/skills', '.js'),
     ...globbed('web/math', '.js'),
     'web/engine/registry.js',
@@ -76,6 +77,19 @@ function fingerprint() {
 }
 
 const { SKILLS } = await import(join(ROOT, 'web/engine/registry.js'));
+
+/**
+ * Generators live outside web/ because they are not part of the application.
+ * A skill in web/skills/ describes what the student sees; the matching file in
+ * tools/generators/ knows how to manufacture its problems, and is loaded only
+ * here. Nothing the server serves imports it.
+ */
+const generators = new Map();
+for (const skill of SKILLS) {
+  const path = join(ROOT, 'tools/generators', `${skill.id}.js`);
+  if (!existsSync(path)) throw new Error(`No generator for skill "${skill.id}" at tools/generators/${skill.id}.js`);
+  generators.set(skill.id, (await import(path)).generate);
+}
 const { makeRng } = await import(join(ROOT, 'web/engine/rng.js'));
 const { getType } = await import(join(ROOT, 'web/math/answer.js'));
 
@@ -102,13 +116,14 @@ function seedFor(skillId, level) {
 }
 
 function buildLevel(skill, level) {
+  const generate = generators.get(skill.id);
   const cap = skill.levels[level].libraryCap ?? DEFAULT_CAP;
   const rng = makeRng(seedFor(skill.id, level));
   const byText = new Map();
   let sinceNew = 0;
 
   for (let i = 0; i < PATIENCE && byText.size < cap; i++) {
-    const p = skill.generate(rng, level);
+    const p = generate(rng, level);
     if (byText.has(p.text)) { sinceNew++; continue; }
     const type = getType(p.answer.type);
     // The stated answer must survive its own parser -- the same check the

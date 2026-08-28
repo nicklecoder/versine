@@ -83,7 +83,17 @@ libraries_valid() {
   # A version predating the libraries is not invalid, just older.
   [ -f "$checker" ] || { log "no library checker in this version; skipping validation"; return 0; }
   python3 "$checker" 2>&1 | while IFS= read -r line; do log "  $line"; done
-  return "${PIPESTATUS[0]}"
+  [ "${PIPESTATUS[0]}" = "0" ] || return 1
+
+  # The catalogue's shape as well as its contents -- but only if node is here.
+  # A server without a JavaScript runtime still gets the library check above,
+  # which is the one that catches a broken problem reaching a student.
+  local cat="$ROOT/scripts/check-catalogue.mjs"
+  if [ -f "$cat" ] && command -v node >/dev/null 2>&1; then
+    node "$cat" 2>&1 | while IFS= read -r line; do log "  $line"; done
+    [ "${PIPESTATUS[0]}" = "0" ] || return 1
+  fi
+  return 0
 }
 
 # ── 1. Back up the database ──────────────────────────────────────────────────

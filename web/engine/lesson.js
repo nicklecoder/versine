@@ -1,4 +1,4 @@
-import { makeRng } from './rng.js';
+import { loadLevel } from './library.js';
 
 /**
  * Lessons.
@@ -58,7 +58,15 @@ export function lessonFor(skill, level, problem) {
   };
 }
 
-/** A fresh worked example for this level. */
-export function buildLesson(skill, level, seed = Date.now()) {
-  return lessonFor(skill, level, skill.generate(makeRng(seed), level));
+/**
+ * A fresh worked example for this level, taken from its library.
+ *
+ * Deliberately drawn from the same reviewed problems a student practises on,
+ * rather than made up on the spot: a walkthrough that demonstrates a problem
+ * the level cannot actually produce teaches the wrong thing.
+ */
+export async function buildLesson(skill, level, seed = Date.now()) {
+  const lib = await loadLevel(skill.id, level);
+  const problem = lib.problems[Math.abs(seed) % lib.problems.length];
+  return lessonFor(skill, level, problem);
 }

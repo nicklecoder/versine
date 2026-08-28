@@ -288,6 +288,64 @@ using artefacts that already exist. Every Attempt still stores the literal
 problem text, so finer-grained analysis remains possible after the fact if it
 is ever actually needed.
 
+## Generators are authoring tools, not runtime code
+
+The catalogue is the set of problem libraries in `web/library/`. Those files
+are what students are served, and they are the thing to edit when a problem is
+wrong: correcting one row is immediate and reviewable, where debugging the code
+that produced it is neither.
+
+Generators exist to write a library's first draft — nobody hand-authors a
+thousand problems — and to rebuild one wholesale on the rare occasion that is
+warranted. They live in `tools/generators/`, outside `web/`, and **nothing the
+server serves imports them**.
+
+```
+tools/generators/frac-addsub.js   how to manufacture the problems   build time only
+web/skills/frac-addsub.js         levels, names, dependencies       shipped
+web/library/frac-addsub-*.json    the problems themselves           shipped
+```
+
+A skill file in `web/skills/` now imports nothing at all: it is level metadata
+and the graph edges, no logic. `scripts/check-catalogue.mjs` fails the build if
+one starts exposing `generate()` again.
+
+### When is a generator still worth running?
+
+Rarely, and that is the point. Reach for one when a fault is *systematic* —
+when the same flaw affects too many rows to fix by hand, or a level is being
+redesigned. A single bad problem is fixed in the library.
+
+Because of that, `build-library.mjs` will not overwrite a library that already
+exists; it reports what it would change and leaves the file alone. Regenerating
+is deliberate:
+
+```
+node scripts/build-library.mjs            # write libraries that do not exist yet
+node scripts/build-library.mjs --check    # report what the generators would change
+node scripts/build-library.mjs --force    # regenerate, discarding hand corrections
+```
+
+Determinism is designed in: seeds come from the skill id and level, and rows
+are sorted before writing, so an unchanged level produces a byte-identical file
+and a diff shows only what really moved.
+
+### What is checked before a deploy
+
+`scripts/update.sh` runs both before it will start a new version, and rolls
+back if either fails:
+
+- `scripts/check-library.py` — every row usable: required fields, a known
+  answer type, non-empty accepted forms, no duplicate problems, sane par
+  times, and for a choice row that its correct option is among the options.
+  Python, so a server needs no JavaScript runtime to refuse a bad deploy.
+- `scripts/check-catalogue.mjs` — the learning graph, and the rules for where a
+  strategy level may sit. Skipped when node is absent.
+
+Neither checks a library against its generator. A hand-fixed library is
+*supposed* to have diverged, and a check like that would refuse to deploy the
+very correction someone had just made.
+
 ## Strategy levels
 
 Most levels drill a procedure. A **strategy level** drills the choice *between*

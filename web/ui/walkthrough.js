@@ -30,10 +30,22 @@ export function walkthrough({ skill, level, problem: initialProblem = null, onCl
 
   /**
    * Opened from a live run it walks *that* problem, so the commentary matches
-   * what is on screen behind the overlay. Opened cold it invents one.
+   * what is on screen behind the overlay. Opened cold it fetches one from the
+   * level's library, which is why this is async: the example a student is
+   * shown has to be one the level actually contains.
    */
-  function load(target = null) {
-    lesson = target ? lessonFor(skill, level, target) : buildLesson(skill, level, seed);
+  async function load(target = null) {
+    if (target) {
+      lesson = lessonFor(skill, level, target);
+    } else {
+      captionEl.textContent = 'Finding an example…';
+      try {
+        lesson = await buildLesson(skill, level, seed);
+      } catch {
+        captionEl.textContent = 'This level\'s examples could not be loaded.';
+        return;
+      }
+    }
     step = 0;
     paint();
   }
