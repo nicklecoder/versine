@@ -11,7 +11,8 @@
       },
       "answer": {
         "type": "int",
-        "required": true
+        "required": true,
+        "phase": "answer"
       },
       "steps": {
         "type": "array",
@@ -38,7 +39,8 @@
       },
       "answer": {
         "type": "int",
-        "required": true
+        "required": true,
+        "phase": "answer"
       }
     },
     "barmodel": {
@@ -71,7 +73,8 @@
         "type": "frac"
       },
       "result": {
-        "type": "frac"
+        "type": "frac",
+        "phase": "answer"
       }
     },
     "areamodel": {
@@ -85,7 +88,8 @@
       },
       "product": {
         "type": "frac",
-        "required": true
+        "required": true,
+        "phase": "answer"
       }
     },
     "fitsmodel": {
@@ -99,7 +103,8 @@
       },
       "quotient": {
         "type": "frac",
-        "required": true
+        "required": true,
+        "phase": "answer"
       },
       "fine": {
         "type": "int",
@@ -142,7 +147,8 @@
       },
       "to": {
         "type": "frac",
-        "required": true
+        "required": true,
+        "phase": "answer"
       },
       "reveal": {
         "type": "enum",

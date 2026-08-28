@@ -88,10 +88,12 @@ libraries_valid() {
   # The catalogue's shape as well as its contents -- but only if node is here.
   # A server without a JavaScript runtime still gets the library check above,
   # which is the one that catches a broken problem reaching a student.
-  local cat="$ROOT/scripts/check-catalogue.mjs"
-  if [ -f "$cat" ] && command -v node >/dev/null 2>&1; then
-    node "$cat" 2>&1 | while IFS= read -r line; do log "  $line"; done
-    [ "${PIPESTATUS[0]}" = "0" ] || return 1
+  if command -v node >/dev/null 2>&1; then
+    for check in check-catalogue.mjs check-reveal.mjs; do
+      [ -f "$ROOT/scripts/$check" ] || continue
+      node "$ROOT/scripts/$check" 2>&1 | while IFS= read -r line; do log "  $line"; done
+      [ "${PIPESTATUS[0]}" = "0" ] || return 1
+    done
   fi
   return 0
 }
