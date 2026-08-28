@@ -46,36 +46,63 @@ function coprimeNumerator(rng, d, max) {
 }
 
 /**
- * Denominator pairs, capped so the lowest common denominator never exceeds 20 —
- * beyond that the bar segments get too thin to read on a phone.
+ * Denominator pairs whose lowest common denominator stays drawable.
+ *
+ * Built rather than listed. A hand-written list of six pairs looks like plenty
+ * until you count what survives the "sum stays under one" filter: with 2 and 3
+ * there is exactly one valid problem. A student then meets the same dozen sums
+ * every session and recalls them instead of finding a common denominator,
+ * which is the opposite of what the level is for.
+ *
+ * @param {number} maxLcd  keep the bar model readable on a phone
+ * @param {boolean} nested true for pairs where one denominator divides the
+ *                         other, so only one side has to change
+ */
+function denominatorPairs(maxLcd, nested) {
+  const pairs = [];
+  for (let a = 2; a <= 12; a++) {
+    for (let b = a + 1; b <= 12; b++) {
+      const divides = b % a === 0;
+      if (divides !== nested) continue;
+      if ((a * b) / gcd(a, b) <= maxLcd) pairs.push([a, b]);
+    }
+  }
+  return pairs;
+}
+
+const UNLIKE = denominatorPairs(36, false);
+const NESTED = denominatorPairs(36, true);
+
+/**
+ * Denominator pairs, capped so the lowest common denominator stays readable.
  */
 function draw(rng, level) {
   switch (level) {
     case 0: {                                    // same denominator
-      const d = rng.pick([3, 4, 5, 6, 8, 10, 12]);
+      const d = rng.pick([3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 18, 20]);
       const n1 = rng.int(1, d - 1);
       const n2 = rng.int(1, d - n1);             // keep the sum at or below 1
       return { a: frac(n1, d), b: frac(n2, d), op: '+' };
     }
     case 1: {                                    // one denominator divides the other
-      const small = rng.pick([2, 3, 4]);
-      const big = small * rng.pick([2, 3, 4]);
+      const [small, big] = rng.pick(NESTED);
       const a = frac(coprimeNumerator(rng, small, small - 1), small);
       const b = frac(coprimeNumerator(rng, big, big - 1), big);
       return rng.chance(0.5) ? { a, b, op: '+' } : { a: b, b: a, op: '+' };
     }
     case 2: {                                    // genuinely unlike
-      // Numerators biased small so the sum lands under one and the bar model
-      // has something to draw.
-      const [d1, d2] = rng.pick([[2, 3], [3, 4], [2, 5], [3, 5], [4, 5], [4, 6]]);
+      // Numerators run the full coprime range; the caller rejects any sum that
+      // lands at or above one, which is a far less blunt filter than capping
+      // the numerator at half the denominator was.
+      const [d1, d2] = rng.pick(UNLIKE);
       return {
-        a: frac(coprimeNumerator(rng, d1, Math.ceil(d1 / 2)), d1),
-        b: frac(coprimeNumerator(rng, d2, Math.ceil(d2 / 2)), d2),
+        a: frac(coprimeNumerator(rng, d1, d1 - 1), d1),
+        b: frac(coprimeNumerator(rng, d2, d2 - 1), d2),
         op: '+',
       };
     }
     default: {                                   // subtraction, larger minus smaller
-      const [d1, d2] = rng.pick([[2, 3], [3, 4], [2, 5], [4, 6], [3, 4], [5, 10], [4, 5]]);
+      const [d1, d2] = rng.pick(rng.chance(0.75) ? UNLIKE : NESTED);
       let a = frac(coprimeNumerator(rng, d1, d1 - 1), d1);
       let b = frac(coprimeNumerator(rng, d2, d2 - 1), d2);
       if (a.n / a.d < b.n / b.d) [a, b] = [b, a];

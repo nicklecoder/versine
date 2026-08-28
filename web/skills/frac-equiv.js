@@ -32,7 +32,7 @@ export const LAST_LEVEL = LEVELS.length - 1;
 const PAR_SECONDS = [14, 14, 14, 18, 16, 16];
 
 /** Base fractions already in lowest terms, small enough to draw. */
-function baseFraction(rng, choices = [2, 3, 4, 5, 6]) {
+function baseFraction(rng, choices = [2, 3, 4, 5, 6, 7, 8, 9, 10, 12]) {
   const d = rng.pick(choices);
   const options = [];
   for (let n = 1; n < d; n++) if (gcd(n, d) === 1) options.push(n);
@@ -40,10 +40,15 @@ function baseFraction(rng, choices = [2, 3, 4, 5, 6]) {
 }
 
 /**
- * The bigger denominator has to stay drawable: past about twenty segments a
+ * The bigger denominator has to stay drawable: past about thirty segments a
  * bar is a smear. Pick a multiplier that keeps it inside that.
+ *
+ * This cap is the whole reason this skill's levels are small -- every problem
+ * has to fit in one bar. Raising it trades legibility on a phone for variety;
+ * thirty is about where a segment is still wide enough to see on a narrow
+ * screen.
  */
-const MAX_SEGMENTS = 20;
+const MAX_SEGMENTS = 40;
 function multiplier(rng, baseD, candidates) {
   const fits = candidates.filter((k) => baseD * k <= MAX_SEGMENTS);
   return fits.length ? rng.pick(fits) : 2;
@@ -98,10 +103,10 @@ function cutDown(rng, composite) {
   // A composite factor needs room: with a base of sixths, even ×4 blows past
   // the segment cap and the fallback would quietly hand back a prime factor,
   // which is the one thing this level is not about.
-  const base = baseFraction(rng, composite ? [2, 3, 4, 5] : [2, 3, 4, 5, 6]);
+  const base = baseFraction(rng, composite ? [2, 3, 4, 5, 6, 7] : [2, 3, 4, 5, 6, 7, 8, 9, 10]);
   const k = composite
-    ? multiplier(rng, base.d, [4, 6, 8, 9, 12])
-    : multiplier(rng, base.d, [2, 3, 5]);
+    ? multiplier(rng, base.d, [4, 6, 8, 9, 10, 12, 14, 15, 16, 18, 20])
+    : multiplier(rng, base.d, [2, 3, 5, 7, 11]);
   const big = frac(base.n * k, base.d * k);
   return {
     prompt: fracHtml(big.n, big.d, 't1')

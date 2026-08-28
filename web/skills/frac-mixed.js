@@ -45,7 +45,8 @@ const PAR_SECONDS = [14, 14, 12, 16, 20, 16, 18];
 
 /** A denominator worth drawing: small enough that the bars stay readable. */
 const denominator = (rng, composite = false) =>
-  rng.pick(composite ? [4, 6, 8, 10, 12] : [2, 3, 4, 5, 6, 8, 10, 12]);
+  rng.pick(composite ? [4, 6, 8, 9, 10, 12, 14, 15, 16, 18, 20]
+                     : [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 18, 20]);
 
 /**
  * A leftover that leaves the fraction as a book would print it — or, when the
@@ -65,7 +66,7 @@ function toMixed(rng, requireSimplest) {
   // On the simplify level the leftover must actually reduce, or there is
   // nothing to practise. Everywhere else the given fraction reads as printed.
   const d = denominator(rng, requireSimplest);
-  const whole = rng.int(1, 4);
+  const whole = rng.int(1, 9);
   const rest = leftover(rng, d, requireSimplest);
   const improper = frac(whole * d + rest, d);
   const answer = requireSimplest ? reduce(improper) : improper;
@@ -92,7 +93,7 @@ function toMixed(rng, requireSimplest) {
 /** mixed → improper */
 function toImproper(rng) {
   const d = denominator(rng);
-  const whole = rng.int(1, 4);
+  const whole = rng.int(1, 9);
   const rest = leftover(rng, d, false);      // given mixed numbers read as printed
   const improper = frac(whole * d + rest, d);
 
@@ -116,7 +117,7 @@ function toImproper(rng) {
 /** improper that lands exactly on a whole number */
 function exactlyWhole(rng) {
   const d = denominator(rng);
-  const whole = rng.int(2, 5);
+  const whole = rng.int(2, 9);
   const improper = frac(whole * d, d);
 
   return {
@@ -169,7 +170,7 @@ const fracHtml = (f, cls) =>
 /** Which form suits the job? */
 function whichForm(rng) {
   const d = denominator(rng);
-  const whole = rng.int(2, 4);
+  const whole = rng.int(2, 8);
   const rest = leftover(rng, d, false);
   const improper = frac(whole * d + rest, d);
   const mixedText = `${whole} ${rest}/${d}`;

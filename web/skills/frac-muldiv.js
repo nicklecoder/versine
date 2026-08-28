@@ -46,13 +46,13 @@ function coprimeNumerator(rng, d, max) {
 function draw(rng, level) {
   switch (level) {
     case 0: {                                   // unit fraction × unit fraction
-      const d1 = rng.int(2, 5);
-      const d2 = rng.int(2, 5);
+      const d1 = rng.int(2, 12);
+      const d2 = rng.int(2, 12);
       return { a: frac(1, d1), b: frac(1, d2), op: '×' };
     }
     case 1: {                                   // any two proper fractions
-      const d1 = rng.int(2, 5);
-      const d2 = rng.int(2, 5);
+      const d1 = rng.int(2, 12);
+      const d2 = rng.int(2, 12);
       return {
         a: frac(coprimeNumerator(rng, d1, d1 - 1), d1),
         b: frac(coprimeNumerator(rng, d2, d2 - 1), d2),
@@ -64,13 +64,13 @@ function draw(rng, level) {
       // keeps the count whole and the question speakable. The dividend is
       // reduced for display; the picture works from the common denominator
       // either way.
-      const k = rng.pick([4, 6, 8, 9, 10, 12]);
-      const copies = rng.int(2, Math.min(6, k - 1));
+      const k = rng.pick([4, 6, 8, 9, 10, 12, 14, 15, 16, 18, 20]);
+      const copies = rng.int(2, Math.min(9, k - 1));
       return { a: reduce(frac(copies, k)), b: frac(1, k), op: '÷' };
     }
     default: {                                  // general division
-      const d1 = rng.int(2, 6);
-      const d2 = rng.int(2, 6);
+      const d1 = rng.int(2, 12);
+      const d2 = rng.int(2, 12);
       return {
         a: frac(coprimeNumerator(rng, d1, d1 - 1), d1),
         b: frac(coprimeNumerator(rng, d2, d2 - 1), d2),
