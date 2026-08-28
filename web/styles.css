@@ -1160,3 +1160,9 @@ h1, h2, h3, .display { font-family: var(--display); font-weight: 700; letter-spa
   font-family: var(--body); font-size: 1.1rem; font-weight: 600;
   line-height: 1.5; max-width: 30ch; text-align: center;
 }
+
+/* A level whose library will not load — deliberately not a silent fallback. */
+.load-failed { display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center; padding: 24px 16px; }
+.load-failed__title { font-family: var(--display); font-size: 1.1rem; color: var(--hot); }
+.load-failed__body { font-size: .9rem; color: var(--muted); max-width: 34ch; line-height: 1.5; }
+.load-failed__detail { font-family: ui-monospace, monospace; font-size: .72rem; color: var(--dim); }

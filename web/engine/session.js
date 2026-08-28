@@ -14,8 +14,7 @@ export class Session {
    */
   constructor({ skill, level, mode, seed, duration, target, deal = null, onEvent = () => {} }) {
     this.skill = skill;
-    // Supplied when the level's pre-built library loaded; null falls back to
-    // generating, so a missing library degrades rather than breaks.
+    // Supplies the level's problems, dealt from its pre-built library.
     this.deal = deal;
     this.mode = mode;
     this.baseLevel = level;
@@ -73,19 +72,14 @@ export class Session {
       }
     }
     if (!problem) {
-      if (this.deal) {
-        // A dealt problem is already drawn without replacement, so it cannot
-        // repeat until the level's whole deck has been through.
-        problem = this.deal();
-      } else {
-        // Generated fallback, for a level whose library has not been built or
-        // could not be fetched. Small levels have a small problem space, so
-        // back-to-back repeats feel broken even when they are honest.
-        for (let i = 0; i < 6; i++) {
-          problem = this.skill.generate(this.rng, this.level);
-          if (problem.text !== this.lastText) break;
-        }
-      }
+      // Dealt without replacement, so a run cannot repeat a problem until the
+      // level's whole deck has been through.
+      //
+      // There is deliberately no generated fallback. Library problems have
+      // been reviewed; generated ones have not, and silently substituting the
+      // unreviewed for the reviewed is precisely the failure a library exists
+      // to prevent. A level whose library will not load must fail loudly.
+      problem = this.deal();
     }
     this.lastText = problem.text;
 

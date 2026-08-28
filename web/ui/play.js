@@ -99,14 +99,17 @@ export function playScreen(route) {
   // random shows a student the same sums several times in one sitting.
   //
   // Started here rather than at `begin`, so the countdown covers the fetch.
+  let libraryError = null;
   const libraryReady = loadLevel(skill.id, route.level)
     .then((lib) => {
       const deck = dealer(lib.problems);
       session.deal = () => deck.next();
     })
-    .catch(() => {
-      // No library, or it would not load. The generator still works; a run on
-      // generated problems is far better than a run that will not start.
+    .catch((err) => {
+      // Nothing to fall back to, by design: problems in a library have been
+      // reviewed and generated ones have not. Better a clear failure than a
+      // run quietly served from an unreviewed source.
+      libraryError = err;
     });
 
   function handleEvent(e) {
@@ -354,10 +357,27 @@ export function playScreen(route) {
     // The countdown has usually covered the fetch already; the timeout is for
     // the case where it has not. A timed run must never wait on the network.
     Promise.race([libraryReady, new Promise((r) => setTimeout(r, 1500))]).then(() => {
+      if (libraryError) return failed(libraryError);
       session.start();
       if (session.timed) timerId = setInterval(() => session.tick(), 1000);
       setTimeout(refocus, 0);
     });
+  }
+
+  /**
+   * The level's problems could not be loaded, so there is no run to have.
+   * Say so plainly and offer the way back, rather than leaving a student
+   * looking at a prompt box that will never fill.
+   */
+  function failed(err) {
+    problemEl.innerHTML = "";
+    problemEl.append(el('div.load-failed', {},
+      el('div.load-failed__title', {}, 'This level could not load'),
+      el('div.load-failed__body', {},
+        `Its problem library is missing or unreadable. Nothing is wrong with `
+        + `your progress — the level itself needs a look.`),
+      el('div.load-failed__detail', {}, String(err?.message ?? err))));
+    renderVisual(visualBox, null);
   }
 
   /** Three beats before the clock starts, so nobody loses seconds to surprise. */

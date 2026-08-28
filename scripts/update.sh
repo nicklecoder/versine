@@ -69,6 +69,23 @@ wait_healthy() {
   return 1
 }
 
+# ── Library validity ─────────────────────────────────────────────────────────
+# The problem libraries are the catalogue. Their rows are meant to be corrected
+# by hand -- fixing a bad problem in place beats debugging the generator that
+# produced it -- so this deliberately does not check that a library still
+# matches its generator. A hand-fixed library is supposed to have diverged.
+#
+# What it does check is that every row is still usable, because a malformed one
+# does not crash: it serves a student a broken problem, which is the kind of
+# fault that runs for weeks unnoticed.
+libraries_valid() {
+  local checker="$ROOT/scripts/check-library.py"
+  # A version predating the libraries is not invalid, just older.
+  [ -f "$checker" ] || { log "no library checker in this version; skipping validation"; return 0; }
+  python3 "$checker" 2>&1 | while IFS= read -r line; do log "  $line"; done
+  return "${PIPESTATUS[0]}"
+}
+
 # ── 1. Back up the database ──────────────────────────────────────────────────
 # Before anything else, and before any new code gets a chance to run its
 # migrations. sqlite's own backup API rather than cp, because the database
@@ -136,7 +153,15 @@ if ! git merge --ff-only "origin/$BRANCH" >/dev/null 2>&1; then
   exit 0
 fi
 
-# ── 3. Rebuild only when the image actually changed ──────────────────────────
+# ── 3. Refuse a version whose problem libraries are broken ───────────────────
+if ! libraries_valid; then
+  log "the problem libraries in ${NEW_REV:0:8} are not valid"
+  log "  refusing to deploy; staying on ${OLD_REV:0:8}"
+  git reset --hard "$OLD_REV" >/dev/null 2>&1 || log "WARNING: could not reset to $OLD_REV"
+  exit 1
+fi
+
+# ── 4. Rebuild only when the image actually changed ──────────────────────────
 # web/ and server/ are bind-mounted, so most updates need no rebuild at all --
 # only a dependency or image change does.
 BUILD_ARGS=()
@@ -148,7 +173,7 @@ fi
 VERSINE_VERSION="${NEW_REV:0:8}"
 compose up -d "${BUILD_ARGS[@]}" || log "compose failed to start the new version"
 
-# ── 4. Prove it works, or put the old one back ───────────────────────────────
+# ── 5. Prove it works, or put the old one back ───────────────────────────────
 if wait_healthy; then
   log "healthy on ${NEW_REV:0:8}"
   prune_backups
