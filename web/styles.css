@@ -1166,3 +1166,9 @@ h1, h2, h3, .display { font-family: var(--display); font-weight: 700; letter-spa
 .load-failed__title { font-family: var(--display); font-size: 1.1rem; color: var(--hot); }
 .load-failed__body { font-size: .9rem; color: var(--muted); max-width: 34ch; line-height: 1.5; }
 .load-failed__detail { font-family: ui-monospace, monospace; font-size: .72rem; color: var(--dim); }
+
+/* A blank inside a fraction — "1/2 = ?/6" asks for one part, not the whole. */
+.frac-term .is-blank { color: var(--gold); }
+/* A term rendered by the prompt vocabulary that nothing knows how to draw.
+   Visible on purpose: a silent gap would be found by a student, not by us. */
+.is-unknown { color: var(--hot); }

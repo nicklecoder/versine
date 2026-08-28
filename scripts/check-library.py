@@ -27,12 +27,53 @@ KNOWN_TYPES = {"int", "frac", "mixed", "choice"}
 # scripts/build-library.mjs. A catalogue item may only ask for a picture the
 # system knows how to draw, with parameters that renderer can actually use.
 SCHEMAS = {}
+TERM_KINDS = set()
 _schema_path = LIB / "schemas.json"
 if _schema_path.is_file():
     try:
-        SCHEMAS = json.loads(_schema_path.read_text())
+        _v = json.loads(_schema_path.read_text())
+        SCHEMAS = _v.get("visuals", {})
+        TERM_KINDS = set(_v.get("terms", []))
     except json.JSONDecodeError:
-        SCHEMAS = {}
+        pass
+
+
+# A prompt is a list of terms the renderer knows, not a string of markup. A
+# term naming a kind that does not exist would render as a warning glyph in
+# front of a student, so it is caught here instead.
+TERM_FIELDS = {
+    "num": ("v",), "frac": ("n", "d"), "mixed": ("w", "n", "d"),
+    "op": ("v",), "blank": (), "prose": ("v",),
+}
+
+
+def check_prompt(prompt, where, out):
+    if isinstance(prompt, str):
+        out.append(f"{where}: prompt is markup, not terms — rebuild this library")
+        return
+    if not isinstance(prompt, list) or not prompt:
+        out.append(f"{where}: prompt should be a non-empty list of terms")
+        return
+    if not any(t.get("t") == "blank" for t in prompt if isinstance(t, dict)) \
+            and not any(t.get("t") == "prose" for t in prompt if isinstance(t, dict)) \
+            and not any(t.get("n") is None or t.get("d") is None
+                        for t in prompt if isinstance(t, dict) and t.get("t") == "frac"):
+        out.append(f"{where}: prompt has nowhere for the answer to go")
+    for i, term in enumerate(prompt):
+        at = f"{where}: prompt[{i}]"
+        if not isinstance(term, dict):
+            out.append(f"{at} is not a term object")
+            continue
+        kind = term.get("t")
+        if TERM_KINDS and kind not in TERM_KINDS:
+            out.append(f"{at} is kind {kind!r}, which nothing can render")
+            continue
+        for field in TERM_FIELDS.get(kind, ()):
+            if field not in term:
+                out.append(f"{at} ({kind}) is missing {field!r}")
+            elif field in ("n", "d") and term[field] is not None \
+                    and not isinstance(term[field], int):
+                out.append(f"{at} ({kind}) has a non-integer {field!r}")
 
 
 def check_field(value, rule, where, field, out):
@@ -194,6 +235,7 @@ for entry in levels:
                 fail(f"{where}: the correct option is not among the options")
         if not isinstance(row["parSeconds"], (int, float)) or row["parSeconds"] <= 0:
             fail(f"{where}: parSeconds is not a positive number")
+        check_prompt(row.get("prompt"), where, problems)
         check_visual(row.get("visual"), where, problems)
     checked += len(rows)
 
@@ -206,4 +248,4 @@ if problems:
     sys.exit(1)
 
 kinds = len(SCHEMAS)
-print(f"{len(levels)} levels, {checked:,} problems, {kinds} visual kinds — all valid")
+print(f"{len(levels)} levels, {checked:,} problems, {kinds} visual kinds, {len(TERM_KINDS)} term kinds — all valid")

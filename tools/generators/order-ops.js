@@ -11,6 +11,7 @@
  */
 import { evaluate, render } from '../../web/math/expression.js';
 import { LAST_LEVEL, PAR_SECONDS } from '../../web/skills/order-ops.js';
+import * as T from '../terms.js';
 const OPS = ['+', '−'];
 const MULOPS = ['×', '÷'];
 /** Build a candidate expression for a level. Correctness is checked after. */
@@ -54,8 +55,7 @@ function build(rng, level) {
   }
   const rules = [...new Set(result.rules)];
   return {
-    prompt: `<span class="t1">${result.lines[0]}</span>`
-      + '<span class="op">=</span><span class="q">?</span>',
+    prompt: T.asks(T.num(result.lines[0], 1)),
     text: result.lines[0],
     answer: { type: 'int', value: result.value },
     parSeconds: PAR_SECONDS[level],

@@ -11,6 +11,7 @@
  */
 import { frac, reduce, multiply, divide, isSimplest, format, lcm, gcd } from '../../web/math/frac.js';
 import { LEVELS, LAST_LEVEL, PAR_SECONDS } from '../../web/skills/frac-muldiv.js';
+import * as T from '../terms.js';
 
 /**
  * The most segments a fits picture may draw. Matches the ceiling declared in
@@ -83,12 +84,8 @@ function build(rng, level, requireSimplest) {
   const tidy = op === '÷' || requireSimplest;
   const expected = tidy ? reduce(raw) : raw;
   const opSign = op;
-  const frag = (f, cls) =>
-    `<span class="${cls} frac-term"><span class="fn">${f.n}</span>`
-    + `<span class="fl"></span><span class="fd">${f.d}</span></span>`;
   return {
-    prompt: frag(a, 't1') + `<span class="op">${opSign}</span>` + frag(b, 't2')
-      + `<span class="op">=</span><span class="q">?</span>`,
+    prompt: T.asks(T.frac(a.n, a.d, 1), T.op(opSign), T.frac(b.n, b.d, 2)),
     text: `${format(a)} ${opSign} ${format(b)}`,
     answer: { type: 'frac', value: expected, requireSimplest },
     parSeconds: PAR_SECONDS[level],

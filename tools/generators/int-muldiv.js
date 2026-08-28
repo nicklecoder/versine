@@ -11,6 +11,7 @@
  */
 import { minus, signed } from '../../web/ui/dom.js';
 import { LAST_LEVEL, PAR_SECONDS } from '../../web/skills/int-muldiv.js';
+import * as T from '../terms.js';
 const sym = (n) => (n < 0 ? '−' : '+');
 /** The picture: sign and size, each answered separately. */
 const model = (values, ops, answer) => ({
@@ -61,10 +62,7 @@ function twoTerm(rng, level) {
   }
   answer = op === '×' ? a * b : a / b;
   return {
-    prompt: `<span class="t1">${minus(a)}</span>`
-      + `<span class="op">${op}</span>`
-      + `<span class="t2">${signed(b)}</span>`
-      + `<span class="op">=</span><span class="q">?</span>`,
+    prompt: T.asks(T.num(minus(a), 1), T.op(op), T.num(signed(b), 2)),
     text: `${minus(a)} ${op} ${signed(b)}`,
     answer: { type: 'int', value: answer },
     parSeconds: PAR_SECONDS[level],
@@ -112,10 +110,10 @@ function chain(rng) {
   const [a, b, c] = values;
   const negatives = values.filter((v) => v < 0).length;
   return {
-    prompt: `<span class="t1">${minus(a)}</span>`
-      + `<span class="op">${ops[0]}</span><span class="t2">${signed(b)}</span>`
-      + `<span class="op">${ops[1]}</span><span class="t3">${signed(c)}</span>`
-      + `<span class="op">=</span><span class="q">?</span>`,
+    prompt: T.asks(
+      T.num(minus(a), 1),
+      T.op(ops[0]), T.num(signed(b), 2),
+      T.op(ops[1]), T.num(signed(c), 3)),
     text: `${minus(a)} ${ops[0]} ${signed(b)} ${ops[1]} ${signed(c)}`,
     answer: { type: 'int', value: answer },
     parSeconds: PAR_SECONDS[4],

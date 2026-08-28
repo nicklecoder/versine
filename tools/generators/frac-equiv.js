@@ -11,6 +11,7 @@
  */
 import { frac, reduce, gcd, format } from '../../web/math/frac.js';
 import { LAST_LEVEL, PAR_SECONDS } from '../../web/skills/frac-equiv.js';
+import * as T from '../terms.js';
 /** Base fractions already in lowest terms, small enough to draw. */
 function baseFraction(rng, choices = [2, 3, 4, 5, 6, 7, 8, 9, 10, 12]) {
   const d = rng.pick(choices);
@@ -32,20 +33,14 @@ function multiplier(rng, baseD, candidates) {
   const fits = candidates.filter((k) => baseD * k <= MAX_SEGMENTS);
   return fits.length ? rng.pick(fits) : 2;
 }
-const fracHtml = (n, d, cls = '') =>
-  `<span class="${cls} frac-term"><span class="fn">${n}</span>`
-  + `<span class="fl"></span><span class="fd">${d}</span></span>`;
-const blankHtml = (n, d) =>
-  `<span class="t2 frac-term"><span class="fn">${n ?? '?'}</span>`
-  + `<span class="fl"></span><span class="fd">${d ?? '?'}</span></span>`;
+// A null numerator or denominator renders as the blank the student fills in.
 /** base = ?/big  — find the numerator */
 function buildUp(rng) {
   const base = baseFraction(rng);
   const k = multiplier(rng, base.d, [2, 3, 4, 5]);
   const big = frac(base.n * k, base.d * k);
   return {
-    prompt: fracHtml(base.n, base.d, 't1') + '<span class="op">=</span>'
-      + blankHtml(null, big.d),
+    prompt: [T.frac(base.n, base.d, 1), T.op('='), T.frac(null, big.d, 2)],
     text: `${format(base)} = ?/${big.d}`,
     answer: { type: 'int', value: big.n },
     visual: { kind: 'equivmodel', from: base, to: big, reveal: 'to' },
@@ -59,8 +54,7 @@ function whichBottom(rng) {
   const k = multiplier(rng, base.d, [2, 3, 4, 5]);
   const big = frac(base.n * k, base.d * k);
   return {
-    prompt: fracHtml(base.n, base.d, 't1') + '<span class="op">=</span>'
-      + blankHtml(big.n, null),
+    prompt: [T.frac(base.n, base.d, 1), T.op('='), T.frac(big.n, null, 2)],
     text: `${format(base)} = ${big.n}/?`,
     answer: { type: 'int', value: big.d },
     visual: { kind: 'equivmodel', from: base, to: big, reveal: 'to' },
@@ -83,8 +77,7 @@ function cutDown(rng, composite) {
     : multiplier(rng, base.d, [2, 3, 5, 7, 11]);
   const big = frac(base.n * k, base.d * k);
   return {
-    prompt: fracHtml(big.n, big.d, 't1')
-      + '<span class="op">=</span><span class="q">?</span>',
+    prompt: T.asks(T.frac(big.n, big.d, 1)),
     text: `${format(big)} in lowest terms`,
     answer: { type: 'frac', value: base, requireSimplest: true },
     visual: { kind: 'equivmodel', from: big, to: base, reveal: 'to' },
@@ -99,8 +92,7 @@ function missingPiece(rng) {
   const k = multiplier(rng, base.d, [2, 3, 4, 5]);
   const big = frac(base.n * k, base.d * k);
   return {
-    prompt: fracHtml(big.n, big.d, 't1') + '<span class="op">=</span>'
-      + blankHtml(base.n, null),
+    prompt: [T.frac(big.n, big.d, 1), T.op('='), T.frac(base.n, null, 2)],
     text: `${format(big)} = ${base.n}/?`,
     answer: { type: 'int', value: base.d },
     visual: { kind: 'equivmodel', from: big, to: base, reveal: 'to' },

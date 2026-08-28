@@ -97,6 +97,7 @@ for (const skill of SKILLS) {
 const { makeRng } = await import(join(ROOT, 'web/engine/rng.js'));
 const { getType } = await import(join(ROOT, 'web/math/answer.js'));
 const { VISUALS } = await import(join(ROOT, 'web/ui/visuals.js'));
+const { TERM_KINDS } = await import(join(ROOT, 'web/ui/prompt.js'));
 
 const args = process.argv.slice(2);
 const CHECK = args.includes('--check');
@@ -204,8 +205,10 @@ for (const skill of SKILLS) {
 // The presentation vocabulary, written out so the Python deploy gate can
 // validate catalogue items against it without needing a JavaScript runtime.
 // One source of truth: the renderers declare it, this exports it.
-const schemasJson = JSON.stringify(
-  Object.fromEntries(Object.entries(VISUALS).map(([k, v]) => [k, v.schema])), null, 2) + '\n';
+const schemasJson = JSON.stringify({
+  visuals: Object.fromEntries(Object.entries(VISUALS).map(([k, v]) => [k, v.schema])),
+  terms: TERM_KINDS,
+}, null, 2) + '\n';
 const schemasPath = join(OUT, 'schemas.json');
 if (!existsSync(schemasPath) || readFileSync(schemasPath, 'utf8') !== schemasJson) {
   if (CHECK) warnings.push('DIFFERS  schemas.json');

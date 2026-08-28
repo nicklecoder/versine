@@ -12,6 +12,7 @@
 import { niceBounds } from '../../web/ui/numberline.js';
 import { signed, minus } from '../../web/ui/dom.js';
 import { LAST_LEVEL, PAR_SECONDS } from '../../web/skills/int-addsub.js';
+import * as T from '../terms.js';
 /** @param {number} level @returns {{a:number, op:string, b:number}} */
 function draw(rng, level) {
   switch (level) {
@@ -54,10 +55,7 @@ function twoTerm(rng, level) {
   const delta = op === '+' ? b : -b;
   const bounds = niceBounds([a, answer, 0]);
   return {
-    prompt: `<span class="t1">${minus(a)}</span>`
-      + `<span class="op">${op === '+' ? '+' : '−'}</span>`
-      + `<span class="t2">${signed(b)}</span>`
-      + `<span class="op">=</span><span class="q">?</span>`,
+    prompt: T.asks(T.num(minus(a), 1), T.op(op === '+' ? '+' : '−'), T.num(signed(b), 2)),
     text: `${minus(a)} ${op === '+' ? '+' : '−'} ${signed(b)}`,
     answer: { type: 'int', value: answer },
     parSeconds: PAR_SECONDS[level],
@@ -85,10 +83,10 @@ function threeTerm(rng) {
   const d1 = op1 === '+' ? b : -b;
   const d2 = op2 === '+' ? c : -c;
   return {
-    prompt: `<span class="t1">${minus(a)}</span>`
-      + `<span class="op">${op1 === '+' ? '+' : '−'}</span><span class="t2">${signed(b)}</span>`
-      + `<span class="op">${op2 === '+' ? '+' : '−'}</span><span class="t3">${signed(c)}</span>`
-      + `<span class="op">=</span><span class="q">?</span>`,
+    prompt: T.asks(
+      T.num(minus(a), 1),
+      T.op(op1 === '+' ? '+' : '−'), T.num(signed(b), 2),
+      T.op(op2 === '+' ? '+' : '−'), T.num(signed(c), 3)),
     text: `${minus(a)} ${op1 === '+' ? '+' : '−'} ${signed(b)} ${op2 === '+' ? '+' : '−'} ${signed(c)}`,
     answer: { type: 'int', value: answer },
     parSeconds: PAR_SECONDS[4],

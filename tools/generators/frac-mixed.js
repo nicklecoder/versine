@@ -11,6 +11,7 @@
  */
 import { frac, reduce, isSimplest, format, gcd } from '../../web/math/frac.js';
 import { LEVELS, LAST_LEVEL, PAR_SECONDS } from '../../web/skills/frac-mixed.js';
+import * as T from '../terms.js';
 /** A denominator worth drawing: small enough that the bars stay readable. */
 const denominator = (rng, composite = false) =>
   rng.pick(composite ? [4, 6, 8, 9, 10, 12, 14, 15, 16, 18, 20]
@@ -40,7 +41,7 @@ function toMixed(rng, requireSimplest) {
     given: improper,
     answer: { type: 'mixed', value: answer, requireSimplest },
     direction: 'toMixed',
-    promptHtml: fracHtml(improper, 't1'),
+    promptTerms: [T.frac(improper.n, improper.d, 1)],
     text: `${format(improper)} as a mixed number`,
     visual: {
       kind: 'wholesmodel', direction: 'toMixed',
@@ -64,9 +65,7 @@ function toImproper(rng) {
     given: improper,
     answer: { type: 'frac', value: improper, requireSimplest: false },
     direction: 'toImproper',
-    promptHtml: `<span class="t1 mixed-term">${whole}`
-      + `<span class="frac-term"><span class="fn">${rest}</span>`
-      + `<span class="fl"></span><span class="fd">${d}</span></span></span>`,
+    promptTerms: [T.mixed(whole, rest, d, 1)],
     text: `${whole} ${rest}/${d} as an improper fraction`,
     visual: {
       kind: 'wholesmodel', direction: 'toImproper',
@@ -85,7 +84,7 @@ function exactlyWhole(rng) {
     given: improper,
     answer: { type: 'mixed', value: improper, requireSimplest: false },
     direction: 'toMixed',
-    promptHtml: fracHtml(improper, 't1'),
+    promptTerms: [T.frac(improper.n, improper.d, 1)],
     text: `${format(improper)} as a mixed number`,
     visual: {
       kind: 'wholesmodel', direction: 'toMixed',
@@ -122,9 +121,6 @@ const SITUATIONS = [
   { text: 'You need to write {mixed} as the answer to a word problem about lengths.', want: 'mixed',
     why: 'A measurement is reported the way a person would read it.' },
 ];
-const fracHtml = (f, cls) =>
-  `<span class="${cls} frac-term"><span class="fn">${f.n}</span>`
-  + `<span class="fl"></span><span class="fd">${f.d}</span></span>`;
 /** Which form suits the job? */
 function whichForm(rng) {
   const d = denominator(rng);
@@ -139,7 +135,7 @@ function whichForm(rng) {
     .replace(/\{mixed\}/g, mixedText)
     .replace(/\{improper\}/g, improperText);
   return {
-    prompt: `<span class="t1 situation">${fill(situation.text)}</span>`,
+    prompt: [T.prose(fill(situation.text))],
     text: fill(situation.text),
     answer: {
       type: 'choice',
@@ -164,7 +160,7 @@ function build(rng, level, requireSimplest) {
     : rng.chance(0.5) ? (r) => toMixed(r, requireSimplest) : toImproper;
   const p = make(rng);
   return {
-    prompt: p.promptHtml + `<span class="op">=</span><span class="q">?</span>`,
+    prompt: T.asks(...p.promptTerms),
     text: p.text,
     answer: p.answer,
     parSeconds: PAR_SECONDS[level],

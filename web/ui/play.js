@@ -9,6 +9,7 @@ import { loadLevel, dealer } from '../engine/library.js';
 import { el, mount, minus } from './dom.js';
 import { getType } from '../math/answer.js';
 import { renderVisual, hasVisual } from './visuals.js';
+import { renderPrompt, answerTerm } from './prompt.js';
 import { makeAnswerInput } from './answerinput.js';
 import { state, go } from './router.js';
 import { topbar, crumbs, soundToggle } from './map.js';
@@ -159,7 +160,7 @@ export function playScreen(route) {
   function showProblem(problem, isRetry) {
     locked = false;
     useAnswerWidget(problem.answer.type, problem.answer);
-    problemEl.innerHTML = problem.prompt;
+    renderPrompt(problemEl, problem.prompt);
     retryFlag.classList.toggle('hidden', !isRetry);
     feedback.textContent = '';
     feedback.className = 'feedback';
@@ -185,9 +186,7 @@ export function playScreen(route) {
   function revealAnswer(verdict) {
     const p = session.problem;
     const type = getType(p.answer.type);
-    const shown = type.html ? type.html(p.answer.value) : minus(p.answer.value);
-    problemEl.innerHTML = p.prompt.replace(
-      /<span class="q">\?<\/span>/, `<span class="a">${shown}</span>`);
+    renderPrompt(problemEl, p.prompt, { blankAs: answerTerm(p.answer.type, p.answer.value) });
     if (hasVisual(p.visual)) {
       visualBox.classList.remove('hidden');
       paintVisual(p.visual, { showAnswer: true, animateFrom: 1, verdict });

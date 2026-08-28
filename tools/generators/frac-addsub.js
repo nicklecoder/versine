@@ -11,6 +11,7 @@
  */
 import { frac, reduce, combine, isSimplest, format, gcd } from '../../web/math/frac.js';
 import { LEVELS, LAST_LEVEL, PAR_SECONDS } from '../../web/skills/frac-addsub.js';
+import * as T from '../terms.js';
 /**
  * A numerator that leaves the fraction already in lowest terms — given
  * fractions should look like the ones in a book, not like 2/8.
@@ -95,12 +96,8 @@ function build(rng, level, requireSimplest) {
   }
   const expected = requireSimplest ? reduce(work.result) : work.result;
   const opSign = op === '-' ? '−' : '+';
-  const frag = (f, cls) =>
-    `<span class="${cls} frac-term"><span class="fn">${f.n}</span>`
-    + `<span class="fl"></span><span class="fd">${f.d}</span></span>`;
   return {
-    prompt: frag(a, 't1') + `<span class="op">${opSign}</span>` + frag(b, 't2')
-      + `<span class="op">=</span><span class="q">?</span>`,
+    prompt: T.asks(T.frac(a.n, a.d, 1), T.op(opSign), T.frac(b.n, b.d, 2)),
     text: `${format(a)} ${opSign} ${format(b)}`,
     answer: { type: 'frac', value: expected, requireSimplest },
     parSeconds: PAR_SECONDS[level],

@@ -1,5 +1,6 @@
 import { el, mount } from './dom.js';
 import { renderVisual, hasVisual } from './visuals.js';
+import { renderPrompt } from './prompt.js';
 import { buildLesson, lessonFor } from '../engine/lesson.js';
 
 /**
@@ -54,7 +55,7 @@ export function walkthrough({ skill, level, problem: initialProblem = null, onCl
     const current = lesson.steps[step];
     const last = step === lesson.steps.length - 1;
 
-    promptEl.innerHTML = lesson.problem.prompt;
+    renderPrompt(promptEl, lesson.problem.prompt);
     captionEl.textContent = current.caption;
 
     if (hasVisual(lesson.problem.visual)) {
