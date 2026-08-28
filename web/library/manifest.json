@@ -1,6 +1,6 @@
 {
   "built": 43,
-  "sources": "175aad818130cf8ff7638732c11d0504202f11d9120139d6bc9b0a2123419ebb",
+  "sources": "6b7f24569c790f375d30cd317dd7b716993f2b8bf9facf3c801b9d9d2c1cb74a",
   "levels": [
     {
       "skill": "int-addsub",
@@ -174,7 +174,7 @@
       "skill": "frac-muldiv",
       "level": 3,
       "name": "Dividing Fractions",
-      "count": 1000,
+      "count": 880,
       "exhaustive": false,
       "file": "frac-muldiv-3.json"
     },
@@ -182,7 +182,7 @@
       "skill": "frac-muldiv",
       "level": 4,
       "name": "Simplify the Answer",
-      "count": 1000,
+      "count": 879,
       "exhaustive": false,
       "file": "frac-muldiv-4.json"
     },

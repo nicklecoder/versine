@@ -22,6 +22,96 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 LIB = ROOT / "web" / "library"
 KNOWN_TYPES = {"int", "frac", "mixed", "choice"}
+
+# The presentation vocabulary, exported from the renderers by
+# scripts/build-library.mjs. A catalogue item may only ask for a picture the
+# system knows how to draw, with parameters that renderer can actually use.
+SCHEMAS = {}
+_schema_path = LIB / "schemas.json"
+if _schema_path.is_file():
+    try:
+        SCHEMAS = json.loads(_schema_path.read_text())
+    except json.JSONDecodeError:
+        SCHEMAS = {}
+
+
+def check_field(value, rule, where, field, out):
+    """Validate one field against its declared rule. Additive by design: an
+    unknown type passes, so a renderer can declare something richer than this
+    understands without blocking a deploy."""
+    t = rule.get("type", "any")
+    if t == "int":
+        if not isinstance(value, int) or isinstance(value, bool):
+            out.append(f"{where}: {field} should be a whole number, got {value!r}")
+            return
+    elif t == "number":
+        if not isinstance(value, (int, float)) or isinstance(value, bool):
+            out.append(f"{where}: {field} should be a number, got {value!r}")
+            return
+    elif t == "string":
+        if not isinstance(value, str):
+            out.append(f"{where}: {field} should be text, got {value!r}")
+            return
+    elif t == "bool":
+        if not isinstance(value, bool):
+            out.append(f"{where}: {field} should be true or false, got {value!r}")
+            return
+    elif t == "frac":
+        if not isinstance(value, dict) or not isinstance(value.get("n"), int) \
+                or not isinstance(value.get("d"), int):
+            out.append(f"{where}: {field} should be a fraction {{n, d}}, got {value!r}")
+            return
+        if value["d"] == 0:
+            out.append(f"{where}: {field} has a zero denominator")
+    elif t == "enum":
+        if value not in rule.get("values", []):
+            out.append(f"{where}: {field} is {value!r}, not one of {rule.get('values')}")
+            return
+    elif t == "array":
+        if not isinstance(value, list):
+            out.append(f"{where}: {field} should be a list, got {value!r}")
+            return
+        of = rule.get("of")
+        if of:
+            for i, item in enumerate(value):
+                check_field(item, of, where, f"{field}[{i}]", out)
+    elif t == "object":
+        if not isinstance(value, dict):
+            out.append(f"{where}: {field} should be an object, got {value!r}")
+            return
+
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        if "min" in rule and value < rule["min"]:
+            out.append(f"{where}: {field} is {value}, below the minimum of {rule['min']}")
+        if "max" in rule and value > rule["max"]:
+            out.append(f"{where}: {field} is {value}, above the maximum of {rule['max']}")
+
+
+def check_visual(visual, where, out):
+    if visual is None:
+        return
+    if not isinstance(visual, dict):
+        out.append(f"{where}: visual should be an object or null")
+        return
+    kind = visual.get("kind")
+    if not kind:
+        out.append(f"{where}: visual has no kind")
+        return
+    if not SCHEMAS:
+        return                      # no vocabulary exported; nothing to check against
+    schema = SCHEMAS.get(kind)
+    if schema is None:
+        out.append(f"{where}: visual kind {kind!r} is not one the system can draw")
+        return
+    for field, rule in schema.items():
+        if field not in visual:
+            if rule.get("required"):
+                out.append(f"{where}: visual {kind} is missing required field {field!r}")
+            continue
+        check_field(visual[field], rule, where, f"visual.{field}", out)
+    for field in visual:
+        if field != "kind" and field not in schema:
+            out.append(f"{where}: visual {kind} has unknown field {field!r}")
 REQUIRED = ("text", "prompt", "answer", "parSeconds")
 
 floor = 20
@@ -104,6 +194,7 @@ for entry in levels:
                 fail(f"{where}: the correct option is not among the options")
         if not isinstance(row["parSeconds"], (int, float)) or row["parSeconds"] <= 0:
             fail(f"{where}: parSeconds is not a positive number")
+        check_visual(row.get("visual"), where, problems)
     checked += len(rows)
 
 if problems:
@@ -114,4 +205,5 @@ if problems:
         print(f"  ... and {len(problems) - 25} more")
     sys.exit(1)
 
-print(f"{len(levels)} levels, {checked:,} problems — all valid")
+kinds = len(SCHEMAS)
+print(f"{len(levels)} levels, {checked:,} problems, {kinds} visual kinds — all valid")

@@ -11,6 +11,13 @@
  */
 import { frac, reduce, multiply, divide, isSimplest, format, lcm, gcd } from '../../web/math/frac.js';
 import { LEVELS, LAST_LEVEL, PAR_SECONDS } from '../../web/skills/frac-muldiv.js';
+
+/**
+ * The most segments a fits picture may draw. Matches the ceiling declared in
+ * the visual's schema (web/ui/visuals.js), which is what catches it if this
+ * ever drifts.
+ */
+const MAX_FINE = 40;
 /** A numerator leaving the fraction in lowest terms, as a book would print it. */
 function coprimeNumerator(rng, d, max) {
   const options = [];
@@ -60,7 +67,13 @@ function build(rng, level, requireSimplest) {
     raw = op === '×' ? multiply(a, b) : divide(a, b);
     // Reject the trivial: an answer of exactly one, or a divisor equal to the
     // dividend. Also keep quotients sane so the picture stays drawable.
-    if (raw.n !== raw.d && raw.n / raw.d <= 8) break;
+    //
+    // The fits picture lays the dividend out in the finest units the two
+    // fractions share, so lcm(a.d, b.d) is literally how many segments get
+    // drawn. Past about forty they are a smear on a phone, and twelfths
+    // against elevenths would ask for 132 of them.
+    const drawable = op === '×' || lcm(a.d, b.d) <= MAX_FINE;
+    if (raw.n !== raw.d && raw.n / raw.d <= 8 && drawable) break;
   }
   // Multiplying, the unreduced product IS the taught step: 2/3 × 3/4 = 6/12
   // shows the mechanism. Dividing, it is just noise -- nobody wants "how many

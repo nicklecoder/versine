@@ -37,7 +37,11 @@ const stub = () => ({
   setAttribute() {}, append() {}, addEventListener() {}, focus() {},
   style: { setProperty() {} },
 });
-globalThis.document = { createElement: stub, createTextNode: (t) => ({ t }), activeElement: null };
+globalThis.document = {
+  createElement: stub, createElementNS: stub,
+  createTextNode: (t) => ({ t }), activeElement: null,
+};
+globalThis.ResizeObserver = class { observe() {} disconnect() {} };
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'web', 'library');
@@ -92,6 +96,7 @@ for (const skill of SKILLS) {
 }
 const { makeRng } = await import(join(ROOT, 'web/engine/rng.js'));
 const { getType } = await import(join(ROOT, 'web/math/answer.js'));
+const { VISUALS } = await import(join(ROOT, 'web/ui/visuals.js'));
 
 const args = process.argv.slice(2);
 const CHECK = args.includes('--check');
@@ -194,6 +199,17 @@ for (const skill of SKILLS) {
       file: `${skill.id}-${level}.json`,
     });
   }
+}
+
+// The presentation vocabulary, written out so the Python deploy gate can
+// validate catalogue items against it without needing a JavaScript runtime.
+// One source of truth: the renderers declare it, this exports it.
+const schemasJson = JSON.stringify(
+  Object.fromEntries(Object.entries(VISUALS).map(([k, v]) => [k, v.schema])), null, 2) + '\n';
+const schemasPath = join(OUT, 'schemas.json');
+if (!existsSync(schemasPath) || readFileSync(schemasPath, 'utf8') !== schemasJson) {
+  if (CHECK) warnings.push('DIFFERS  schemas.json');
+  else writeFileSync(schemasPath, schemasJson);
 }
 
 const manifestJson = JSON.stringify({

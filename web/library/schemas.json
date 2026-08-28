@@ -1,0 +1,171 @@
+{
+  "numberline": {
+    "min": {
+      "type": "int",
+      "required": true
+    },
+    "max": {
+      "type": "int",
+      "required": true
+    },
+    "answer": {
+      "type": "int",
+      "required": true
+    },
+    "steps": {
+      "type": "array",
+      "of": {
+        "type": "object"
+      },
+      "required": true
+    }
+  },
+  "signmodel": {
+    "terms": {
+      "type": "array",
+      "of": {
+        "type": "object"
+      },
+      "required": true
+    },
+    "ops": {
+      "type": "array",
+      "of": {
+        "type": "string"
+      },
+      "required": true
+    },
+    "answer": {
+      "type": "int",
+      "required": true
+    }
+  },
+  "barmodel": {
+    "a": {
+      "type": "frac",
+      "required": true
+    },
+    "b": {
+      "type": "frac",
+      "required": true
+    },
+    "op": {
+      "type": "enum",
+      "values": [
+        "+",
+        "-",
+        "−"
+      ],
+      "required": true
+    },
+    "common": {
+      "type": "int",
+      "min": 1,
+      "max": 64
+    },
+    "left": {
+      "type": "frac"
+    },
+    "right": {
+      "type": "frac"
+    },
+    "result": {
+      "type": "frac"
+    }
+  },
+  "areamodel": {
+    "a": {
+      "type": "frac",
+      "required": true
+    },
+    "b": {
+      "type": "frac",
+      "required": true
+    },
+    "product": {
+      "type": "frac",
+      "required": true
+    }
+  },
+  "fitsmodel": {
+    "a": {
+      "type": "frac",
+      "required": true
+    },
+    "b": {
+      "type": "frac",
+      "required": true
+    },
+    "quotient": {
+      "type": "frac",
+      "required": true
+    },
+    "fine": {
+      "type": "int",
+      "min": 1,
+      "max": 40
+    }
+  },
+  "wholesmodel": {
+    "direction": {
+      "type": "enum",
+      "values": [
+        "toImproper",
+        "toMixed"
+      ],
+      "required": true
+    },
+    "improper": {
+      "type": "frac",
+      "required": true
+    },
+    "whole": {
+      "type": "int",
+      "required": true
+    },
+    "rest": {
+      "type": "int",
+      "required": true
+    },
+    "d": {
+      "type": "int",
+      "min": 1,
+      "max": 64,
+      "required": true
+    }
+  },
+  "equivmodel": {
+    "from": {
+      "type": "frac",
+      "required": true
+    },
+    "to": {
+      "type": "frac",
+      "required": true
+    },
+    "reveal": {
+      "type": "enum",
+      "values": [
+        "to",
+        "from",
+        "none"
+      ]
+    }
+  },
+  "evalmodel": {
+    "lines": {
+      "type": "array",
+      "of": {
+        "type": "string"
+      },
+      "required": true
+    },
+    "rules": {
+      "type": "array",
+      "of": {
+        "type": "string"
+      },
+      "required": true
+    }
+  }
+}
