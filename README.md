@@ -656,6 +656,76 @@ when you would most want it. It is stored per device rather than per account —
 it is about the room you are sitting in — and the button suppresses mousedown
 so it never pulls focus out of the answer field.
 
+## Answer syntax
+
+Committed to, and not to be revised casually: a notation a student half-learns
+is worse than either alternative.
+
+| meaning | typed as | also accepted |
+|---|---|---|
+| exponent | `x^2`, `x^(n+1)` | `x**2` |
+| square root | `sqrt(2)` | `√2` |
+| other roots | `root(3, x)` | |
+| fraction | `1/2`, `(x+1)/2` | |
+| multiplication | `2x`, `2(x+1)` | `2*x` |
+| constants | `pi`, `e` | |
+| absolute value | `abs(x)` | |
+| grouping | `(` `)` | |
+
+`^` rather than Python's `**` because `^` is what Desmos, WolframAlpha, a
+TI-84 and LaTeX all use; Python is the outlier, and `**` is an easy thing to
+meet later for someone who already understands `^`. Square brackets and braces
+are deliberately not accepted as grouping — they are wanted for intervals and
+sets.
+
+Input is permissive, display is not. Several spellings are accepted and
+exactly one is drawn, which is the same split the libraries already make: an
+answer stores a list of acceptable forms and one canonical rendering.
+
+### Structured entry, driven by the same keys
+
+Most answers are typed into shaped fields rather than a single box — a
+fraction has a numerator above a denominator, a power has a raised exponent.
+That is not only kinder on a phone keyboard, where `^` sits two layers deep;
+it puts the structure of the answer in front of the student, which for
+notation being learned is part of the teaching.
+
+The keys that move between those fields are the syntax itself. `/` moves from
+numerator to denominator, `^` moves into the exponent, `sqrt` opens a radical.
+So a student who types `3/4` or `2^5` gets the right shape without knowing
+they typed anything, and the same keystrokes work later when the fields go
+away. Nothing has to be unlearned.
+
+### Where the scaffolding comes off
+
+Shaped fields tell a student the shape of the answer, which is fine while the
+shape is a property of the *level* — every answer on "Multiplying Powers" is a
+single power, and one problem teaches that. It stops being fine when the shape
+varies within a level, which is also usually a sign the level is doing two
+things at once.
+
+Unstructured entry is a skill in itself, and one worth having: a calculator,
+Desmos and a physics problem set all want a typed expression. So a level may
+declare `entry: 'free'` and take a single box instead. Used sparingly, and
+late — the same move as the "All Together" level that removes the topic
+scaffolding, applied to the input instead.
+
+Free entry makes the `accept` list load-bearing: with shaped fields, `2^5` and
+`32` are told apart by which box was filled, and in a single box they are two
+strings that both have to be judged. That is the form-versus-value question
+again, and `requireSimplest` already models it.
+
+### One constraint on how small a field can be
+
+The answer box is `clamp(1.6rem, 6vw, 2.2rem)` with 8px of padding — around 45
+to 55px tall, comfortably above the 44px that counts as a reliable touch
+target. A display exponent is set at `.55em`, which as an input would be 15 to
+19px: too small to hit on a phone.
+
+So an exponent field shrinks its *font* and raises its baseline, but keeps a
+tappable box. The size ratio does the notational work; the target stays
+fingerable.
+
 ## Keyboard first
 
 The answer field keeps focus for the whole run: buttons suppress mousedown so
