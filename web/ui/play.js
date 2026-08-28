@@ -43,12 +43,16 @@ export function playScreen(route) {
   let answerKind = null;
 
   /** Swap the input widget when a problem asks for a different kind of answer. */
+  // Set once the level's library arrives; until then the numeric pad is the
+  // safe default, since a run cannot start before the library has loaded.
+  let levelSigned = false;
+
   function useAnswerWidget(kind, spec) {
     // Choice widgets carry their options, which change every problem, so they
     // are rebuilt each time rather than only when the kind changes.
     if (kind === answerKind && kind !== 'choice') return;
     answerKind = kind;
-    answer = makeAnswerInput(kind, spec);
+    answer = makeAnswerInput(kind, spec, { signed: levelSigned });
     hintEl.textContent = keyboardHint();
       mount(answerSlot, answer.node);
   }
@@ -105,6 +109,7 @@ export function playScreen(route) {
     .then((lib) => {
       const deck = dealer(lib.problems);
       session.deal = () => deck.next();
+      levelSigned = !!lib.signed;
     })
     .catch((err) => {
       // Nothing to fall back to, by design: problems in a library have been

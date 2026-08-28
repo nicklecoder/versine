@@ -1,6 +1,6 @@
 {
   "built": 43,
-  "sources": "2637a16a412530d4bdb66c30df49e3a40a22cef473603da3fe807729083c8b30",
+  "sources": "ce0fe1b9d428d358f68d694d00cd6c136006caa1113830987e4c6d28a600981d",
   "levels": [
     {
       "skill": "int-addsub",
@@ -8,6 +8,7 @@
       "name": "First Steps",
       "count": 342,
       "exhaustive": true,
+      "signed": true,
       "file": "int-addsub-0.json"
     },
     {
@@ -16,6 +17,7 @@
       "name": "Adding Negatives",
       "count": 240,
       "exhaustive": true,
+      "signed": true,
       "file": "int-addsub-1.json"
     },
     {
@@ -24,6 +26,7 @@
       "name": "Subtracting Negatives",
       "count": 576,
       "exhaustive": true,
+      "signed": true,
       "file": "int-addsub-2.json"
     },
     {
@@ -32,6 +35,7 @@
       "name": "Mixed Integers",
       "count": 1000,
       "exhaustive": false,
+      "signed": true,
       "file": "int-addsub-3.json"
     },
     {
@@ -40,6 +44,7 @@
       "name": "Chains",
       "count": 1000,
       "exhaustive": false,
+      "signed": true,
       "file": "int-addsub-4.json"
     },
     {
@@ -48,6 +53,7 @@
       "name": "All Together",
       "count": 1000,
       "exhaustive": false,
+      "signed": true,
       "file": "int-addsub-5.json"
     },
     {
@@ -56,6 +62,7 @@
       "name": "Sign Rules",
       "count": 128,
       "exhaustive": true,
+      "signed": true,
       "file": "int-muldiv-0.json"
     },
     {
@@ -64,6 +71,7 @@
       "name": "Two Negatives",
       "count": 64,
       "exhaustive": true,
+      "signed": false,
       "file": "int-muldiv-1.json"
     },
     {
@@ -72,6 +80,7 @@
       "name": "Dividing",
       "count": 256,
       "exhaustive": true,
+      "signed": true,
       "file": "int-muldiv-2.json"
     },
     {
@@ -80,6 +89,7 @@
       "name": "Bigger Facts",
       "count": 968,
       "exhaustive": true,
+      "signed": true,
       "file": "int-muldiv-3.json"
     },
     {
@@ -88,6 +98,7 @@
       "name": "Chains",
       "count": 1000,
       "exhaustive": false,
+      "signed": true,
       "file": "int-muldiv-4.json"
     },
     {
@@ -96,6 +107,7 @@
       "name": "All Together",
       "count": 1000,
       "exhaustive": false,
+      "signed": true,
       "file": "int-muldiv-5.json"
     },
     {
@@ -104,6 +116,7 @@
       "name": "Same Denominator",
       "count": 801,
       "exhaustive": true,
+      "signed": false,
       "file": "frac-addsub-0.json"
     },
     {
@@ -112,6 +125,7 @@
       "name": "One Fits the Other",
       "count": 80,
       "exhaustive": true,
+      "signed": false,
       "file": "frac-addsub-1.json"
     },
     {
@@ -120,6 +134,7 @@
       "name": "Unlike Denominators",
       "count": 116,
       "exhaustive": true,
+      "signed": false,
       "file": "frac-addsub-2.json"
     },
     {
@@ -128,6 +143,7 @@
       "name": "Taking Away",
       "count": 312,
       "exhaustive": true,
+      "signed": false,
       "file": "frac-addsub-3.json"
     },
     {
@@ -136,6 +152,7 @@
       "name": "Simplify the Answer",
       "count": 312,
       "exhaustive": true,
+      "signed": false,
       "file": "frac-addsub-4.json"
     },
     {
@@ -144,6 +161,7 @@
       "name": "All Together",
       "count": 1000,
       "exhaustive": false,
+      "signed": false,
       "file": "frac-addsub-5.json"
     },
     {
@@ -152,6 +170,7 @@
       "name": "A Part of a Part",
       "count": 121,
       "exhaustive": true,
+      "signed": false,
       "file": "frac-muldiv-0.json"
     },
     {
@@ -160,6 +179,7 @@
       "name": "Multiplying Any Two",
       "count": 1000,
       "exhaustive": false,
+      "signed": false,
       "file": "frac-muldiv-1.json"
     },
     {
@@ -168,6 +188,7 @@
       "name": "How Many Fit",
       "count": 68,
       "exhaustive": true,
+      "signed": false,
       "file": "frac-muldiv-2.json"
     },
     {
@@ -176,6 +197,7 @@
       "name": "Dividing Fractions",
       "count": 880,
       "exhaustive": false,
+      "signed": false,
       "file": "frac-muldiv-3.json"
     },
     {
@@ -184,6 +206,7 @@
       "name": "Simplify the Answer",
       "count": 879,
       "exhaustive": false,
+      "signed": false,
       "file": "frac-muldiv-4.json"
     },
     {
@@ -192,6 +215,7 @@
       "name": "All Together",
       "count": 1000,
       "exhaustive": false,
+      "signed": false,
       "file": "frac-muldiv-5.json"
     },
     {
@@ -200,6 +224,7 @@
       "name": "Into Wholes",
       "count": 729,
       "exhaustive": true,
+      "signed": false,
       "file": "frac-mixed-0.json"
     },
     {
@@ -208,6 +233,7 @@
       "name": "Back Again",
       "count": 729,
       "exhaustive": true,
+      "signed": false,
       "file": "frac-mixed-1.json"
     },
     {
@@ -216,6 +242,7 @@
       "name": "Exactly Whole",
       "count": 128,
       "exhaustive": true,
+      "signed": false,
       "file": "frac-mixed-2.json"
     },
     {
@@ -224,6 +251,7 @@
       "name": "Both Ways",
       "count": 1000,
       "exhaustive": false,
+      "signed": false,
       "file": "frac-mixed-3.json"
     },
     {
@@ -232,6 +260,7 @@
       "name": "Simplify Too",
       "count": 1000,
       "exhaustive": false,
+      "signed": false,
       "file": "frac-mixed-4.json"
     },
     {
@@ -240,6 +269,7 @@
       "name": "Which Form?",
       "count": 1000,
       "exhaustive": false,
+      "signed": false,
       "file": "frac-mixed-5.json"
     },
     {
@@ -248,6 +278,7 @@
       "name": "All Together",
       "count": 1000,
       "exhaustive": false,
+      "signed": false,
       "file": "frac-mixed-6.json"
     },
     {
@@ -256,6 +287,7 @@
       "name": "Build It Up",
       "count": 122,
       "exhaustive": true,
+      "signed": false,
       "file": "frac-equiv-0.json"
     },
     {
@@ -264,6 +296,7 @@
       "name": "Which Bottom?",
       "count": 122,
       "exhaustive": true,
+      "signed": false,
       "file": "frac-equiv-1.json"
     },
     {
@@ -272,6 +305,7 @@
       "name": "Cut It Down",
       "count": 95,
       "exhaustive": true,
+      "signed": false,
       "file": "frac-equiv-2.json"
     },
     {
@@ -280,6 +314,7 @@
       "name": "All the Way Down",
       "count": 55,
       "exhaustive": true,
+      "signed": false,
       "file": "frac-equiv-3.json"
     },
     {
@@ -288,6 +323,7 @@
       "name": "Missing Piece",
       "count": 122,
       "exhaustive": true,
+      "signed": false,
       "file": "frac-equiv-4.json"
     },
     {
@@ -296,6 +332,7 @@
       "name": "All Together",
       "count": 516,
       "exhaustive": true,
+      "signed": false,
       "file": "frac-equiv-5.json"
     },
     {
@@ -304,6 +341,7 @@
       "name": "Times Before Plus",
       "count": 1000,
       "exhaustive": false,
+      "signed": true,
       "file": "order-ops-0.json"
     },
     {
@@ -312,6 +350,7 @@
       "name": "Left to Right",
       "count": 1000,
       "exhaustive": false,
+      "signed": true,
       "file": "order-ops-1.json"
     },
     {
@@ -320,6 +359,7 @@
       "name": "Brackets First",
       "count": 1000,
       "exhaustive": false,
+      "signed": true,
       "file": "order-ops-2.json"
     },
     {
@@ -328,6 +368,7 @@
       "name": "Powers Too",
       "count": 1000,
       "exhaustive": false,
+      "signed": true,
       "file": "order-ops-3.json"
     },
     {
@@ -336,6 +377,7 @@
       "name": "Nested",
       "count": 1000,
       "exhaustive": false,
+      "signed": true,
       "file": "order-ops-4.json"
     },
     {
@@ -344,6 +386,7 @@
       "name": "All Together",
       "count": 1000,
       "exhaustive": false,
+      "signed": true,
       "file": "order-ops-5.json"
     }
   ]

@@ -16,9 +16,24 @@ import { getType } from '../math/answer.js';
  * single keypress can never both answer the problem and skip its own reveal.
  */
 
-function intInput() {
+/**
+ * @param {object} [spec]   the problem's answer spec
+ * @param {{signed?: boolean}} [opts]  whether this level ever asks for a
+ *        negative answer
+ */
+function intInput(spec, opts = {}) {
+  // No iPhone keyboard is both numeric and has a minus: not type="number", not
+  // inputmode="numeric" or "decimal", not type="tel". The only one carrying a
+  // minus is the full keyboard, where it sits on the 123 layer. So on levels
+  // that can go negative we ask for the full keyboard and accept the extra
+  // tap; on the other 26 levels the numeric pad is still the better keyboard.
+  //
+  // Android's numeric pad does have a minus, so this costs it something. It is
+  // applied to both rather than sniffing the platform, because two kids on
+  // different phones should meet the same app.
   const input = el('input.answer', {
-    type: 'text', inputmode: 'numeric', pattern: '-?[0-9]*', maxlength: 7,
+    type: 'text', inputmode: opts.signed ? 'text' : 'numeric',
+    pattern: '-?[0-9]*', maxlength: 7,
     autocomplete: 'off', autocorrect: 'off', spellcheck: 'false', placeholder: '?',
     oninput: () => {
       const clean = input.value.replace(/[^0-9-]/g, '').replace(/(?!^)-/g, '');
@@ -45,7 +60,7 @@ const WIDGETS = { int: intInput, frac: fracInput, mixed: mixedInput, choice: cho
  * @param {string} answerType
  * @param {object} [spec] the problem's answer spec, for widgets that need it
  */
-export function makeAnswerInput(answerType, spec) {
+export function makeAnswerInput(answerType, spec, opts = {}) {
   const kind = getType(answerType).input;
-  return (WIDGETS[kind] ?? intInput)(spec);
+  return (WIDGETS[kind] ?? intInput)(spec, opts);
 }

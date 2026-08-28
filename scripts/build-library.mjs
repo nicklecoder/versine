@@ -155,11 +155,22 @@ function buildLevel(skill, level) {
   // Sort by text so the file is stable regardless of the order draws happened
   // to arrive in, which keeps diffs readable.
   const problems = [...byText.values()].sort((a, b) => (a.text < b.text ? -1 : a.text > b.text ? 1 : 0));
+
+  // Whether this level ever asks for a negative answer, which decides which
+  // keyboard an iPhone offers. It is a property of the LEVEL, deliberately:
+  // choosing per problem would change the keyboard exactly when the answer is
+  // negative, and a student would read the answer off the keyboard.
+  const signed = problems.some((p) => {
+    const v = p.answer.value;
+    const n = v && typeof v === 'object' ? v.n : v;
+    return typeof n === 'number' && n < 0;
+  });
   return {
     skill: skill.id,
     level,
     levelName: skill.levels[level].name,
     count: problems.length,
+    signed,
     // Exhaustive means: we stopped finding new problems long before the cap,
     // so this is the whole space and a run can deal without replacement.
     exhaustive: problems.length < cap && sinceNew > PATIENCE / 4,
@@ -196,7 +207,7 @@ for (const skill of SKILLS) {
     if (lib.count < FLOOR) warnings.push(`THIN   ${skill.id} L${level + 1} "${lib.levelName}" — only ${lib.count} problems`);
     manifest.push({
       skill: skill.id, level, name: lib.levelName,
-      count: lib.count, exhaustive: lib.exhaustive,
+      count: lib.count, exhaustive: lib.exhaustive, signed: lib.signed,
       file: `${skill.id}-${level}.json`,
     });
   }

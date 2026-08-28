@@ -1,0 +1,27 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Versine — keyboard check</title>
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="../styles.css">
+<style>body{padding:24px;font-family:var(--body)}
+ h1{font-family:var(--display);color:var(--cool);font-size:1.1rem}
+ table{border-collapse:collapse;margin-top:14px;font-size:.84rem}
+ td,th{padding:6px 14px;border-bottom:1px solid var(--line);text-align:left}
+ th{color:var(--dim);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em}
+ .yes{color:var(--grow)} .no{color:var(--muted)}</style>
+<h1>Which keyboard each level asks for</h1>
+<div id="out"></div>
+<script type="module">
+  import { makeAnswerInput } from '../ui/answerinput.js';
+  const m = await (await fetch('../library/manifest.json')).json();
+  const rows = m.levels.map((l) => {
+    const w = makeAnswerInput('int', null, { signed: l.signed });
+    return `<tr><td>${l.skill} L${l.level + 1}</td><td>${l.name}</td>
+      <td class="${l.signed ? 'yes' : 'no'}">${l.signed ? 'can be negative' : '—'}</td>
+      <td><code>inputmode="${w.node.getAttribute('inputmode')}"</code></td></tr>`;
+  }).join('');
+  document.getElementById('out').innerHTML =
+    `<table><tr><th>level</th><th>name</th><th>answers</th><th>keyboard</th></tr>${rows}</table>`;
+  const signed = m.levels.filter(l => l.signed);
+  document.title = `${signed.length} signed / ${m.levels.length}`;
+</script>
