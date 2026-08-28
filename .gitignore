@@ -47,3 +47,6 @@ Thumbs.db
 # ── Logs and scratch ─────────────────────────────────────────────────────────
 *.log
 *.pid
+
+# Visual regression captures live outside the repo.
+web/dev/*.png
