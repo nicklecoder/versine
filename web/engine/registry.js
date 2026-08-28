@@ -9,9 +9,12 @@ import fracMulDiv from '../skills/frac-muldiv.js';
 import fracMixed from '../skills/frac-mixed.js';
 import fracEquiv from '../skills/frac-equiv.js';
 import orderOps from '../skills/order-ops.js';
+import exponents from '../skills/exponents.js';
+import roots from '../skills/roots.js';
 
 /** @type {any[]} */
-export const SKILLS = [intAddSub, intMulDiv, fracAddSub, fracMulDiv, fracMixed, fracEquiv, orderOps];
+export const SKILLS = [intAddSub, intMulDiv, fracAddSub, fracMulDiv, fracMixed, fracEquiv,
+  orderOps, exponents, roots];
 
 export const getSkill = (id) => SKILLS.find((s) => s.id === id);
 

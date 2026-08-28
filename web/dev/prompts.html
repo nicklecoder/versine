@@ -1,0 +1,45 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Versine — prompt vocabulary</title>
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="../styles.css">
+<style>body{padding:24px;font-family:var(--body)}
+ h1{font-family:var(--display);color:var(--cool);font-size:1.1rem;margin:0 0 4px}
+ .note{color:var(--muted);font-size:.82rem;margin-bottom:18px;max-width:62ch;line-height:1.5}
+ .row{display:grid;grid-template-columns:120px 1fr 1fr;gap:16px;align-items:center;
+      padding:12px 0;border-top:1px solid var(--line)}
+ .k{font-family:var(--display);font-size:.8rem;color:var(--gold)}
+ h2{font-family:var(--body);font-size:.64rem;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--dim);margin:0 0 6px}
+ .box{background:var(--bg-2);border:1px solid var(--line);border-radius:8px;padding:10px 14px}</style>
+<h1>Prompt vocabulary</h1>
+<p class="note">Every term kind the catalogue can use, asking and answered.
+  Adding a kind here makes it available to every level at once — which is the
+  point of a shared vocabulary rather than per-skill markup.</p>
+<div id="out"></div>
+<script type="module">
+  import { renderPrompt, answerTerm, TERM_KINDS } from '../ui/prompt.js';
+  import { el } from '../ui/dom.js';
+  const cases = [
+    ['num',   [{t:'num',v:'−7',s:1},{t:'op',v:'+'},{t:'num',v:'(−3)',s:2},{t:'op',v:'='},{t:'blank'}], 'int', -10],
+    ['frac',  [{t:'frac',n:3,d:4,s:1},{t:'op',v:'+'},{t:'frac',n:1,d:6,s:2},{t:'op',v:'='},{t:'blank'}], 'frac', {n:11,d:12}],
+    ['frac blank', [{t:'frac',n:1,d:10,s:1},{t:'op',v:'='},{t:'frac',n:null,d:20,s:2}], 'int', 2],
+    ['mixed', [{t:'mixed',w:2,n:3,d:4,s:1},{t:'op',v:'='},{t:'blank'}], 'frac', {n:11,d:4}],
+    ['pow',   [{t:'pow',b:'3',e:4,s:1},{t:'op',v:'='},{t:'blank'}], 'int', 81],
+    ['pow blank', [{t:'pow',b:'2',e:5,s:1},{t:'op',v:'×'},{t:'pow',b:'2',e:3,s:2},{t:'op',v:'='},{t:'pow',b:'2',e:null,s:3}], 'int', 8],
+    ['pow negative', [{t:'pow',b:'5',e:'−2',s:1},{t:'op',v:'='},{t:'blank'}], 'frac', {n:1,d:25}],
+    ['root',  [{t:'root',v:144,s:1},{t:'op',v:'='},{t:'blank'}], 'int', 12],
+    ['root simplify', [{t:'root',v:50,s:1},{t:'op',v:'='},{t:'root',c:null,v:2,s:2}], 'int', 5],
+    ['prose', [{t:'prose',v:'You need to multiply 2¾ by 3.',s:1}], 'choice', 'improper'],
+  ];
+  const out = document.getElementById('out');
+  for (const [name, terms, type, val] of cases) {
+    const ask = el('div.problem'), ans = el('div.problem');
+    renderPrompt(ask, terms);
+    renderPrompt(ans, terms, { blankAs: answerTerm(type, val), shown: typeof val === 'object' ? `${val.n}/${val.d}` : val });
+    out.append(el('div.row', {}, el('div.k', {}, name),
+      el('div', {}, el('h2', {}, 'asking'), el('div.box', {}, ask)),
+      el('div', {}, el('h2', {}, 'answered'), el('div.box', {}, ans))));
+  }
+  document.title = `${TERM_KINDS.length} term kinds`;
+</script>

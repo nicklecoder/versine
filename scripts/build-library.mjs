@@ -97,7 +97,7 @@ for (const skill of SKILLS) {
 const { makeRng } = await import(join(ROOT, 'web/engine/rng.js'));
 const { getType } = await import(join(ROOT, 'web/math/answer.js'));
 const { VISUALS } = await import(join(ROOT, 'web/ui/visuals.js'));
-const { TERM_KINDS } = await import(join(ROOT, 'web/ui/prompt.js'));
+const { TERM_KINDS, BLANK_FIELDS } = await import(join(ROOT, 'web/ui/prompt.js'));
 
 const args = process.argv.slice(2);
 const CHECK = args.includes('--check');
@@ -219,6 +219,7 @@ for (const skill of SKILLS) {
 const schemasJson = JSON.stringify({
   visuals: Object.fromEntries(Object.entries(VISUALS).map(([k, v]) => [k, v.schema])),
   terms: TERM_KINDS,
+  blankFields: BLANK_FIELDS,
 }, null, 2) + '\n';
 const schemasPath = join(OUT, 'schemas.json');
 if (!existsSync(schemasPath) || readFileSync(schemasPath, 'utf8') !== schemasJson) {

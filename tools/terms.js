@@ -8,6 +8,15 @@
 export const num = (v, s = 1) => ({ t: 'num', v: String(v), s });
 export const frac = (n, d, s = 1) => ({ t: 'frac', n, d, s });
 export const mixed = (w, n, d, s = 1) => ({ t: 'mixed', w, n, d, s });
+/** A power. Pass e: null to ask for the exponent. */
+export const pow = (b, e, s = 1) => ({ t: 'pow', b: String(b), e, s });
+/**
+ * A square root. Omit `c` for a bare root, pass null to ask for the
+ * coefficient, or a number to show one.
+ */
+export const root = (v, c, s = 1) => (c === undefined
+  ? { t: 'root', v, s }
+  : { t: 'root', c, v, s });
 export const op = (v) => ({ t: 'op', v });
 export const blank = () => ({ t: 'blank' });
 export const prose = (v, s = 1) => ({ t: 'prose', v: String(v), s });

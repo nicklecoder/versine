@@ -10,7 +10,7 @@ import { el, mount } from './dom.js';
  * renderer with `reveal` climbing one line at a time, which is what makes a
  * walkthrough of this skill worth having.
  *
- * @typedef {{lines:string[], rules:string[]}} EvalSpec
+ * @typedef {{lines:string[], rules:string[], hint?:string}} EvalSpec
  */
 
 /**
@@ -19,7 +19,7 @@ import { el, mount } from './dom.js';
  * @param {{reveal?:number, showAnswer?:boolean, verdict?:'ok'|'bad'}} [opts]
  */
 export function drawEvalModel(container, spec, { reveal = null, showAnswer = false, verdict = null } = {}) {
-  const { lines, rules } = spec;
+  const { lines, rules, hint } = spec;
   const shown = showAnswer ? lines.length : Math.max(1, reveal ?? 1);
 
   const rows = lines.slice(0, shown).map((line, i) => {
@@ -35,6 +35,9 @@ export function drawEvalModel(container, spec, { reveal = null, showAnswer = fal
 
   mount(container, el('div.eval', {}, ...rows,
     shown === 1
-      ? el('p.bar-hint', {}, 'Which part is allowed to go first?')
+      // The hint belongs to the question, not the renderer: order of
+      // operations asks which part goes first, exponent rules ask something
+      // else entirely, and both draw their working the same way.
+      ? el('p.bar-hint', {}, hint ?? 'Which part is allowed to go first?')
       : null));
 }

@@ -26,30 +26,35 @@
 <script type="module">
   import { renderVisual, VISUALS } from '../ui/visuals.js';
   import { renderPrompt, answerTerm } from '../ui/prompt.js';
+  import { getType } from '../math/answer.js';
   import { el } from '../ui/dom.js';
 
   const manifest = await (await fetch('../library/manifest.json')).json();
   const out = document.getElementById('out');
   const seen = new Set();
+  const shown = new Set();
 
   for (const entry of manifest.levels) {
-    if (seen.size === Object.keys(VISUALS).length) break;
+    if (seen.size === Object.keys(VISUALS).length && shown.size >= 9) break;
     const lib = await (await fetch('../library/' + entry.file)).json();
     for (const p of lib.problems) {
       const kind = p.visual && p.visual.kind;
-      if (!kind || seen.has(kind)) continue;
-      seen.add(kind);
+      // One row per visual kind, plus one per skill, so new notation shows up.
+      if (!kind || (seen.has(kind) && shown.has(entry.skill))) continue;
+      seen.add(kind); shown.add(entry.skill);
 
       const ask = el('div.box'), reveal = el('div.box');
       const askPrompt = el('div.problem.pr'), revPrompt = el('div.problem.pr');
       renderPrompt(askPrompt, p.prompt);
-      renderPrompt(revPrompt, p.prompt, { blankAs: answerTerm(p.answer.type, p.answer.value) });
+      renderPrompt(revPrompt, p.prompt, {
+        blankAs: answerTerm(p.answer.type, p.answer.value),
+        shown: getType(p.answer.type).format(p.answer.value) });
       const askVis = el('div.visual'), revVis = el('div.visual');
       ask.append(askPrompt, askVis);
       reveal.append(revPrompt, revVis);
 
       out.append(el('div.row', {},
-        el('div.kind', {}, kind),
+        el('div.kind', {}, kind + ' · ' + entry.skill),
         el('div.cell', {}, el('h2', {}, 'asking'), ask),
         el('div.cell', {}, el('h2', {}, 'revealed'), reveal)));
 

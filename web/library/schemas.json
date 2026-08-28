@@ -173,6 +173,9 @@
           "type": "string"
         },
         "required": true
+      },
+      "hint": {
+        "type": "string"
       }
     }
   },
@@ -182,6 +185,21 @@
     "mixed",
     "op",
     "blank",
+    "pow",
+    "root",
     "prose"
-  ]
+  ],
+  "blankFields": {
+    "frac": [
+      "n",
+      "d"
+    ],
+    "pow": [
+      "e"
+    ],
+    "root": [
+      "c",
+      "v"
+    ]
+  }
 }

@@ -1112,3 +1112,15 @@ h1, h2, h3, .display { font-family: var(--display); font-weight: 700; letter-spa
   .seg--fine .seg__label { flex-basis: 58px; font-size: .88rem; }
   .seg--fine .seg__bar { height: 28px; }
 }
+
+/* Powers and roots. The exponent is small and raised; the radical needs a bar
+   over its body so where the root ends is unambiguous — √50 + 2 is not √52. */
+.pow-term sup { font-size: .55em; vertical-align: super; margin-left: .04em; }
+.pow-term sup.is-blank { color: var(--gold); }
+.root-term { display: inline-flex; align-items: flex-start; }
+.root-term__sign { font-size: 1.05em; line-height: 1; }
+.root-term__body {
+  border-top: 2px solid currentColor;
+  padding: .04em .12em 0 .06em; margin-top: .08em;
+}
+.root-term .is-blank { color: var(--gold); }

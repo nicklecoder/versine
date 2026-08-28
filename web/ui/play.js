@@ -191,7 +191,10 @@ export function playScreen(route) {
   function revealAnswer(verdict) {
     const p = session.problem;
     const type = getType(p.answer.type);
-    renderPrompt(problemEl, p.prompt, { blankAs: answerTerm(p.answer.type, p.answer.value) });
+    renderPrompt(problemEl, p.prompt, {
+      blankAs: answerTerm(p.answer.type, p.answer.value),
+      shown: type.format(p.answer.value),
+    });
     if (hasVisual(p.visual)) {
       visualBox.classList.remove('hidden');
       paintVisual(p.visual, { showAnswer: true, animateFrom: 1, verdict });

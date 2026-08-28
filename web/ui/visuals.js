@@ -111,6 +111,7 @@ export const VISUALS = {
     schema: {
       lines: { type: 'array', of: { type: 'string' }, required: true },
       rules: { type: 'array', of: { type: 'string' }, required: true },
+      hint: { type: 'string' },
     },
   },
 };

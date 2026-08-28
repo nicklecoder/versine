@@ -1,6 +1,6 @@
 {
-  "built": 43,
-  "sources": "ce0fe1b9d428d358f68d694d00cd6c136006caa1113830987e4c6d28a600981d",
+  "built": 56,
+  "sources": "28b7c8d25022af982c61652befd3b5b90ecbc47373f99adadaba5091b358d914",
   "levels": [
     {
       "skill": "int-addsub",
@@ -388,6 +388,123 @@
       "exhaustive": false,
       "signed": true,
       "file": "order-ops-5.json"
+    },
+    {
+      "skill": "exponents",
+      "level": 0,
+      "name": "What a Power Is",
+      "count": 104,
+      "exhaustive": true,
+      "signed": false,
+      "file": "exponents-0.json"
+    },
+    {
+      "skill": "exponents",
+      "level": 1,
+      "name": "Multiplying Powers",
+      "count": 325,
+      "exhaustive": true,
+      "signed": false,
+      "file": "exponents-1.json"
+    },
+    {
+      "skill": "exponents",
+      "level": 2,
+      "name": "Dividing Powers",
+      "count": 260,
+      "exhaustive": true,
+      "signed": false,
+      "file": "exponents-2.json"
+    },
+    {
+      "skill": "exponents",
+      "level": 3,
+      "name": "Power of a Power",
+      "count": 156,
+      "exhaustive": true,
+      "signed": false,
+      "file": "exponents-3.json"
+    },
+    {
+      "skill": "exponents",
+      "level": 4,
+      "name": "Zero and Negative",
+      "count": 69,
+      "exhaustive": true,
+      "signed": false,
+      "file": "exponents-4.json"
+    },
+    {
+      "skill": "exponents",
+      "level": 5,
+      "name": "Which Form?",
+      "count": 144,
+      "exhaustive": true,
+      "signed": false,
+      "file": "exponents-5.json"
+    },
+    {
+      "skill": "exponents",
+      "level": 6,
+      "name": "All Together",
+      "count": 914,
+      "exhaustive": true,
+      "signed": false,
+      "file": "exponents-6.json"
+    },
+    {
+      "skill": "roots",
+      "level": 0,
+      "name": "Perfect Squares",
+      "count": 68,
+      "exhaustive": true,
+      "signed": false,
+      "file": "roots-0.json"
+    },
+    {
+      "skill": "roots",
+      "level": 1,
+      "name": "Between Whole Numbers",
+      "count": 418,
+      "exhaustive": true,
+      "signed": false,
+      "file": "roots-1.json"
+    },
+    {
+      "skill": "roots",
+      "level": 2,
+      "name": "Pulling Out Squares",
+      "count": 56,
+      "exhaustive": true,
+      "signed": false,
+      "file": "roots-2.json"
+    },
+    {
+      "skill": "roots",
+      "level": 3,
+      "name": "Simplest Radical Form",
+      "count": 196,
+      "exhaustive": true,
+      "signed": false,
+      "file": "roots-3.json"
+    },
+    {
+      "skill": "roots",
+      "level": 4,
+      "name": "Which Form?",
+      "count": 150,
+      "exhaustive": true,
+      "signed": false,
+      "file": "roots-4.json"
+    },
+    {
+      "skill": "roots",
+      "level": 5,
+      "name": "All Together",
+      "count": 682,
+      "exhaustive": true,
+      "signed": false,
+      "file": "roots-5.json"
     }
   ]
 }

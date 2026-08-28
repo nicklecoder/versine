@@ -28,12 +28,14 @@ KNOWN_TYPES = {"int", "frac", "mixed", "choice"}
 # system knows how to draw, with parameters that renderer can actually use.
 SCHEMAS = {}
 TERM_KINDS = set()
+BLANK_FIELDS = {}
 _schema_path = LIB / "schemas.json"
 if _schema_path.is_file():
     try:
         _v = json.loads(_schema_path.read_text())
         SCHEMAS = _v.get("visuals", {})
         TERM_KINDS = set(_v.get("terms", []))
+        BLANK_FIELDS = _v.get("blankFields", {})
     except json.JSONDecodeError:
         pass
 
@@ -44,7 +46,24 @@ if _schema_path.is_file():
 TERM_FIELDS = {
     "num": ("v",), "frac": ("n", "d"), "mixed": ("w", "n", "d"),
     "op": ("v",), "blank": (), "prose": ("v",),
+    "pow": ("b", "e"), "root": ("v",),
 }
+
+
+def has_somewhere_for_the_answer(prompt):
+    """A prompt needs a gap. It can be a `blank` term, a null field inside a
+    term (the exponent in 2^?, the numerator in ?/20), or a strategy level's
+    prose, where the question is the sentence and the answer is a choice."""
+    for t in prompt:
+        if not isinstance(t, dict):
+            continue
+        kind = t.get("t")
+        if kind in ("blank", "prose"):
+            return True
+        for field in BLANK_FIELDS.get(kind, ()):
+            if field in t and t[field] is None:
+                return True
+    return False
 
 
 def check_prompt(prompt, where, out):
@@ -54,10 +73,7 @@ def check_prompt(prompt, where, out):
     if not isinstance(prompt, list) or not prompt:
         out.append(f"{where}: prompt should be a non-empty list of terms")
         return
-    if not any(t.get("t") == "blank" for t in prompt if isinstance(t, dict)) \
-            and not any(t.get("t") == "prose" for t in prompt if isinstance(t, dict)) \
-            and not any(t.get("n") is None or t.get("d") is None
-                        for t in prompt if isinstance(t, dict) and t.get("t") == "frac"):
+    if not has_somewhere_for_the_answer(prompt):
         out.append(f"{where}: prompt has nowhere for the answer to go")
     for i, term in enumerate(prompt):
         at = f"{where}: prompt[{i}]"
@@ -71,7 +87,7 @@ def check_prompt(prompt, where, out):
         for field in TERM_FIELDS.get(kind, ()):
             if field not in term:
                 out.append(f"{at} ({kind}) is missing {field!r}")
-            elif field in ("n", "d") and term[field] is not None \
+            elif field in ("n", "d", "w") and term[field] is not None \
                     and not isinstance(term[field], int):
                 out.append(f"{at} ({kind}) has a non-integer {field!r}")
 
