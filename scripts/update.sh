@@ -158,7 +158,11 @@ fi
 # stash ever exists at a time and plain `git stash` (no ref) is unambiguous.
 STASHED=0
 if ! git diff --quiet || ! git diff --cached --quiet; then
-  log "stashing local changes before updating"
+  # Name them. Carried-forward edits are invisible once they work, and a
+  # server left running for months accumulates divergence nobody remembers.
+  # The journal should be able to answer "what is different about this box".
+  log "stashing local changes before updating:"
+  git diff --name-only HEAD | while IFS= read -r f; do log "    $f"; done
   git stash push -m "versine-update: local changes as of ${OLD_REV:0:8}" >/dev/null 2>&1 \
     && STASHED=1 \
     || die "could not stash local changes; refusing to update over them"
