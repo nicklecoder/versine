@@ -327,6 +327,9 @@ export function playScreen(route) {
     try {
       outcome = await api.submitRun({
         skill_id: skill.id, level: session.baseLevel, mode_id: mode.id,
+        // The level's identity, which survives levels being inserted above it.
+        // `level` still goes along for ordering and for older records.
+        level_slug: skill.levels[session.baseLevel]?.slug ?? null,
         level_count: skill.levels.length,
         duration: mode.duration ? trial.duration : 0,
         summary: { ...summary, endReason: summary.endReason },

@@ -1,10 +1,87 @@
 {
   "built": 56,
-  "sources": "28b7c8d25022af982c61652befd3b5b90ecbc47373f99adadaba5091b358d914",
+  "order": {
+    "int-addsub": [
+      "first-steps",
+      "adding-negatives",
+      "subtracting-negatives",
+      "mixed-integers",
+      "chains",
+      "all-together"
+    ],
+    "int-muldiv": [
+      "sign-rules",
+      "two-negatives",
+      "dividing",
+      "bigger-facts",
+      "chains",
+      "all-together"
+    ],
+    "frac-addsub": [
+      "same-denominator",
+      "one-fits-the-other",
+      "unlike-denominators",
+      "taking-away",
+      "simplify-the-answer",
+      "all-together"
+    ],
+    "frac-muldiv": [
+      "a-part-of-a-part",
+      "multiplying-any-two",
+      "how-many-fit",
+      "dividing-fractions",
+      "simplify-the-answer",
+      "all-together"
+    ],
+    "frac-mixed": [
+      "into-wholes",
+      "back-again",
+      "exactly-whole",
+      "both-ways",
+      "simplify-too",
+      "which-form",
+      "all-together"
+    ],
+    "frac-equiv": [
+      "build-it-up",
+      "which-bottom",
+      "cut-it-down",
+      "all-the-way-down",
+      "missing-piece",
+      "all-together"
+    ],
+    "order-ops": [
+      "times-before-plus",
+      "left-to-right",
+      "brackets-first",
+      "powers-too",
+      "nested",
+      "all-together"
+    ],
+    "exponents": [
+      "what-a-power-is",
+      "multiplying-powers",
+      "dividing-powers",
+      "power-of-a-power",
+      "zero-and-negative",
+      "which-form",
+      "all-together"
+    ],
+    "roots": [
+      "perfect-squares",
+      "between-whole-numbers",
+      "pulling-out-squares",
+      "simplest-radical-form",
+      "which-form",
+      "all-together"
+    ]
+  },
+  "sources": "1786e850155fc69e3fdfd889c445adaa55641e0abc83d6135b09aebd2efb965c",
   "levels": [
     {
       "skill": "int-addsub",
       "level": 0,
+      "slug": "first-steps",
       "name": "First Steps",
       "count": 342,
       "exhaustive": true,
@@ -14,6 +91,7 @@
     {
       "skill": "int-addsub",
       "level": 1,
+      "slug": "adding-negatives",
       "name": "Adding Negatives",
       "count": 240,
       "exhaustive": true,
@@ -23,6 +101,7 @@
     {
       "skill": "int-addsub",
       "level": 2,
+      "slug": "subtracting-negatives",
       "name": "Subtracting Negatives",
       "count": 576,
       "exhaustive": true,
@@ -32,6 +111,7 @@
     {
       "skill": "int-addsub",
       "level": 3,
+      "slug": "mixed-integers",
       "name": "Mixed Integers",
       "count": 1000,
       "exhaustive": false,
@@ -41,6 +121,7 @@
     {
       "skill": "int-addsub",
       "level": 4,
+      "slug": "chains",
       "name": "Chains",
       "count": 1000,
       "exhaustive": false,
@@ -50,6 +131,7 @@
     {
       "skill": "int-addsub",
       "level": 5,
+      "slug": "all-together",
       "name": "All Together",
       "count": 1000,
       "exhaustive": false,
@@ -59,6 +141,7 @@
     {
       "skill": "int-muldiv",
       "level": 0,
+      "slug": "sign-rules",
       "name": "Sign Rules",
       "count": 128,
       "exhaustive": true,
@@ -68,6 +151,7 @@
     {
       "skill": "int-muldiv",
       "level": 1,
+      "slug": "two-negatives",
       "name": "Two Negatives",
       "count": 64,
       "exhaustive": true,
@@ -77,6 +161,7 @@
     {
       "skill": "int-muldiv",
       "level": 2,
+      "slug": "dividing",
       "name": "Dividing",
       "count": 256,
       "exhaustive": true,
@@ -86,6 +171,7 @@
     {
       "skill": "int-muldiv",
       "level": 3,
+      "slug": "bigger-facts",
       "name": "Bigger Facts",
       "count": 968,
       "exhaustive": true,
@@ -95,6 +181,7 @@
     {
       "skill": "int-muldiv",
       "level": 4,
+      "slug": "chains",
       "name": "Chains",
       "count": 1000,
       "exhaustive": false,
@@ -104,6 +191,7 @@
     {
       "skill": "int-muldiv",
       "level": 5,
+      "slug": "all-together",
       "name": "All Together",
       "count": 1000,
       "exhaustive": false,
@@ -113,6 +201,7 @@
     {
       "skill": "frac-addsub",
       "level": 0,
+      "slug": "same-denominator",
       "name": "Same Denominator",
       "count": 801,
       "exhaustive": true,
@@ -122,6 +211,7 @@
     {
       "skill": "frac-addsub",
       "level": 1,
+      "slug": "one-fits-the-other",
       "name": "One Fits the Other",
       "count": 80,
       "exhaustive": true,
@@ -131,6 +221,7 @@
     {
       "skill": "frac-addsub",
       "level": 2,
+      "slug": "unlike-denominators",
       "name": "Unlike Denominators",
       "count": 116,
       "exhaustive": true,
@@ -140,6 +231,7 @@
     {
       "skill": "frac-addsub",
       "level": 3,
+      "slug": "taking-away",
       "name": "Taking Away",
       "count": 312,
       "exhaustive": true,
@@ -149,6 +241,7 @@
     {
       "skill": "frac-addsub",
       "level": 4,
+      "slug": "simplify-the-answer",
       "name": "Simplify the Answer",
       "count": 312,
       "exhaustive": true,
@@ -158,6 +251,7 @@
     {
       "skill": "frac-addsub",
       "level": 5,
+      "slug": "all-together",
       "name": "All Together",
       "count": 1000,
       "exhaustive": false,
@@ -167,6 +261,7 @@
     {
       "skill": "frac-muldiv",
       "level": 0,
+      "slug": "a-part-of-a-part",
       "name": "A Part of a Part",
       "count": 121,
       "exhaustive": true,
@@ -176,6 +271,7 @@
     {
       "skill": "frac-muldiv",
       "level": 1,
+      "slug": "multiplying-any-two",
       "name": "Multiplying Any Two",
       "count": 1000,
       "exhaustive": false,
@@ -185,6 +281,7 @@
     {
       "skill": "frac-muldiv",
       "level": 2,
+      "slug": "how-many-fit",
       "name": "How Many Fit",
       "count": 68,
       "exhaustive": true,
@@ -194,6 +291,7 @@
     {
       "skill": "frac-muldiv",
       "level": 3,
+      "slug": "dividing-fractions",
       "name": "Dividing Fractions",
       "count": 880,
       "exhaustive": false,
@@ -203,6 +301,7 @@
     {
       "skill": "frac-muldiv",
       "level": 4,
+      "slug": "simplify-the-answer",
       "name": "Simplify the Answer",
       "count": 879,
       "exhaustive": false,
@@ -212,6 +311,7 @@
     {
       "skill": "frac-muldiv",
       "level": 5,
+      "slug": "all-together",
       "name": "All Together",
       "count": 1000,
       "exhaustive": false,
@@ -221,6 +321,7 @@
     {
       "skill": "frac-mixed",
       "level": 0,
+      "slug": "into-wholes",
       "name": "Into Wholes",
       "count": 729,
       "exhaustive": true,
@@ -230,6 +331,7 @@
     {
       "skill": "frac-mixed",
       "level": 1,
+      "slug": "back-again",
       "name": "Back Again",
       "count": 729,
       "exhaustive": true,
@@ -239,6 +341,7 @@
     {
       "skill": "frac-mixed",
       "level": 2,
+      "slug": "exactly-whole",
       "name": "Exactly Whole",
       "count": 128,
       "exhaustive": true,
@@ -248,6 +351,7 @@
     {
       "skill": "frac-mixed",
       "level": 3,
+      "slug": "both-ways",
       "name": "Both Ways",
       "count": 1000,
       "exhaustive": false,
@@ -257,6 +361,7 @@
     {
       "skill": "frac-mixed",
       "level": 4,
+      "slug": "simplify-too",
       "name": "Simplify Too",
       "count": 1000,
       "exhaustive": false,
@@ -266,6 +371,7 @@
     {
       "skill": "frac-mixed",
       "level": 5,
+      "slug": "which-form",
       "name": "Which Form?",
       "count": 1000,
       "exhaustive": false,
@@ -275,6 +381,7 @@
     {
       "skill": "frac-mixed",
       "level": 6,
+      "slug": "all-together",
       "name": "All Together",
       "count": 1000,
       "exhaustive": false,
@@ -284,6 +391,7 @@
     {
       "skill": "frac-equiv",
       "level": 0,
+      "slug": "build-it-up",
       "name": "Build It Up",
       "count": 122,
       "exhaustive": true,
@@ -293,6 +401,7 @@
     {
       "skill": "frac-equiv",
       "level": 1,
+      "slug": "which-bottom",
       "name": "Which Bottom?",
       "count": 122,
       "exhaustive": true,
@@ -302,6 +411,7 @@
     {
       "skill": "frac-equiv",
       "level": 2,
+      "slug": "cut-it-down",
       "name": "Cut It Down",
       "count": 95,
       "exhaustive": true,
@@ -311,6 +421,7 @@
     {
       "skill": "frac-equiv",
       "level": 3,
+      "slug": "all-the-way-down",
       "name": "All the Way Down",
       "count": 55,
       "exhaustive": true,
@@ -320,6 +431,7 @@
     {
       "skill": "frac-equiv",
       "level": 4,
+      "slug": "missing-piece",
       "name": "Missing Piece",
       "count": 122,
       "exhaustive": true,
@@ -329,6 +441,7 @@
     {
       "skill": "frac-equiv",
       "level": 5,
+      "slug": "all-together",
       "name": "All Together",
       "count": 516,
       "exhaustive": true,
@@ -338,6 +451,7 @@
     {
       "skill": "order-ops",
       "level": 0,
+      "slug": "times-before-plus",
       "name": "Times Before Plus",
       "count": 1000,
       "exhaustive": false,
@@ -347,6 +461,7 @@
     {
       "skill": "order-ops",
       "level": 1,
+      "slug": "left-to-right",
       "name": "Left to Right",
       "count": 1000,
       "exhaustive": false,
@@ -356,6 +471,7 @@
     {
       "skill": "order-ops",
       "level": 2,
+      "slug": "brackets-first",
       "name": "Brackets First",
       "count": 1000,
       "exhaustive": false,
@@ -365,6 +481,7 @@
     {
       "skill": "order-ops",
       "level": 3,
+      "slug": "powers-too",
       "name": "Powers Too",
       "count": 1000,
       "exhaustive": false,
@@ -374,6 +491,7 @@
     {
       "skill": "order-ops",
       "level": 4,
+      "slug": "nested",
       "name": "Nested",
       "count": 1000,
       "exhaustive": false,
@@ -383,6 +501,7 @@
     {
       "skill": "order-ops",
       "level": 5,
+      "slug": "all-together",
       "name": "All Together",
       "count": 1000,
       "exhaustive": false,
@@ -392,6 +511,7 @@
     {
       "skill": "exponents",
       "level": 0,
+      "slug": "what-a-power-is",
       "name": "What a Power Is",
       "count": 104,
       "exhaustive": true,
@@ -401,6 +521,7 @@
     {
       "skill": "exponents",
       "level": 1,
+      "slug": "multiplying-powers",
       "name": "Multiplying Powers",
       "count": 325,
       "exhaustive": true,
@@ -410,6 +531,7 @@
     {
       "skill": "exponents",
       "level": 2,
+      "slug": "dividing-powers",
       "name": "Dividing Powers",
       "count": 260,
       "exhaustive": true,
@@ -419,6 +541,7 @@
     {
       "skill": "exponents",
       "level": 3,
+      "slug": "power-of-a-power",
       "name": "Power of a Power",
       "count": 156,
       "exhaustive": true,
@@ -428,6 +551,7 @@
     {
       "skill": "exponents",
       "level": 4,
+      "slug": "zero-and-negative",
       "name": "Zero and Negative",
       "count": 69,
       "exhaustive": true,
@@ -437,6 +561,7 @@
     {
       "skill": "exponents",
       "level": 5,
+      "slug": "which-form",
       "name": "Which Form?",
       "count": 144,
       "exhaustive": true,
@@ -446,6 +571,7 @@
     {
       "skill": "exponents",
       "level": 6,
+      "slug": "all-together",
       "name": "All Together",
       "count": 914,
       "exhaustive": true,
@@ -455,6 +581,7 @@
     {
       "skill": "roots",
       "level": 0,
+      "slug": "perfect-squares",
       "name": "Perfect Squares",
       "count": 68,
       "exhaustive": true,
@@ -464,6 +591,7 @@
     {
       "skill": "roots",
       "level": 1,
+      "slug": "between-whole-numbers",
       "name": "Between Whole Numbers",
       "count": 418,
       "exhaustive": true,
@@ -473,6 +601,7 @@
     {
       "skill": "roots",
       "level": 2,
+      "slug": "pulling-out-squares",
       "name": "Pulling Out Squares",
       "count": 56,
       "exhaustive": true,
@@ -482,6 +611,7 @@
     {
       "skill": "roots",
       "level": 3,
+      "slug": "simplest-radical-form",
       "name": "Simplest Radical Form",
       "count": 196,
       "exhaustive": true,
@@ -491,6 +621,7 @@
     {
       "skill": "roots",
       "level": 4,
+      "slug": "which-form",
       "name": "Which Form?",
       "count": 150,
       "exhaustive": true,
@@ -500,6 +631,7 @@
     {
       "skill": "roots",
       "level": 5,
+      "slug": "all-together",
       "name": "All Together",
       "count": 682,
       "exhaustive": true,

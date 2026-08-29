@@ -12,17 +12,17 @@
  */
 
 export const LEVELS = [
-  { name: 'Same Denominator', blurb: 'Matching pieces add straight across.' },
-  { name: 'One Fits the Other', blurb: 'One denominator already divides the other — only one side changes.' },
-  { name: 'Unlike Denominators', blurb: 'The real thing: both sides rewritten before they combine.' },
-  { name: 'Taking Away', blurb: 'Subtraction, same rules.' },
+  { name: 'Same Denominator', slug: 'same-denominator', blurb: 'Matching pieces add straight across.' },
+  { name: 'One Fits the Other', slug: 'one-fits-the-other', blurb: 'One denominator already divides the other — only one side changes.' },
+  { name: 'Unlike Denominators', slug: 'unlike-denominators', blurb: 'The real thing: both sides rewritten before they combine.' },
+  { name: 'Taking Away', slug: 'taking-away', blurb: 'Subtraction, same rules.' },
   {
-    name: 'Simplify the Answer',
+    name: 'Simplify the Answer', slug: 'simplify-the-answer',
     blurb: 'Right value, lowest terms. From here on, simplest form is expected.',
     requireSimplest: true,
   },
   {
-    name: 'All Together',
+    name: 'All Together', slug: 'all-together',
     blurb: 'Everything mixed, in simplest form. Clear this against the clock '
       + 'to finish the skill for the day.',
     requireSimplest: true,

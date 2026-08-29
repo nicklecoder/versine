@@ -11,17 +11,17 @@
  */
 
 export const LEVELS = [
-  { name: 'Into Wholes', blurb: 'Top-heavy fractions become a whole and a bit.' },
-  { name: 'Back Again', blurb: 'A whole and a bit becomes a top-heavy fraction.' },
-  { name: 'Exactly Whole', blurb: 'Sometimes nothing is left over at all.' },
-  { name: 'Both Ways', blurb: 'Either direction, without warning which.' },
+  { name: 'Into Wholes', slug: 'into-wholes', blurb: 'Top-heavy fractions become a whole and a bit.' },
+  { name: 'Back Again', slug: 'back-again', blurb: 'A whole and a bit becomes a top-heavy fraction.' },
+  { name: 'Exactly Whole', slug: 'exactly-whole', blurb: 'Sometimes nothing is left over at all.' },
+  { name: 'Both Ways', slug: 'both-ways', blurb: 'Either direction, without warning which.' },
   {
-    name: 'Simplify Too',
+    name: 'Simplify Too', slug: 'simplify-too',
     blurb: 'Convert, then put the leftover in lowest terms. Expected from here on.',
     requireSimplest: true,
   },
   {
-    name: 'Which Form?',
+    name: 'Which Form?', slug: 'which-form',
     kind: 'strategy',
     blurb: 'Knowing how to convert is half of it. Knowing when to is the rest.',
     // Sits here, immediately after both conversions and after multiplying and
@@ -31,7 +31,7 @@ export const LEVELS = [
     dependsOn: [{ skill: 'frac-muldiv', level: 0 }],
   },
   {
-    name: 'All Together',
+    name: 'All Together', slug: 'all-together',
     blurb: 'Everything mixed, in simplest form. Clear this against the clock '
       + 'to finish the skill for the day.',
     requireSimplest: true,

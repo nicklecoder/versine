@@ -168,6 +168,7 @@ function buildLevel(skill, level) {
   return {
     skill: skill.id,
     level,
+    slug: skill.levels[level].slug,
     levelName: skill.levels[level].name,
     count: problems.length,
     signed,
@@ -206,7 +207,7 @@ for (const skill of SKILLS) {
     bytes += json.length;
     if (lib.count < FLOOR) warnings.push(`THIN   ${skill.id} L${level + 1} "${lib.levelName}" — only ${lib.count} problems`);
     manifest.push({
-      skill: skill.id, level, name: lib.levelName,
+      skill: skill.id, level, slug: lib.slug, name: lib.levelName,
       count: lib.count, exhaustive: lib.exhaustive, signed: lib.signed,
       file: `${skill.id}-${level}.json`,
     });
@@ -227,8 +228,15 @@ if (!existsSync(schemasPath) || readFileSync(schemasPath, 'utf8') !== schemasJso
   else writeFileSync(schemasPath, schemasJson);
 }
 
+// The order of a skill's levels, keyed by slug. The server has no way to read
+// the catalogue -- it is JavaScript and the server is Python -- so the one
+// thing it needs from it, which level follows which, is published here.
+const order = {};
+for (const skill of SKILLS) order[skill.id] = skill.levels.map((l) => l.slug);
+
 const manifestJson = JSON.stringify({
   built: manifest.length,
+  order,
   sources: fingerprint(),
   levels: manifest,
 }, null, 2) + '\n';

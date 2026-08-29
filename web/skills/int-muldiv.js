@@ -8,22 +8,22 @@
 
 export const LEVELS = [
   {
-    name: 'Sign Rules',
+    name: 'Sign Rules', slug: 'sign-rules',
     blurb: 'One negative flips the answer negative.',
     // Knowing how a negative number behaves comes first.
     dependsOn: [{ skill: 'int-addsub', level: 1 }],
   },
-  { name: 'Two Negatives', blurb: 'The odd one: two negatives make a positive.' },
-  { name: 'Dividing',      blurb: 'Same sign rules, sharing instead of grouping.' },
-  { name: 'Bigger Facts',  blurb: 'Both operations, both signs, further up the tables.' },
+  { name: 'Two Negatives', slug: 'two-negatives', blurb: 'The odd one: two negatives make a positive.' },
+  { name: 'Dividing', slug: 'dividing',      blurb: 'Same sign rules, sharing instead of grouping.' },
+  { name: 'Bigger Facts', slug: 'bigger-facts',  blurb: 'Both operations, both signs, further up the tables.' },
   {
-    name: 'Chains',
+    name: 'Chains', slug: 'chains',
     blurb: 'Three at a time — count the negatives.',
     trial: { duration: 180 },
     // Evaluating three terms left to right is the same habit either way.
     dependsOn: [{ skill: 'int-addsub', level: 4 }],
   },
-  { name: 'All Together',  blurb: 'Everything mixed, with no warning which is coming. '
+  { name: 'All Together', slug: 'all-together',  blurb: 'Everything mixed, with no warning which is coming. '
     + 'Clear this against the clock to finish the skill for the day.' },
 ];
 

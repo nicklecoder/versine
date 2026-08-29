@@ -144,11 +144,83 @@ def ensure_column(conn: sqlite3.Connection, table: str, column: str, decl: str) 
         conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {decl}")
 
 
+# ── The catalogue, as much of it as the server needs ─────────────────────────
+# The catalogue is JavaScript and this is Python, so the server cannot read it.
+# What it needs is only the order of each skill's levels, which the library
+# build publishes into the manifest.
+LIBRARY_DIR = Path(os.environ.get("VERSINE_LIBRARY", Path(__file__).parent.parent / "web" / "library"))
+
+
+def level_order() -> dict[str, list[str]]:
+    """{skill_id: [slug, ...]} in catalogue order, or empty if unavailable."""
+    try:
+        with open(LIBRARY_DIR / "manifest.json", encoding="utf-8") as fh:
+            return json.load(fh).get("order", {})
+    except (OSError, ValueError):
+        return {}
+
+
+def _backfill_slugs(conn: sqlite3.Connection, table: str) -> int:
+    """Fill level_slug from the level index, once.
+
+    Level identity used to be positional, which meant inserting a level into a
+    skill silently reattributed a student's history to different levels. This
+    converts what is already stored, and is safe to run repeatedly because it
+    only touches rows whose slug is still NULL. It reads the order as it is
+    *now*, which is correct precisely because every existing row was written
+    against that same order -- so this migration has to happen before any level
+    is ever inserted, not after.
+    """
+    order = level_order()
+    if not order:
+        return 0
+    filled = 0
+    for skill_id, slugs in order.items():
+        for index, slug in enumerate(slugs):
+            cur = conn.execute(
+                f"UPDATE {table} SET level_slug=? "
+                f"WHERE skill_id=? AND level=? AND level_slug IS NULL",
+                (slug, skill_id, index),
+            )
+            filled += cur.rowcount
+    return filled
+
+
 def init_db() -> None:
     with cursor(commit=True) as conn:
         conn.executescript(SCHEMA)
         ensure_column(conn, "users", "icon", "TEXT NOT NULL DEFAULT '🦊'")
         ensure_column(conn, "skill_progress", "level_count", "INTEGER NOT NULL DEFAULT 0")
+
+        # Level identity by slug rather than position.
+        for table in ("skill_progress", "best_scores", "runs", "attempts", "level_clocks"):
+            ensure_column(conn, table, "level_slug", "TEXT")
+            _backfill_slugs(conn, table)
+        ensure_column(conn, "skill_progress", "mastered_slugs", "TEXT NOT NULL DEFAULT '[]'")
+        _backfill_mastered(conn)
+
+
+def _backfill_mastered(conn: sqlite3.Connection) -> None:
+    """Convert each mastered index list into a list of slugs, once."""
+    order = level_order()
+    if not order:
+        return
+    rows = conn.execute(
+        "SELECT user_id, skill_id, mastered, mastered_slugs FROM skill_progress"
+    ).fetchall()
+    for row in rows:
+        if row["mastered_slugs"] not in (None, "", "[]"):
+            continue
+        slugs = order.get(row["skill_id"], [])
+        try:
+            indices = json.loads(row["mastered"] or "[]")
+        except ValueError:
+            indices = []
+        converted = [slugs[i] for i in indices if 0 <= i < len(slugs)]
+        conn.execute(
+            "UPDATE skill_progress SET mastered_slugs=? WHERE user_id=? AND skill_id=?",
+            (json.dumps(converted), row["user_id"], row["skill_id"]),
+        )
 
 
 def row_to_dict(row: sqlite3.Row | None) -> dict | None:

@@ -33,6 +33,22 @@ for (const s of SKILLS) {
   }
 }
 
+// A level's slug is its identity in the database. Positions used to be, which
+// meant inserting a level silently reattributed every student's history to
+// different levels. Slugs must therefore exist, be unique within their skill,
+// and look like slugs -- and once published they must not be edited, which no
+// check can enforce but the comment beside them says.
+for (const s of SKILLS) {
+  const seen = new Set();
+  s.levels.forEach((l, i) => {
+    const at = `${s.id} L${i + 1} "${l.name}"`;
+    if (!l.slug) { fail.push(`${at}: has no slug; it is the level's identity in the database`); return; }
+    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(l.slug)) fail.push(`${at}: slug "${l.slug}" is not lower-case-kebab`);
+    if (seen.has(l.slug)) fail.push(`${at}: slug "${l.slug}" is already used in this skill`);
+    seen.add(l.slug);
+  });
+}
+
 // Strategy levels drill which method to reach for. They must sit where the
 // choice first costs something -- never first (nothing to choose between yet),
 // never last (that slot is the skill's combined final level), and never

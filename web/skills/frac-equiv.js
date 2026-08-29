@@ -11,15 +11,15 @@
  */
 
 export const LEVELS = [
-  { name: 'Build It Up', blurb: 'Multiply both parts by the same number.' },
-  { name: 'Which Bottom?', blurb: 'Same move, but the denominator is missing.' },
-  { name: 'Cut It Down', blurb: 'Divide both parts. One factor does it.',
+  { name: 'Build It Up', slug: 'build-it-up', blurb: 'Multiply both parts by the same number.' },
+  { name: 'Which Bottom?', slug: 'which-bottom', blurb: 'Same move, but the denominator is missing.' },
+  { name: 'Cut It Down', slug: 'cut-it-down', blurb: 'Divide both parts. One factor does it.',
     requireSimplest: true },
-  { name: 'All the Way Down', blurb: 'Keep going until nothing divides both.',
+  { name: 'All the Way Down', slug: 'all-the-way-down', blurb: 'Keep going until nothing divides both.',
     requireSimplest: true },
-  { name: 'Missing Piece', blurb: 'An equivalence that shrinks — what fits the gap?' },
+  { name: 'Missing Piece', slug: 'missing-piece', blurb: 'An equivalence that shrinks — what fits the gap?' },
   {
-    name: 'All Together',
+    name: 'All Together', slug: 'all-together',
     blurb: 'Everything mixed, in lowest terms. Clear this against the clock '
       + 'to finish the skill for the day.',
     requireSimplest: true,

@@ -14,17 +14,17 @@
  */
 
 export const LEVELS = [
-  { name: 'A Part of a Part', blurb: 'Unit fractions. See why the answer gets smaller.' },
-  { name: 'Multiplying Any Two', blurb: 'Numerators across the top, denominators along the bottom.' },
-  { name: 'How Many Fit', blurb: 'Division as counting copies — the answers come out whole.' },
-  { name: 'Dividing Fractions', blurb: 'The general case: flip the second one and multiply.' },
+  { name: 'A Part of a Part', slug: 'a-part-of-a-part', blurb: 'Unit fractions. See why the answer gets smaller.' },
+  { name: 'Multiplying Any Two', slug: 'multiplying-any-two', blurb: 'Numerators across the top, denominators along the bottom.' },
+  { name: 'How Many Fit', slug: 'how-many-fit', blurb: 'Division as counting copies — the answers come out whole.' },
+  { name: 'Dividing Fractions', slug: 'dividing-fractions', blurb: 'The general case: flip the second one and multiply.' },
   {
-    name: 'Simplify the Answer',
+    name: 'Simplify the Answer', slug: 'simplify-the-answer',
     blurb: 'Right value, lowest terms. Expected from here on.',
     requireSimplest: true,
   },
   {
-    name: 'All Together',
+    name: 'All Together', slug: 'all-together',
     blurb: 'Everything mixed, in simplest form. Clear this against the clock '
       + 'to finish the skill for the day.',
     requireSimplest: true,

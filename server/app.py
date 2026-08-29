@@ -144,6 +144,10 @@ class SummaryIn(BaseModel):
 class RunIn(BaseModel):
     skill_id: str
     level: int
+    # The level's identity. `level` is its position, which is only meaningful
+    # against a particular version of the catalogue; the slug survives levels
+    # being inserted above it. Optional so an older client still submits.
+    level_slug: str | None = None
     duration: int = 0            # the clock this run actually used, in seconds
     level_count: int = 0          # how many levels, so the last one can be identified
     mode_id: str
@@ -311,24 +315,29 @@ def submit_run(body: RunIn, user=Depends(current_user)):
     ceiling = max(s.answered, 1) * 800
     points = max(0, min(s.points, ceiling))
     mode_is_trial = body.mode_id == "trial"
+    # Fall back to the catalogue order when an older client sends no slug.
+    slug = body.level_slug
+    if slug is None:
+        order = db.level_order().get(body.skill_id, [])
+        slug = order[body.level] if 0 <= body.level < len(order) else None
 
     with db.cursor(commit=True) as conn:
         cur = conn.execute(
-            """INSERT INTO runs (user_id, skill_id, level, mode_id, points, solved,
+            """INSERT INTO runs (user_id, skill_id, level, level_slug, mode_id, points, solved,
                                  answered, misses, accuracy, best_streak, avg_seconds,
                                  passed, end_reason, ended_at)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-            (user["id"], body.skill_id, body.level, body.mode_id, points, s.solved,
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (user["id"], body.skill_id, body.level, slug, body.mode_id, points, s.solved,
              s.answered, s.misses, s.accuracy, s.bestStreak, s.avgSeconds,
              int(s.passed), s.endReason, db.now()),
         )
         run_id = cur.lastrowid
 
         conn.executemany(
-            """INSERT INTO attempts (run_id, user_id, skill_id, level, prompt,
+            """INSERT INTO attempts (run_id, user_id, skill_id, level, level_slug, prompt,
                                      expected, correct, ms, at)
-               VALUES (?,?,?,?,?,?,?,?,?)""",
-            [(run_id, user["id"], body.skill_id, body.level, a.prompt, a.expected,
+               VALUES (?,?,?,?,?,?,?,?,?,?)""",
+            [(run_id, user["id"], body.skill_id, body.level, slug, a.prompt, a.expected,
               int(a.correct), a.ms, db.now())
              for a in body.attempts],
         )
@@ -350,30 +359,56 @@ def submit_run(body: RunIn, user=Depends(current_user)):
         new_best = points > (prev["points"] if prev else 0)
         if new_best:
             conn.execute(
-                """INSERT INTO best_scores (user_id, skill_id, mode_id, level, points, achieved_at)
-                   VALUES (?,?,?,?,?,?)
+                """INSERT INTO best_scores (user_id, skill_id, mode_id, level, level_slug,
+                                           points, achieved_at)
+                   VALUES (?,?,?,?,?,?,?)
                    ON CONFLICT(user_id, skill_id, mode_id)
                    DO UPDATE SET points=excluded.points, level=excluded.level,
+                                 level_slug=excluded.level_slug,
                                  achieved_at=excluded.achieved_at""",
-                (user["id"], body.skill_id, body.mode_id, body.level, points, db.now()),
+                (user["id"], body.skill_id, body.mode_id, body.level, slug, points, db.now()),
             )
 
         # A passed Mastery Check unlocks the next level.
+        #
+        # Which level is "next" comes from the catalogue order published in the
+        # library manifest, not from adding one to an index: an index is only
+        # meaningful against the version of the catalogue that produced it.
         unlocked = None
         if s.passed:
             row = conn.execute(
-                "SELECT level, mastered FROM skill_progress WHERE user_id=? AND skill_id=?",
+                "SELECT level, level_slug, mastered, mastered_slugs FROM skill_progress "
+                "WHERE user_id=? AND skill_id=?",
                 (user["id"], body.skill_id),
             ).fetchone()
+            order = db.level_order().get(body.skill_id, [])
             mastered = sorted(set(json.loads(row["mastered"]) + [body.level]))
+            mastered_slugs = json.loads(row["mastered_slugs"] or "[]")
+            if slug and slug not in mastered_slugs:
+                mastered_slugs.append(slug)
+            # Keep the list in catalogue order, so it reads the way the map does.
+            if order:
+                mastered_slugs = [x for x in order if x in set(mastered_slugs)]
+
             level = row["level"]
+            at_slug = row["level_slug"]
             last = (body.level_count - 1) if body.level_count else body.level
             if level == body.level and level < last:
                 level += 1
                 unlocked = level
+            next_slug = at_slug
+            if order and slug and at_slug == slug:
+                here = order.index(slug) if slug in order else -1
+                if 0 <= here < len(order) - 1:
+                    next_slug = order[here + 1]
+            elif at_slug is None:
+                next_slug = order[level] if 0 <= level < len(order) else None
+
             conn.execute(
-                "UPDATE skill_progress SET level=?, mastered=? WHERE user_id=? AND skill_id=?",
-                (level, json.dumps(mastered), user["id"], body.skill_id),
+                "UPDATE skill_progress SET level=?, level_slug=?, mastered=?, mastered_slugs=? "
+                "WHERE user_id=? AND skill_id=?",
+                (level, next_slug, json.dumps(mastered), json.dumps(mastered_slugs),
+                 user["id"], body.skill_id),
             )
 
         # Adapt the clock from what just happened, before reading progress back.
@@ -386,13 +421,15 @@ def submit_run(body: RunIn, user=Depends(current_user)):
             clock_floor = -(-target * CLOCK["min_pace"] // step) * step
             at_floor = next_clock <= clock_floor
             conn.execute(
-                """INSERT INTO level_clocks (user_id, skill_id, level, duration, runs, updated_at)
-                   VALUES (?,?,?,?,1,?)
+                """INSERT INTO level_clocks (user_id, skill_id, level, level_slug,
+                                            duration, runs, updated_at)
+                   VALUES (?,?,?,?,?,1,?)
                    ON CONFLICT(user_id, skill_id, level) DO UPDATE SET
+                     level_slug = excluded.level_slug,
                      duration = excluded.duration,
                      runs = level_clocks.runs + 1,
                      updated_at = excluded.updated_at""",
-                (user["id"], body.skill_id, body.level, next_clock, db.now()),
+                (user["id"], body.skill_id, body.level, slug, next_clock, db.now()),
             )
 
         data = db.get_progress(conn, user["id"])

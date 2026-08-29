@@ -13,15 +13,15 @@
  */
 
 export const LEVELS = [
-  { name: 'Perfect Squares', blurb: 'Squares you should know on sight, read both ways.' },
-  { name: 'Between Whole Numbers', blurb: 'Most roots are not whole. Where does this one land?' },
-  { name: 'Pulling Out Squares', blurb: 'A square hiding inside the root can come out of it.' },
+  { name: 'Perfect Squares', slug: 'perfect-squares', blurb: 'Squares you should know on sight, read both ways.' },
+  { name: 'Between Whole Numbers', slug: 'between-whole-numbers', blurb: 'Most roots are not whole. Where does this one land?' },
+  { name: 'Pulling Out Squares', slug: 'pulling-out-squares', blurb: 'A square hiding inside the root can come out of it.' },
   {
-    name: 'Simplest Radical Form',
+    name: 'Simplest Radical Form', slug: 'simplest-radical-form',
     blurb: 'Take out every square there is, not just the first one you spot.',
   },
   {
-    name: 'Which Form?',
+    name: 'Which Form?', slug: 'which-form',
     kind: 'strategy',
     blurb: 'Exact or approximate? Simplified or as it came? The job decides.',
     // Placed after simplifying, because the choice between an exact radical
@@ -29,7 +29,7 @@ export const LEVELS = [
     dependsOn: [{ skill: 'exponents', level: 0 }],
   },
   {
-    name: 'All Together',
+    name: 'All Together', slug: 'all-together',
     blurb: 'Every kind mixed. Clear this against the clock to finish the '
       + 'skill for the day.',
   },

@@ -13,16 +13,16 @@
  */
 
 export const LEVELS = [
-  { name: 'What a Power Is', blurb: 'Repeated multiplication, written short. Work out the value.' },
-  { name: 'Multiplying Powers', blurb: 'Same base, so the factors pile up: the exponents add.' },
-  { name: 'Dividing Powers', blurb: 'Factors cancel in pairs, so the exponents subtract.' },
-  { name: 'Power of a Power', blurb: 'A power raised to a power. The exponents multiply.' },
+  { name: 'What a Power Is', slug: 'what-a-power-is', blurb: 'Repeated multiplication, written short. Work out the value.' },
+  { name: 'Multiplying Powers', slug: 'multiplying-powers', blurb: 'Same base, so the factors pile up: the exponents add.' },
+  { name: 'Dividing Powers', slug: 'dividing-powers', blurb: 'Factors cancel in pairs, so the exponents subtract.' },
+  { name: 'Power of a Power', slug: 'power-of-a-power', blurb: 'A power raised to a power. The exponents multiply.' },
   {
-    name: 'Zero and Negative',
+    name: 'Zero and Negative', slug: 'zero-and-negative',
     blurb: 'Keep subtracting exponents past zero and see where it lands.',
   },
   {
-    name: 'Which Form?',
+    name: 'Which Form?', slug: 'which-form',
     kind: 'strategy',
     blurb: 'Leave it as a power, or work it out? The job decides.',
     // Sits after all four rules, because until you can keep something as a
@@ -30,7 +30,7 @@ export const LEVELS = [
     dependsOn: [{ skill: 'int-muldiv', level: 3 }],
   },
   {
-    name: 'All Together',
+    name: 'All Together', slug: 'all-together',
     blurb: 'Every rule mixed, with no warning which one bites. Clear this '
       + 'against the clock to finish the skill for the day.',
   },

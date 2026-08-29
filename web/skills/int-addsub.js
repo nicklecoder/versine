@@ -7,18 +7,18 @@
  */
 
 export const LEVELS = [
-  { name: 'First Steps',           blurb: 'Positive second number. Find your feet on the line.' },
-  { name: 'Adding Negatives',      blurb: 'Adding a negative walks you backwards.' },
-  { name: 'Subtracting Negatives', blurb: 'The tricky one: two minus signs make a plus.' },
-  { name: 'Mixed Integers',        blurb: 'Both operations, both signs, bigger numbers.' },
+  { name: 'First Steps', slug: 'first-steps',           blurb: 'Positive second number. Find your feet on the line.' },
+  { name: 'Adding Negatives', slug: 'adding-negatives',      blurb: 'Adding a negative walks you backwards.' },
+  { name: 'Subtracting Negatives', slug: 'subtracting-negatives', blurb: 'The tricky one: two minus signs make a plus.' },
+  { name: 'Mixed Integers', slug: 'mixed-integers',        blurb: 'Both operations, both signs, bigger numbers.' },
   {
-    name: 'Chains',
+    name: 'Chains', slug: 'chains',
     blurb: 'Three terms at once, left to right.',
     // Three terms take roughly twice as long to work through as two, so the
     // default two-minute clock made this level near-unpassable.
     trial: { duration: 180 },
   },
-  { name: 'All Together', blurb: 'Everything mixed, with no warning which is coming. '
+  { name: 'All Together', slug: 'all-together', blurb: 'Everything mixed, with no warning which is coming. '
     + 'Clear this against the clock to finish the skill for the day.' },
 ];
 
