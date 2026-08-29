@@ -50,7 +50,7 @@ export const PAR_SECONDS = [14, 14, 12, 16, 20, 16, 18];
 export default {
   id: 'frac-mixed',
   name: 'Improper & Mixed Numbers',
-  category: 'fractions',
+  category: 'parts',
   glyph: '1½',
   blurb: 'Top-heavy fractions and the wholes hiding in them.',
   answerInput: 'mixed',

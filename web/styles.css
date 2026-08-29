@@ -867,10 +867,6 @@ h1, h2, h3, .display { font-family: var(--display); font-weight: 700; letter-spa
 .area-key.is-both { color: var(--result); }
 
 /* ── Fits model (dividing fractions) ──────────────────────────────────── */
-.tile.cat-integers  { border-left: 3px solid color-mix(in srgb, var(--cool) 55%, transparent); }
-.tile.cat-fractions { border-left: 3px solid color-mix(in srgb, var(--violet) 55%, transparent); }
-.tile.cat-powers    { border-left: 3px solid color-mix(in srgb, var(--gold) 55%, transparent); }
-.tile.cat-algebra   { border-left: 3px solid color-mix(in srgb, var(--grow) 55%, transparent); }
 
 /* Mixed number input: a whole number beside a stacked fraction. */
 .mixed-input { display: inline-flex; align-items: center; gap: 10px; }
@@ -1179,3 +1175,15 @@ h1, h2, h3, .display { font-family: var(--display); font-weight: 700; letter-spa
    colour — so the answer highlight has to reach inside it, or the reply is
    set in the same ink as the question. */
 .problem .a, .problem .a * { color: var(--result); }
+
+/* One accent per category, so a card says where it belongs before it is read. */
+.tile.cat-number      { border-left: 3px solid color-mix(in srgb, var(--cool) 55%, transparent); }
+.tile.cat-parts       { border-left: 3px solid color-mix(in srgb, var(--violet) 55%, transparent); }
+.tile.cat-powers      { border-left: 3px solid color-mix(in srgb, var(--gold) 55%, transparent); }
+.tile.cat-expressions { border-left: 3px solid color-mix(in srgb, var(--grow) 55%, transparent); }
+.tile.cat-equations   { border-left: 3px solid color-mix(in srgb, var(--hot) 55%, transparent); }
+.tile.cat-graphs      { border-left: 3px solid color-mix(in srgb, #5eead4 55%, transparent); }
+.tile.cat-shape       { border-left: 3px solid color-mix(in srgb, #fb923c 55%, transparent); }
+.tile.cat-trig        { border-left: 3px solid color-mix(in srgb, #f472b6 55%, transparent); }
+.tile.cat-functions   { border-left: 3px solid color-mix(in srgb, #a3e635 55%, transparent); }
+.tile.cat-chance      { border-left: 3px solid color-mix(in srgb, #94a3b8 55%, transparent); }

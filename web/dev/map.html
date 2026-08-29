@@ -1,0 +1,28 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Versine — categories</title>
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="../styles.css">
+<style>body{padding:24px;font-family:var(--body)}
+ h1{font-family:var(--display);color:var(--cool);font-size:1.1rem;margin:0 0 4px}
+ .note{color:var(--muted);font-size:.82rem;margin-bottom:16px;max-width:66ch;line-height:1.5}</style>
+<h1>Categories</h1>
+<p class="note">Grouped by the object being worked with, never by the branch it
+  is traditionally filed under. Empty categories are declared but do not render
+  — they say what the catalogue is for without cluttering the map.</p>
+<div class="grid grid--skills" id="out"></div>
+<script type="module">
+  import { SKILLS, CATEGORIES } from '../engine/registry.js';
+  import { el } from '../ui/dom.js';
+  const out = document.getElementById('out');
+  for (const cat of CATEGORIES) {
+    for (const skill of SKILLS.filter((s) => s.category === cat.id)) {
+      out.append(el('button', { class: `tile cat-${skill.category}` },
+        el('div.tile__glyph', {}, skill.glyph),
+        el('div.tile__body', {},
+          el('div.tile__name', {}, skill.name),
+          el('div.tile__blurb', {}, skill.blurb),
+          el('div.tile__meta', {}, `${cat.glyph} ${cat.name} · ${skill.levels.length} levels`))));
+    }
+  }
+</script>

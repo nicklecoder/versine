@@ -43,7 +43,7 @@ export const PAR_SECONDS = [14, 16, 18, 22, 22, 22];
 export default {
   id: 'frac-muldiv',
   name: 'Multiply & Divide Fractions',
-  category: 'fractions',
+  category: 'parts',
   glyph: '×⁄',
   blurb: 'Parts of parts, and how many fit.',
   answerInput: 'frac',

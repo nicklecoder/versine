@@ -18,7 +18,7 @@ const stub = () => ({
 globalThis.document = { createElement: stub, createTextNode: (t) => ({ t }), activeElement: null };
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const { SKILLS, validateGraph } = await import(join(ROOT, 'web/engine/registry.js'));
+const { SKILLS, CATEGORIES, validateGraph } = await import(join(ROOT, 'web/engine/registry.js'));
 
 const fail = [];
 
@@ -32,6 +32,18 @@ for (const s of SKILLS) {
     fail.push(`${s.id}: still exposes generate(); generators belong in tools/generators/`);
   }
 }
+
+// The map is built by walking the categories and collecting each one's skills,
+// so a skill filed under a name that is not declared does not appear on it --
+// silently, with no error anywhere. That is a typo away at any time.
+const known = new Set(CATEGORIES.map((c) => c.id));
+for (const s of SKILLS) {
+  if (!known.has(s.category)) {
+    fail.push(`${s.id}: category "${s.category}" is not declared, so the skill would not appear on the map`);
+  }
+}
+const ids = CATEGORIES.map((c) => c.id);
+if (new Set(ids).size !== ids.length) fail.push('two categories share an id');
 
 // A level's slug is its identity in the database. Positions used to be, which
 // meant inserting a level silently reattributed every student's history to
@@ -71,6 +83,7 @@ for (const s of SKILLS) {
 }
 
 const levels = SKILLS.reduce((n, s) => n + s.levels.length, 0);
+const filled = CATEGORIES.filter((c) => SKILLS.some((s) => s.category === c.id)).length;
 const strategy = SKILLS.flatMap((s) => s.levels.filter((l) => l.kind === 'strategy')).length;
 
 if (fail.length) {
@@ -78,4 +91,5 @@ if (fail.length) {
   for (const f of fail) console.log('  ' + f);
   process.exit(1);
 }
-console.log(`${SKILLS.length} skills, ${levels} levels (${strategy} strategy) — catalogue valid`);
+console.log(`${SKILLS.length} skills, ${levels} levels (${strategy} strategy), `
+  + `${filled} of ${CATEGORIES.length} categories in use — catalogue valid`);

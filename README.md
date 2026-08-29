@@ -43,8 +43,7 @@ There is deliberately no *capstone* either. "Capstone" has established meanings
 in education, and this vocabulary should not spend that word on "the last item
 in a list" when plain words do the job.
 
-A practice game for pre-algebra and Algebra 1 skills, built for two teenagers
-who are past the age where a cartoon mascot helps.
+Built for two teenagers who are past the age where a cartoon mascot helps.
 
 It runs on one machine on the home network. The kids reach it from their
 laptops or phones with a browser — nothing to install on their devices.
@@ -212,47 +211,91 @@ what a correct answer looks like, and describing how to picture it.
 
 ## Adding a skill
 
-Write `web/skills/your-skill.js`, then add it to `web/engine/registry.js`.
-Nothing else in the codebase needs to change.
+Three files, in this order.
+
+**`web/skills/<id>.js`** — what the student sees. Levels with their names,
+slugs, blurbs and par times, and the skill's identity. It imports nothing and
+computes nothing; it is data.
 
 ```js
+export const LEVELS = [
+  { name: 'Same Denominator', slug: 'same-denominator', blurb: '…' },
+  { name: 'All Together', slug: 'all-together', blurb: '…' },
+];
+export const LAST_LEVEL = LEVELS.length - 1;
+export const PAR_SECONDS = [12, 22];
+
 export default {
   id: 'frac-addsub',
   name: 'Add & Subtract Fractions',
-  category: 'fractions',      // groups it on the map
+  category: 'parts',            // must be one the registry declares
   glyph: '⁄',
-  blurb: 'Common denominators, the short way.',
-  tiers: [{ name: 'Same Denominator', blurb: '…' }, /* … */],
-
-  generate(rng, tier) {
-    return {
-      prompt: '<span class="t1">1/2</span><span class="op">+</span>…',  // HTML
-      text: '1/2 + 1/3',            // plain text, for the attempt log
-      answer: { type: 'frac', value: … },
-      tags: ['unlike-denominators', 'needs-simplifying'],
-      parSeconds: 14,
-      visual: { kind: 'barmodel', … },
-      explain: 'Rewrite both over 6 first…',
-    };
-  },
+  blurb: 'Matching the pieces before you combine them.',
+  answerInput: 'frac',
+  dependsOn: ['int-addsub'],
+  levels: LEVELS,
 };
 ```
 
-Two things in there matter more than they look.
+**`tools/generators/<id>.js`** — how its library gets written. Build-time only;
+nothing served to a browser imports it.
 
-**Answer types** (`web/math/answer.js`) exist so fractions and expressions
-don't get string-compared. The input widget follows the *problem*, not the
-skill — Improper & Mixed Numbers asks for three boxes one moment and two the
-next, and the play screen swaps them without knowing what either is.
-`Enter` always submits, in every input; `/` and Space navigate between boxes.
+```js
+export function generate(rng, level) {
+  return {
+    prompt: T.asks(T.frac(1, 2, 1), T.op('+'), T.frac(1, 3, 2)),
+    text: '1/2 + 1/3',                        // plain text, for the attempt log
+    answer: { type: 'frac', value: { n: 5, d: 6 }, requireSimplest: true },
+    parSeconds: PAR_SECONDS[level],
+    visual: { kind: 'barmodel', /* … */ },    // or null
+    explain: 'Rewrite both over 6 first…',    // sentences become lesson steps
+  };
+}
+```
+
+**`web/engine/registry.js`** — one import and one array entry.
+
+Then `node scripts/build-library.mjs` writes the library and warns about levels
+too small to be worth drilling. Nothing else in the codebase needs to change.
+
+### Where a new skill goes on the map
+
+Categories group by *the object being worked with*, never by the branch of
+mathematics it is traditionally filed under. That separation is an accident of
+how textbooks are sold, and it hides the fact that they are one subject:
+Graphs holds coordinate geometry beside linear functions, which a textbook
+would file two years apart.
+
+Expressions and Equations are separate categories because the boundary is real
+rather than a size cut. An expression is a thing you rearrange; an equation is
+a claim you test. Blurring the two is behind a great deal of what looks like
+carelessness later.
+
+Categories with no skills yet are declared anyway. They cost a line, they say
+what the catalogue is for, and they stop the next skill being filed under
+whichever existing name is least wrong. Empty ones do not render.
+
+A skill filed under a name the registry does not declare would not appear on
+the map at all, silently — the map is built by walking the categories. That is
+a typo away at any time, so `scripts/check-catalogue.mjs` fails on it.
+
+### Answer types
+
+`web/math/answer.js` exists so that fractions and expressions are not
+string-compared. The input widget follows the *problem*, not the skill —
+Improper & Mixed Numbers asks for three boxes one moment and two the next, and
+the play screen swaps them without knowing what either is. `Enter` always
+submits; `/` and Space move between boxes.
 
 A level may set `requireSimplest`, and the engine enforces it: an answer that
-is the right *value* in the wrong *form* is refused with the reason —
-*"3/9 is right, but it isn't in lowest terms yet."* Value and form are separate
-checks, so a level can demand one without the other. Only `int` is defined so far. A `frac` type needs
-to distinguish *equivalent* (`2/4` = `1/2`) from *in simplest form*, because
-"right but unsimplified" is a specific, teachable wrong answer rather than
-just wrong.
+is the right *value* in the wrong *form* is refused with the reason — *"3/9 is
+right, but it isn't in lowest terms yet."* Value and form are separate checks,
+so a level can demand one without the other.
+
+`int`, `frac`, `mixed`, `decimal`, `choice` and `expr` are defined. Decimals
+are held as an integer over a power of ten rather than as a float, because
+0.1 + 0.2 is not 0.3 in binary and a drill that marks a correct answer wrong
+once has lost the student for the session.
 
 ## The learning graph
 

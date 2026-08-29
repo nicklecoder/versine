@@ -46,7 +46,7 @@ export const PAR_SECONDS = [16, 20, 20, 26, 18, 26];
 export default {
   id: 'simplify',
   name: 'Simplifying Expressions',
-  category: 'algebra',
+  category: 'expressions',
   glyph: '2x',
   blurb: 'Gathering what matches, and opening brackets when it helps.',
   answerInput: 'expr',

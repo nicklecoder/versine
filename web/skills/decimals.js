@@ -47,7 +47,7 @@ export const PAR_SECONDS = [14, 14, 18, 20, 18, 16, 20];
 export default {
   id: 'decimals',
   name: 'Decimals',
-  category: 'fractions',
+  category: 'parts',
   glyph: '0.5',
   blurb: 'Fractions over tens, written the way the world writes them.',
   answerInput: 'decimal',

@@ -22,12 +22,40 @@ export const SKILLS = [intAddSub, intMulDiv, fracAddSub, fracMulDiv, fracMixed, 
 
 export const getSkill = (id) => SKILLS.find((s) => s.id === id);
 
-/** Groups shown as rows on the map. */
+/**
+ * How the map is grouped.
+ *
+ * By the object being worked with, never by the branch of mathematics it is
+ * traditionally filed under. That is deliberate: the separation of arithmetic
+ * from algebra from geometry from trigonometry is an accident of how textbooks
+ * are sold, and it hides the fact that they are the same subject. Grouping by
+ * object puts things where they belong to each other -- Graphs holds
+ * coordinate geometry beside linear functions, which a textbook would file in
+ * two different years.
+ *
+ * A single "Algebra" bucket would swallow twenty skills and tell a student
+ * nothing. Expressions and Equations are separated because the boundary is
+ * real rather than a size cut: an expression is a thing you rearrange, an
+ * equation is a claim you test, and blurring the two is behind a great deal of
+ * what looks like carelessness later.
+ *
+ * Categories with no skills yet are declared anyway. They cost a line, they
+ * say what the catalogue is for, and they stop the next skill being filed
+ * under whichever existing name is least wrong. Empty ones do not render.
+ *
+ * Names are short because they sit in a card footer beside the solved count.
+ */
 export const CATEGORIES = [
-  { id: 'integers', name: 'Integers', glyph: '±' },
-  { id: 'fractions', name: 'Fractions', glyph: '⁄' },
+  { id: 'number', name: 'Number', glyph: '±' },
+  { id: 'parts', name: 'Parts & Wholes', glyph: '½' },
   { id: 'powers', name: 'Powers & Roots', glyph: 'ⁿ' },
-  { id: 'algebra', name: 'Pre-Algebra', glyph: 'x' },
+  { id: 'expressions', name: 'Expressions', glyph: 'x' },
+  { id: 'equations', name: 'Equations', glyph: '=' },
+  { id: 'graphs', name: 'Graphs', glyph: '⌗' },
+  { id: 'shape', name: 'Shape & Space', glyph: '△' },
+  { id: 'trig', name: 'Trigonometry', glyph: '∡' },
+  { id: 'functions', name: 'Functions', glyph: 'ƒ' },
+  { id: 'chance', name: 'Chance & Data', glyph: '⚄' },
 ];
 
 /**

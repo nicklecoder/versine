@@ -36,7 +36,7 @@ export const PAR_SECONDS = [11, 12, 14, 12, 20, 16];
 export default {
   id: 'int-addsub',
   name: 'Integer Add & Subtract',
-  category: 'integers',
+  category: 'number',
   glyph: '±',
   blurb: 'Positive and negative numbers on the line.',
   answerInput: 'int',
