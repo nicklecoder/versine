@@ -26,13 +26,23 @@ import { el } from './dom.js';
  * presentation, not meaning.
  */
 
+/**
+ * A part of a term: a scalar, a blank, or a nested list of terms.
+ *
+ * Nesting is what lets a typed expression be drawn at all -- (x+1)/2 has a
+ * whole expression above the line, and 2^(n+1) has one in the exponent. A
+ * vocabulary that only took numbers there could describe the catalogue's own
+ * problems and nothing a student typed.
+ */
+function part(v, cls) {
+  if (v === null || v === undefined) return el(`span.${cls}.is-blank`, {}, '?');
+  if (Array.isArray(v)) return el(`span.${cls}`, {}, v.map(drawTerm));
+  return el(`span.${cls}`, {}, String(v));
+}
+
 /** A fraction, or a blank where a number is being asked for. */
 function fracNode(n, d, cls) {
-  const part = (v, c) => v === null || v === undefined
-    ? el(`span.${c}.is-blank`, {}, '?')
-    : el(`span.${c}`, {}, String(v));
-  return el(`span.frac-term${cls}`, {},
-    part(n, 'fn'), el('span.fl'), part(d, 'fd'));
+  return el(`span.frac-term${cls}`, {}, part(n, 'fn'), el('span.fl'), part(d, 'fd'));
 }
 
 const TERMS = {
@@ -59,10 +69,10 @@ const TERMS = {
    * way past the rule without using it.
    */
   pow: (t) => el(`span.t${t.s ?? 1}.pow-term`, {},
-    String(t.b),
+    Array.isArray(t.b) ? el('span', {}, t.b.map(drawTerm)) : String(t.b),
     t.e === null || t.e === undefined
       ? el('sup.is-blank', {}, '?')
-      : el('sup', {}, String(t.e))),
+      : Array.isArray(t.e) ? el('sup', {}, t.e.map(drawTerm)) : el('sup', {}, String(t.e))),
 
   /**
    * A square root, optionally with a coefficient in front. Either part may be
@@ -71,10 +81,28 @@ const TERMS = {
    */
   root: (t) => el(`span.t${t.s ?? 1}.root-term`, {},
     t.c === undefined ? null
-      : t.c === null ? el('span.is-blank', {}, '?') : el('span', {}, String(t.c)),
+      : t.c === null ? el('span.is-blank', {}, '?')
+      : Array.isArray(t.c) ? el('span', {}, t.c.map(drawTerm)) : el('span', {}, String(t.c)),
+    // An index sits in the crook of the sign: the 3 of a cube root.
+    t.i === undefined ? null : el('span.root-term__index', {}, String(t.i)),
     el('span.root-term__sign', {}, '√'),
-    el('span.root-term__body', {},
-      t.v === null || t.v === undefined ? el('span.is-blank', {}, '?') : String(t.v))),
+    part(t.v, 'root-term__body')),
+
+  /** A variable, set in italic as convention requires. */
+  var: (t) => el(`span.t${t.s ?? 1}.var-term`, {}, String(t.v)),
+
+  /**
+   * Terms set touching, for a product written without a sign. `2x` was typed
+   * with nothing between the 2 and the x and should not gain the gap that
+   * separates the parts of `2 + x`.
+   */
+  juxt: (t) => el(`span.t${t.s ?? 1}.juxt-term`, {}, (t.terms ?? []).map(drawTerm)),
+
+  /** Brackets around a nested expression, drawn full height. */
+  group: (t) => el(`span.t${t.s ?? 1}.group-term`, {},
+    el('span.group-term__b', {}, '('),
+    el('span', {}, (t.terms ?? []).map(drawTerm)),
+    el('span.group-term__b', {}, ')')),
 
   /** A sentence rather than an expression — strategy levels ask in words. */
   prose: (t) => el(`span.t${t.s ?? 1}.situation`, {}, String(t.v)),
@@ -130,6 +158,12 @@ function fillBlank(term, shown) {
  *        Substituting terms rather than rewriting markup means the answer is
  *        set in the same notation the question was asked in.
  */
+/** One term to one element, used by the nested parts above and by the loop. */
+function drawTerm(t) {
+  const make = TERMS[t?.t];
+  return make ? make(t) : el('span.t1.is-unknown', {}, '⚠');
+}
+
 export function renderPrompt(node, terms, opts = {}) {
   let filled = false;
   node.replaceChildren(...(terms ?? []).map((t) => {
@@ -176,14 +210,20 @@ export function answerTerm(type, value) {
 /**
  * The same terms as plain text, for aria labels, logs and the attempt record.
  */
+const flat = (v) => (Array.isArray(v) ? promptText(v) : v === null || v === undefined ? '?' : String(v));
+
 export function promptText(terms) {
   return (terms ?? []).map((t) => {
     switch (t?.t) {
       case 'num': return String(t.v);
-      case 'frac': return `${t.n ?? '?'}/${t.d ?? '?'}`;
-      case 'mixed': return `${t.w} ${t.n}/${t.d}`;
-      case 'pow': return `${t.b}^${t.e ?? '?'}`;
-      case 'root': return `${t.c === undefined ? '' : (t.c ?? '?')}sqrt(${t.v ?? '?'})`;
+      case 'frac': return `${flat(t.n)}/${flat(t.d)}`;
+      case 'mixed': return `${flat(t.w)} ${flat(t.n)}/${flat(t.d)}`;
+      case 'pow': return `${flat(t.b)}^${t.e === null ? '?' : flat(t.e)}`;
+      case 'root': return `${t.c === undefined ? '' : (t.c === null ? '?' : flat(t.c))}`
+        + `${t.i === undefined ? 'sqrt' : `root${t.i}`}(${flat(t.v)})`;
+      case 'var': return String(t.v);
+      case 'group': return `(${promptText(t.terms)})`;
+      case 'juxt': return promptText(t.terms).replace(/ /g, '');
       case 'op': return ` ${t.v} `;
       case 'blank': return '?';
       case 'prose': return String(t.v);

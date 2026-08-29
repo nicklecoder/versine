@@ -2,6 +2,7 @@ import { el } from './dom.js';
 import { fracInput } from './fracinput.js';
 import { mixedInput } from './mixedinput.js';
 import { choiceInput } from './choiceinput.js';
+import { freeInput } from './freeinput.js';
 import { getType } from '../math/answer.js';
 
 /**
@@ -72,7 +73,7 @@ function decimalInput(spec, opts = {}) {
 
 const WIDGETS = {
   int: intInput, frac: fracInput, mixed: mixedInput,
-  choice: choiceInput, decimal: decimalInput,
+  choice: choiceInput, decimal: decimalInput, free: freeInput,
 };
 
 /**

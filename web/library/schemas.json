@@ -221,6 +221,9 @@
     "blank",
     "pow",
     "root",
+    "var",
+    "juxt",
+    "group",
     "prose"
   ],
   "blankFields": {
@@ -241,6 +244,7 @@
     "frac",
     "mixed",
     "decimal",
+    "expr",
     "choice"
   ]
 }

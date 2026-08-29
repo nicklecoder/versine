@@ -1145,3 +1145,32 @@ h1, h2, h3, .display { font-family: var(--display); font-weight: 700; letter-spa
 .pl__verdict { font-size: 13px; font-weight: 700; }
 .pl__verdict.is-ok { fill: var(--grow); }
 .pl__verdict.is-bad { fill: var(--hot); }
+
+/* Variables are italic, as every mathematical typesetter has done since
+   the eighteenth century — and it is what tells 2x from 2·x at a glance. */
+.var-term { font-style: italic; }
+/* Brackets drawn as their own spans so they can grow with what they hold. */
+.group-term__b { color: var(--muted); }
+/* The small index of a root that is not a square one. */
+.root-term__index { font-size: .5em; align-self: flex-start; margin-right: -.24em; }
+
+/* ── Free entry, with the input rendered back above the box ──────────────
+   The strip sits above rather than below: the screen runs prompt, visual,
+   input, keyboard, so anything under the box can end up under the keyboard. */
+.free { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.free__preview {
+  min-height: 34px; display: flex; align-items: center; justify-content: center;
+  gap: .1em; padding: 2px 12px;
+  font-family: var(--display); font-size: 1.3rem; color: var(--cool);
+  border-bottom: 1px dashed var(--line);
+  transition: opacity .15s;
+}
+.free__preview:empty { border-bottom-color: transparent; }
+/* Mid-keystroke: what is shown is the last thing that parsed, so it is dimmed
+   rather than removed. Nothing goes red until an answer is committed. */
+.free__preview.is-stale { opacity: .45; }
+.free__hint { font-size: .74rem; color: var(--hot); min-height: 1em; }
+.answer--free { width: 12ch; font-size: clamp(1.2rem, 4.5vw, 1.6rem); }
+
+/* A product written without a sign is set without a gap. */
+.juxt-term { display: inline-flex; align-items: center; gap: .06em; }

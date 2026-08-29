@@ -13,6 +13,8 @@
  * @property {(v:any) => string} format
  */
 
+import { parseExpression, canonical } from './parse.js';
+
 /** @type {Record<string, AnswerType>} */
 const TYPES = {};
 
@@ -186,6 +188,28 @@ defineType({
     }
     return (neg ? '−' : '') + out;
   },
+});
+
+defineType({
+  id: 'expr',
+  input: 'free',
+  hint: 'Type an expression, like 5sqrt(2) or 2x+1.',
+  /**
+   * Judged by canonical form, not by value.
+   *
+   * `x+1` and `1+x` are accepted for each other because addition commutes.
+   * `5` is not accepted for `2+3`, because doing the arithmetic is the thing
+   * being asked. A level that wants several genuinely different forms -- an
+   * expanded one and a factored one -- lists both in its accepted forms, which
+   * is what that list has been a list for since it held one entry.
+   */
+  parse(raw) {
+    const parsed = parseExpression(raw);
+    if (!parsed.ok) return { ok: false, why: parsed.error };
+    return { ok: true, value: canonical(parsed.ast) };
+  },
+  equals: (a, b) => a === b,
+  format: (v) => String(v),
 });
 
 defineType({

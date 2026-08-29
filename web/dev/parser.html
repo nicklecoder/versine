@@ -1,0 +1,80 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Versine — expression parser</title>
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="../styles.css">
+<style>body{padding:24px;font-family:var(--body);max-width:1000px}
+ h1{font-family:var(--display);color:var(--cool);font-size:1.1rem;margin:0 0 4px}
+ h3{font-family:var(--display);color:var(--gold);font-size:.86rem;margin:24px 0 8px}
+ .note{color:var(--muted);font-size:.82rem;margin-bottom:8px;max-width:64ch;line-height:1.5}
+ table{border-collapse:collapse;width:100%;font-size:.84rem}
+ td,th{padding:7px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+ th{color:var(--dim);font-size:.66rem;text-transform:uppercase;letter-spacing:.06em}
+ code{font-family:ui-monospace,monospace;color:var(--text)}
+ .err{color:var(--hot);font-size:.8rem}
+ .canon{color:var(--dim);font-family:ui-monospace,monospace;font-size:.74rem}
+ .live{background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:18px;margin:10px 0 4px}
+ .ok{color:var(--grow)} .no{color:var(--muted)}</style>
+<h1>Expression parser</h1>
+<p class="note">Type something. The strip above the box shows how it was read —
+  brackets are <em>derived from precedence</em>, so redundant ones you typed
+  disappear and ones you omitted appear. Nothing is ever evaluated.</p>
+<div class="live" id="live"></div>
+
+<h3>How it reads things</h3>
+<table id="reads"><tr><th>typed</th><th>read as</th><th>canonical</th></tr></table>
+
+<h3>Never evaluates</h3>
+<p class="note">A preview that simplified would do the student's work. These
+  must stay as typed.</p>
+<table id="noeval"><tr><th>typed</th><th>read as</th><th>must not become</th></tr></table>
+
+<h3>Judged the same, and judged apart</h3>
+<table id="equiv"><tr><th>a</th><th>b</th><th>accepted for each other?</th></tr></table>
+
+<h3>Refused, with a reason</h3>
+<table id="bad"><tr><th>typed</th><th>what it says</th></tr></table>
+
+<script type="module">
+  import { makeAnswerInput } from '../ui/answerinput.js';
+  import { renderPrompt } from '../ui/prompt.js';
+  import { previewOf } from '../ui/express.js';
+  import { getType } from '../math/answer.js';
+  import { el } from '../ui/dom.js';
+
+  const w = makeAnswerInput('expr', null, {});
+  document.getElementById('live').append(w.node);
+  w.node.querySelector('input').value = '2^1/2';
+  w.node.querySelector('input').dispatchEvent(new Event('input'));
+
+  const expr = getType('expr');
+  const row = (cells) => el('tr', {}, cells.map((c) =>
+    el('td', {}, typeof c === 'string' ? c : c)));
+  const drawn = (src) => {
+    const r = previewOf(src);
+    if (!r.ok) return el('span.err', {}, r.error);
+    const box = el('span.problem'); renderPrompt(box, r.terms); return box;
+  };
+  const canon = (src) => { const p = expr.parse(src); return p.ok ? p.value : '—'; };
+
+  for (const s of ['2^1/2','2^(1/2)','(x+1)/2','2x+1','3(x+1)','-2^2','2^3^2',
+                   '2sqrt(5)','root(3,8)','abs(-4)','pi*r^2','√50','2**5','1/2/3'])
+    document.getElementById('reads').append(
+      row([el('code',{},s), drawn(s), el('span.canon',{},canon(s))]));
+
+  for (const [s, not] of [['4/8','1/2'],['2+3','5'],['sqrt(4)','2'],['2^3','8'],['0.5+0.5','1']])
+    document.getElementById('noeval').append(
+      row([el('code',{},s), drawn(s), el('span.canon',{},not)]));
+
+  for (const [a,b] of [['x+1','1+x'],['2x','x*2'],['x-1','-1+x'],['5sqrt(2)','sqrt(2)*5'],
+                       ['a-b','b-a'],['2+3','5'],['4/8','1/2'],['1/2','2^-1']]) {
+    const pa = expr.parse(a), pb = expr.parse(b);
+    const same = pa.ok && pb.ok && expr.equals(pa.value, pb.value);
+    document.getElementById('equiv').append(row([el('code',{},a), el('code',{},b),
+      el('span', { class: same ? 'ok' : 'no' }, same ? 'yes' : 'no')]));
+  }
+
+  for (const s of ['2+','(1+2','sqrt 4','2^','xyz','1.2.3','2)','sqrt(1,2)','2 @ 3'])
+    document.getElementById('bad').append(
+      row([el('code',{},s), el('span.err',{}, previewOf(s).error ?? '—')]));
+</script>
