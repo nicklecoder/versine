@@ -1,0 +1,40 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Versine — free entry in play</title>
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="../styles.css">
+<style>body{padding:24px;font-family:var(--body);max-width:980px}
+ h1{font-family:var(--display);color:var(--cool);font-size:1.1rem;margin:0 0 4px}
+ .note{color:var(--muted);font-size:.82rem;margin-bottom:16px;max-width:64ch;line-height:1.5}
+ .row{display:grid;grid-template-columns:170px 1fr 1fr;gap:16px;align-items:start;
+      padding:14px 0;border-top:1px solid var(--line)}
+ .k{font-family:var(--display);font-size:.78rem;color:var(--gold);padding-top:18px}
+ h2{font-family:var(--body);font-size:.64rem;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--dim);margin:0 0 6px}
+ .problem .a{animation:none !important}
+ .box{background:var(--bg-2);border:1px solid var(--line);border-radius:8px;padding:12px}</style>
+<h1>Free entry in play</h1>
+<p class="note">Real problems from the simplify library, asking and answered.
+  The question is drawn by the same renderer the student's own typing goes
+  through, so what they read and what they type are set identically.</p>
+<div id="out"></div>
+<script type="module">
+  import { renderPrompt, answerTerm } from '../ui/prompt.js';
+  import { getType } from '../math/answer.js';
+  import { el } from '../ui/dom.js';
+  const manifest = await (await fetch('../library/manifest.json')).json();
+  const out = document.getElementById('out');
+  for (const entry of manifest.levels.filter((l) => l.skill === 'simplify')) {
+    const lib = await (await fetch('../library/' + entry.file)).json();
+    const p = lib.problems[11 % lib.problems.length];
+    const ask = el('div.problem'), ans = el('div.problem');
+    renderPrompt(ask, p.prompt);
+    renderPrompt(ans, p.prompt, {
+      blankAs: answerTerm(p.answer.type, p.answer.value),
+      shown: getType(p.answer.type).format(p.answer.value),
+    });
+    out.append(el('div.row', {}, el('div.k', {}, `L${entry.level + 1} ${entry.name}`),
+      el('div', {}, el('h2', {}, 'asking'), el('div.box', {}, ask)),
+      el('div', {}, el('h2', {}, 'answered'), el('div.box', {}, ans))));
+  }
+</script>

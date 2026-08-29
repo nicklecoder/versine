@@ -1,5 +1,5 @@
 {
-  "built": 75,
+  "built": 81,
   "order": {
     "int-addsub": [
       "first-steps",
@@ -99,9 +99,17 @@
       "what-percent-is-it",
       "up-and-down",
       "all-together"
+    ],
+    "simplify": [
+      "collecting-like-terms",
+      "what-will-not-combine",
+      "distributing",
+      "distribute-and-collect",
+      "which-form",
+      "all-together"
     ]
   },
-  "sources": "39ae35ae5c83672de82a1f4002afcf2d4afb94f1fc3f9b339c01dd907e6edb8a",
+  "sources": "9348ad401ecb092ddd244c471d39f23f6ce240f15f8f395c13d67c0011d432ac",
   "levels": [
     {
       "skill": "int-addsub",
@@ -852,6 +860,66 @@
       "exhaustive": true,
       "signed": false,
       "file": "percents-5.json"
+    },
+    {
+      "skill": "simplify",
+      "level": 0,
+      "slug": "collecting-like-terms",
+      "name": "Collecting Like Terms",
+      "count": 605,
+      "exhaustive": true,
+      "signed": false,
+      "file": "simplify-0.json"
+    },
+    {
+      "skill": "simplify",
+      "level": 1,
+      "slug": "what-will-not-combine",
+      "name": "What Will Not Combine",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "simplify-1.json"
+    },
+    {
+      "skill": "simplify",
+      "level": 2,
+      "slug": "distributing",
+      "name": "Distributing",
+      "count": 960,
+      "exhaustive": true,
+      "signed": false,
+      "file": "simplify-2.json"
+    },
+    {
+      "skill": "simplify",
+      "level": 3,
+      "slug": "distribute-and-collect",
+      "name": "Distribute and Collect",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "simplify-3.json"
+    },
+    {
+      "skill": "simplify",
+      "level": 4,
+      "slug": "which-form",
+      "name": "Which Form?",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "simplify-4.json"
+    },
+    {
+      "skill": "simplify",
+      "level": 5,
+      "slug": "all-together",
+      "name": "All Together",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "simplify-5.json"
     }
   ]
 }

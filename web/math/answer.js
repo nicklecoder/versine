@@ -203,12 +203,22 @@ defineType({
    * expanded one and a factored one -- lists both in its accepted forms, which
    * is what that list has been a list for since it held one entry.
    */
+  /**
+   * The value carried is what a person would write -- "2x + 6" -- not the
+   * canonical form. Canonicalising happens in the comparison instead, so the
+   * answer shown on reveal is legible rather than `((2*x)+6)`.
+   */
   parse(raw) {
     const parsed = parseExpression(raw);
     if (!parsed.ok) return { ok: false, why: parsed.error };
-    return { ok: true, value: canonical(parsed.ast) };
+    return { ok: true, value: String(raw).trim() };
   },
-  equals: (a, b) => a === b,
+  equals(a, b) {
+    if (a === b) return true;
+    const x = parseExpression(a);
+    const y = parseExpression(b);
+    return x.ok && y.ok && canonical(x.ast) === canonical(y.ast);
+  },
   format: (v) => String(v),
 });
 

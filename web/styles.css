@@ -1174,3 +1174,8 @@ h1, h2, h3, .display { font-family: var(--display); font-weight: 700; letter-spa
 
 /* A product written without a sign is set without a gap. */
 .juxt-term { display: inline-flex; align-items: center; gap: .06em; }
+
+/* An expression answer is drawn from terms, and each term carries its own
+   colour — so the answer highlight has to reach inside it, or the reply is
+   set in the same ink as the question. */
+.problem .a, .problem .a * { color: var(--result); }

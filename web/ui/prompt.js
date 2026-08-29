@@ -1,4 +1,5 @@
 import { el } from './dom.js';
+import { previewOf } from './express.js';
 
 /**
  * Rendering a problem's prompt.
@@ -158,6 +159,12 @@ function fillBlank(term, shown) {
  *        Substituting terms rather than rewriting markup means the answer is
  *        set in the same notation the question was asked in.
  */
+/** An expression string as terms, or as plain text if it will not parse. */
+function exprTerms(src) {
+  const r = previewOf(String(src));
+  return r.ok ? r.terms : [{ t: 'num', v: String(src) }];
+}
+
 /** One term to one element, used by the nested parts above and by the loop. */
 function drawTerm(t) {
   const make = TERMS[t?.t];
@@ -166,15 +173,16 @@ function drawTerm(t) {
 
 export function renderPrompt(node, terms, opts = {}) {
   let filled = false;
-  node.replaceChildren(...(terms ?? []).map((t) => {
+  // flatMap, because an expression answer is several terms rather than one.
+  node.replaceChildren(...(terms ?? []).flatMap((t) => {
     if (!filled && t?.t === 'blank' && opts.blankAs) {
-      const make = TERMS[opts.blankAs.t];
-      if (make) {
-        filled = true;
-        const n = make(opts.blankAs);
+      const list = Array.isArray(opts.blankAs) ? opts.blankAs : [opts.blankAs];
+      const nodes = list.filter((x) => TERMS[x?.t]).map((x) => {
+        const n = TERMS[x.t](x);
         n.classList.add('a');
         return n;
-      }
+      });
+      if (nodes.length) { filled = true; return nodes; }
     }
     if (!filled && opts.shown !== undefined) {
       const done = fillBlank(t, opts.shown);
@@ -199,6 +207,11 @@ export function renderPrompt(node, terms, opts = {}) {
  */
 export function answerTerm(type, value) {
   switch (type) {
+    // Drawn by the same path as the live preview, so the answer a student is
+    // shown is set exactly as their own typing was a moment earlier. Returned
+    // as a list rather than wrapped: wrapping made the whole answer as tight
+    // as a product, so "5a + 4" lost the spacing its question had.
+    case 'expr': return exprTerms(value);
     case 'frac': return { t: 'frac', n: value.n, d: value.d };
     case 'mixed': return value.w !== undefined && value.w !== 0
       ? { t: 'mixed', w: value.w, n: value.n, d: value.d }
