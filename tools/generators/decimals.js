@@ -28,7 +28,11 @@ function placeValue(rng) {
   const n = rng.int(1, 10 ** places - 1);
   const v = dec(n, places);
   const digits = String(n).padStart(places, '0');
-  const at = rng.int(0, places - 1);
+  // Ask about a digit that is actually there. "What is the 0 in the tenths
+  // place worth" has the answer zero, which is true and teaches nothing --
+  // the question is meant to be about what a column counts.
+  const nonZero = [...digits].map((c, i) => (c === '0' ? -1 : i)).filter((i) => i >= 0);
+  const at = rng.pick(nonZero);
   const digit = Number(digits[at]);
   const worth = dec(digit * 10 ** (places - at - 1), places);
   return {
