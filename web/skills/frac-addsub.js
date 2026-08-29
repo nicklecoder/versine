@@ -14,7 +14,13 @@
 export const LEVELS = [
   { name: 'Same Denominator', slug: 'same-denominator', blurb: 'Matching pieces add straight across.' },
   { name: 'One Fits the Other', slug: 'one-fits-the-other', blurb: 'One denominator already divides the other — only one side changes.' },
-  { name: 'Unlike Denominators', slug: 'unlike-denominators', blurb: 'The real thing: both sides rewritten before they combine.' },
+  {
+    name: 'Unlike Denominators', slug: 'unlike-denominators',
+    blurb: 'The real thing: both sides rewritten before they combine.',
+    // The denominator both sides are rewritten into is their lowest common
+    // multiple, whether or not it is being called that yet.
+    dependsOn: [{ skill: 'factors', level: 4 }],
+  },
   { name: 'Taking Away', slug: 'taking-away', blurb: 'Subtraction, same rules.' },
   {
     name: 'Simplify the Answer', slug: 'simplify-the-answer',
@@ -46,7 +52,7 @@ export default {
   glyph: '⁄',
   blurb: 'Matching the pieces before you combine them.',
   answerInput: 'frac',
-  dependsOn: ['int-addsub'],
+  dependsOn: ['int-addsub', 'factors'],
   levels: LEVELS,
 
 };

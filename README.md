@@ -869,10 +869,10 @@ comparable between siblings and across months.
 
 ## Roadmap
 
-Skills the engine is built for but that aren't written yet:
-simplifying fractions, GCF/LCM, exponent rules, order of operations,
-distributing and combining like terms, one- and two-step equations, ratios and
-proportions, percent ↔ decimal ↔ fraction, radicals, scientific notation.
+Skills the engine is built for but that aren't written yet: ratios and
+proportions, scientific notation, and then the three subjects the map declares
+and nothing yet fills — geometry beyond coordinates, trigonometry, and chance
+and data.
 
 Ideas parked for later: live head-to-head races over the LAN (the server is
 already the right shape for it), a spaced-repetition "daily mix" across skills,

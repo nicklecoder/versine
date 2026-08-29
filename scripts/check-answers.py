@@ -13,6 +13,7 @@ Exact rationals throughout, never floats.
 Usage: python3 scripts/check-answers.py
 """
 import json
+import math
 import re
 import sys
 from fractions import Fraction
@@ -131,6 +132,21 @@ def var_in(text: str) -> str | None:
     return next((c for c in VARS if c in text), None)
 
 
+# Questions asked in words rather than in symbols. The evaluator above can
+# only re-derive something it can read as an expression, which leaves every
+# prose-asked level -- a whole skill's worth, here -- resting on nothing but
+# the generator agreeing with itself. These re-derive the answer from the two
+# numbers in the sentence, by a different route than the generator took.
+ASKED_IN_WORDS = (
+    (re.compile(r"^GCF of (\d+) and (\d+)$"),
+     lambda a, b: math.gcd(a, b)),
+    (re.compile(r"^LCM of (\d+) and (\d+)$"),
+     lambda a, b: a * b // math.gcd(a, b)),
+    (re.compile(r"^smallest prime factor of (\d+)$"),
+     lambda n: next(d for d in range(2, n + 1) if n % d == 0)),
+)
+
+
 for path in sorted(LIB.glob("*.json")):
     if path.name in ("manifest.json", "schemas.json"):
         continue
@@ -151,6 +167,14 @@ for path in sorted(LIB.glob("*.json")):
                     problems.append(f"{where}: {text} does not balance at {v} = {answer['value']}")
             except Exception:
                 checked -= 1
+
+        # Asked in words: re-derive it from the numbers in the sentence.
+        elif any(rule.match(text) for rule, _ in ASKED_IN_WORDS):
+            rule, solve = next(r for r in ASKED_IN_WORDS if r[0].match(text))
+            want = solve(*(int(g) for g in rule.match(text).groups()))
+            checked += 1
+            if want != answer["value"]:
+                problems.append(f"{where}: {text} is {want}, not {answer['value']}")
 
         # A plain arithmetic expression: work it out and compare.
         elif answer["type"] in ("int", "frac", "decimal") and not var_in(text):

@@ -28,6 +28,7 @@ const { Session } = await import(join(ROOT, 'web/engine/session.js'));
 const { MODES } = await import(join(ROOT, 'web/engine/modes.js'));
 const { dealer } = await import(join(ROOT, 'web/engine/library.js'));
 const { getType } = await import(join(ROOT, 'web/math/answer.js'));
+const { lessonFor } = await import(join(ROOT, 'web/engine/lesson.js'));
 
 const fail = [];
 const libOf = (skill, level) => {
@@ -35,7 +36,7 @@ const libOf = (skill, level) => {
   return existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')) : null;
 };
 
-let played = 0, answered = 0;
+let played = 0, answered = 0, lessons = 0;
 for (const skill of SKILLS) {
   for (let level = 0; level < skill.levels.length; level++) {
     const lib = libOf(skill, level);
@@ -87,6 +88,23 @@ for (const skill of SKILLS) {
       }
     }
 
+    // Every problem must also be explainable. A skill may author its own
+    // lesson steps, and an authored lesson reads the problem -- so one written
+    // against a level's usual shape crashes on the level that differs. Two
+    // skills shipped a lesson that destructured a visual their strategy level
+    // does not have, and every other check in the repo passed: nothing here
+    // opened a lesson, and a student tapping "Why?" is what found it.
+    for (const problem of lib.problems.slice(0, 40)) {
+      try {
+        const steps = lessonFor(skill, level, problem).steps;
+        if (!steps.length) fail.push(`${skill.id} L${level + 1}: "${problem.text}" has no lesson steps`);
+        else lessons++;
+      } catch (err) {
+        fail.push(`${skill.id} L${level + 1}: lesson threw on "${problem.text}" — ${err.message}`);
+        break;
+      }
+    }
+
     session.end('quit');
     const s = session.summary();
     if (typeof s.solved !== 'number' || s.solved < 1) {
@@ -101,5 +119,6 @@ if (fail.length) {
   if (fail.length > 20) console.log(`  ... and ${fail.length - 20} more`);
   process.exit(1);
 }
-console.log(`play loop: ${played} levels played, ${answered} answers submitted — all accepted, `
-  + `wrong answers refused, gibberish rejected`);
+console.log(`play loop: ${played} levels played, ${answered} answers submitted, `
+  + `${lessons.toLocaleString()} lessons stepped — all accepted, wrong answers refused, `
+  + `gibberish rejected`);

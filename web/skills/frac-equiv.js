@@ -15,8 +15,14 @@ export const LEVELS = [
   { name: 'Which Bottom?', slug: 'which-bottom', blurb: 'Same move, but the denominator is missing.' },
   { name: 'Cut It Down', slug: 'cut-it-down', blurb: 'Divide both parts. One factor does it.',
     requireSimplest: true },
-  { name: 'All the Way Down', slug: 'all-the-way-down', blurb: 'Keep going until nothing divides both.',
-    requireSimplest: true },
+  {
+    name: 'All the Way Down', slug: 'all-the-way-down',
+    blurb: 'Keep going until nothing divides both.',
+    requireSimplest: true,
+    // "Nothing divides both" is the greatest common factor having been
+    // taken out. Knowing it names the stopping point.
+    dependsOn: [{ skill: 'factors', level: 3 }],
+  },
   { name: 'Missing Piece', slug: 'missing-piece', blurb: 'An equivalence that shrinks — what fits the gap?' },
   {
     name: 'All Together', slug: 'all-together',
@@ -42,7 +48,7 @@ export default {
   glyph: '≡',
   blurb: 'Same amount, different pieces.',
   answerInput: 'int',
-  dependsOn: ['frac-addsub'],
+  dependsOn: ['frac-addsub', 'factors'],
   levels: LEVELS,
 
 };

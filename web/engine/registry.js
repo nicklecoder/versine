@@ -4,6 +4,7 @@
  */
 import intAddSub from '../skills/int-addsub.js';
 import intMulDiv from '../skills/int-muldiv.js';
+import factors from '../skills/factors.js';
 import fracAddSub from '../skills/frac-addsub.js';
 import fracMulDiv from '../skills/frac-muldiv.js';
 import fracMixed from '../skills/frac-mixed.js';
@@ -19,7 +20,7 @@ import equations from '../skills/equations.js';
 import equationsBoth from '../skills/equations-both.js';
 
 /** @type {any[]} */
-export const SKILLS = [intAddSub, intMulDiv, fracAddSub, fracMulDiv, fracMixed, fracEquiv,
+export const SKILLS = [intAddSub, intMulDiv, factors, fracAddSub, fracMulDiv, fracMixed, fracEquiv,
   orderOps, exponents, roots, coords, decimals, percents, simplify, equations, equationsBoth];
 
 export const getSkill = (id) => SKILLS.find((s) => s.id === id);

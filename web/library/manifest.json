@@ -1,5 +1,5 @@
 {
-  "built": 93,
+  "built": 100,
   "order": {
     "int-addsub": [
       "first-steps",
@@ -15,6 +15,15 @@
       "dividing",
       "bigger-facts",
       "chains",
+      "all-together"
+    ],
+    "factors": [
+      "factor-pairs",
+      "primes",
+      "prime-factorisation",
+      "greatest-common-factor",
+      "lowest-common-multiple",
+      "gcf-or-lcm",
       "all-together"
     ],
     "frac-addsub": [
@@ -125,7 +134,7 @@
       "all-together"
     ]
   },
-  "sources": "0425e8bb00df7cc53788b296e9c294d09cefb39e2ac6f552fbf80115615ddc4e",
+  "sources": "84f2fa36cee5991269340bdc469f23079a4201547e36649c7356c7652e4d6d89",
   "levels": [
     {
       "skill": "int-addsub",
@@ -246,6 +255,76 @@
       "exhaustive": false,
       "signed": true,
       "file": "int-muldiv-5.json"
+    },
+    {
+      "skill": "factors",
+      "level": 0,
+      "slug": "factor-pairs",
+      "name": "Factor Pairs",
+      "count": 450,
+      "exhaustive": true,
+      "signed": false,
+      "file": "factors-0.json"
+    },
+    {
+      "skill": "factors",
+      "level": 1,
+      "slug": "primes",
+      "name": "Primes",
+      "count": 316,
+      "exhaustive": true,
+      "signed": false,
+      "file": "factors-1.json"
+    },
+    {
+      "skill": "factors",
+      "level": 2,
+      "slug": "prime-factorisation",
+      "name": "Prime Factorisation",
+      "count": 290,
+      "exhaustive": true,
+      "signed": false,
+      "file": "factors-2.json"
+    },
+    {
+      "skill": "factors",
+      "level": 3,
+      "slug": "greatest-common-factor",
+      "name": "Greatest Common Factor",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "factors-3.json"
+    },
+    {
+      "skill": "factors",
+      "level": 4,
+      "slug": "lowest-common-multiple",
+      "name": "Lowest Common Multiple",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "factors-4.json"
+    },
+    {
+      "skill": "factors",
+      "level": 5,
+      "slug": "gcf-or-lcm",
+      "name": "GCF or LCM?",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "factors-5.json"
+    },
+    {
+      "skill": "factors",
+      "level": 6,
+      "slug": "all-together",
+      "name": "All Together",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "factors-6.json"
     },
     {
       "skill": "frac-addsub",

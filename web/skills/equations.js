@@ -58,6 +58,10 @@ export default {
 
   /** One line of working per move, naming what was done to both sides. */
   lesson(problem) {
+    // The strategy level carries no visual, so it falls back to the
+    // sentences of `explain` -- which for a judgement question is the
+    // whole of the argument anyway.
+    if (problem.visual?.kind !== 'evalmodel') return null;
     const { lines, rules } = problem.visual;
     const steps = [{ caption: problem.visual.hint ?? 'What has been done to x?', opts: { reveal: 1 } }];
     rules.forEach((rule, i) => {

@@ -56,6 +56,10 @@ export default {
 
   /** One line of working per step, same as the other worked-lines skills. */
   lesson(problem) {
+    // The strategy level carries no visual, so it falls back to the
+    // sentences of `explain` -- which for a judgement question is the
+    // whole of the argument anyway.
+    if (problem.visual?.kind !== 'evalmodel') return null;
     const { lines, rules } = problem.visual;
     const steps = [{ caption: problem.visual.hint ?? 'What is this asking?', opts: { reveal: 1 } }];
     rules.forEach((rule, i) => {
