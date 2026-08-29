@@ -1,5 +1,5 @@
 import { api } from '../engine/api.js';
-import { SKILLS, CATEGORIES, getSkill, dependenciesOf, levelDependencies }
+import { SKILLS, CATEGORIES, SUBJECTS, subjectOf, getSkill, dependenciesOf, levelDependencies }
   from '../engine/registry.js';
 import { MODES, MODE_ORDER, trialSettings, formatDuration } from '../engine/modes.js';
 import { computeRating, biggestGain, needsReview, staleDependencies }
@@ -175,12 +175,14 @@ function levelBreakdown() {
 }
 
 export function mapScreen() {
-  // One continuous grid rather than a grid per category. A category heading
-  // above each group would force a row break, so with two skills per category
-  // every row held two cards and left a track empty. Categories still keep
-  // their skills together -- they just travel on the card instead of above it.
-  const ordered = CATEGORIES.flatMap((cat) =>
-    SKILLS.filter((s) => s.category === cat.id).map((skill) => ({ skill, cat })));
+  // One continuous grid rather than a grid per group. A heading above each
+  // would force a row break, so with two skills per category every row held
+  // two cards and left a track empty. Grouping still keeps a subject's skills
+  // together and its categories in order -- it just travels on the card
+  // instead of above it.
+  const ordered = SUBJECTS.flatMap((sub) =>
+    CATEGORIES.filter((c) => c.subject === sub.id).flatMap((cat) =>
+      SKILLS.filter((s) => s.category === cat.id).map((skill) => ({ skill, cat }))));
 
   return el('div.shell', {},
     topbar(),
@@ -202,8 +204,13 @@ function skillTile(skill, cat) {
       el('div.tile__glyph', {}, skill.glyph),
       el('div.grow', {},
         el('div.tile__name', {}, skill.name),
+        // Subject then category, so the broad territory is readable without a
+        // heading -- headings would force a row break per group and leave the
+        // grid full of gaps, which is what the one continuous grid avoids.
         el('div.eyebrow', {},
-          cat ? `${cat.glyph} ${cat.name} · ${rec.solved} solved` : `${rec.solved} solved`)),
+          cat
+            ? `${cat.glyph} ${subjectOf(cat.id)?.name ?? ''} · ${cat.name} · ${rec.solved} solved`
+            : `${rec.solved} solved`)),
       rec.doneToday ? el('div.done-tick', { title: 'Done for today' }, '✓') : null),
     el('div.tile__blurb', {}, skill.blurb),
     el('div.pips', {}, skill.levels.map((_, i) =>

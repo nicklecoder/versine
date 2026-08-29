@@ -40,7 +40,7 @@ export const PAR_SECONDS = [14, 14, 16, 14, 18, 18];
 export default {
   id: 'coords',
   name: 'The Coordinate Plane',
-  category: 'graphs',
+  category: 'coordinates',
   glyph: '⊹',
   blurb: 'Where a pair of numbers puts you, and how to read one off.',
   answerInput: 'int',

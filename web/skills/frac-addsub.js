@@ -42,7 +42,7 @@ export const PAR_SECONDS = [12, 16, 20, 20, 22, 22];
 export default {
   id: 'frac-addsub',
   name: 'Add & Subtract Fractions',
-  category: 'parts',
+  category: 'fractions',
   glyph: '⁄',
   blurb: 'Matching the pieces before you combine them.',
   answerInput: 'frac',

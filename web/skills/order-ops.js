@@ -35,7 +35,7 @@ export const PAR_SECONDS = [14, 16, 15, 18, 24, 20];
 export default {
   id: 'order-ops',
   name: 'Order of Operations',
-  category: 'number',
+  category: 'integers',
   glyph: '( )',
   blurb: 'Which part of an expression goes first.',
   answerInput: 'int',

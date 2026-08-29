@@ -18,7 +18,7 @@ const stub = () => ({
 globalThis.document = { createElement: stub, createTextNode: (t) => ({ t }), activeElement: null };
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const { SKILLS, CATEGORIES, validateGraph } = await import(join(ROOT, 'web/engine/registry.js'));
+const { SKILLS, CATEGORIES, SUBJECTS, validateGraph } = await import(join(ROOT, 'web/engine/registry.js'));
 
 const fail = [];
 
@@ -44,6 +44,17 @@ for (const s of SKILLS) {
 }
 const ids = CATEGORIES.map((c) => c.id);
 if (new Set(ids).size !== ids.length) fail.push('two categories share an id');
+const subjectIds = new Set(SUBJECTS.map((s) => s.id));
+for (const c of CATEGORIES) {
+  if (!subjectIds.has(c.subject)) {
+    fail.push(`category "${c.id}": subject "${c.subject}" is not declared, so its skills would not appear on the map`);
+  }
+}
+// A category big enough to be a subject is a sign the split was not made.
+for (const c of CATEGORIES) {
+  const n = SKILLS.filter((s) => s.category === c.id).length;
+  if (n > 10) fail.push(`category "${c.id}" holds ${n} skills; split it, a category is a working group of three to ten`);
+}
 
 // A level's slug is its identity in the database. Positions used to be, which
 // meant inserting a level silently reattributed every student's history to
@@ -84,6 +95,8 @@ for (const s of SKILLS) {
 
 const levels = SKILLS.reduce((n, s) => n + s.levels.length, 0);
 const filled = CATEGORIES.filter((c) => SKILLS.some((s) => s.category === c.id)).length;
+const subjectsUsed = SUBJECTS.filter((sub) =>
+  CATEGORIES.some((c) => c.subject === sub.id && SKILLS.some((s) => s.category === c.id))).length;
 const strategy = SKILLS.flatMap((s) => s.levels.filter((l) => l.kind === 'strategy')).length;
 
 if (fail.length) {
@@ -92,4 +105,4 @@ if (fail.length) {
   process.exit(1);
 }
 console.log(`${SKILLS.length} skills, ${levels} levels (${strategy} strategy), `
-  + `${filled} of ${CATEGORIES.length} categories in use — catalogue valid`);
+  + `${filled}/${CATEGORIES.length} categories in ${subjectsUsed}/${SUBJECTS.length} subjects — catalogue valid`);

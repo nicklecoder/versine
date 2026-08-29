@@ -40,7 +40,7 @@ export const PAR_SECONDS = [12, 14, 18, 20, 22, 20];
 export default {
   id: 'percents',
   name: 'Percents',
-  category: 'parts',
+  category: 'decimals',
   glyph: '%',
   blurb: 'Hundredths, and remembering a hundred of what.',
   answerInput: 'int',

@@ -12,17 +12,18 @@
   — they say what the catalogue is for without cluttering the map.</p>
 <div class="grid grid--skills" id="out"></div>
 <script type="module">
-  import { SKILLS, CATEGORIES } from '../engine/registry.js';
+  import { SKILLS, CATEGORIES, SUBJECTS, subjectOf } from '../engine/registry.js';
   import { el } from '../ui/dom.js';
   const out = document.getElementById('out');
-  for (const cat of CATEGORIES) {
+  for (const sub of SUBJECTS)
+  for (const cat of CATEGORIES.filter((c) => c.subject === sub.id)) {
     for (const skill of SKILLS.filter((s) => s.category === cat.id)) {
       out.append(el('button', { class: `tile cat-${skill.category}` },
         el('div.tile__glyph', {}, skill.glyph),
         el('div.tile__body', {},
           el('div.tile__name', {}, skill.name),
           el('div.tile__blurb', {}, skill.blurb),
-          el('div.tile__meta', {}, `${cat.glyph} ${cat.name} · ${skill.levels.length} levels`))));
+          el('div.tile__meta', {}, `${cat.glyph} ${sub.name} · ${cat.name} · ${skill.levels.length} levels`))));
     }
   }
 </script>

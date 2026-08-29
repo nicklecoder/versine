@@ -40,7 +40,7 @@ export const PAR_SECONDS = [10, 11, 13, 13, 21, 15];
 export default {
   id: 'int-muldiv',
   name: 'Integer Multiply & Divide',
-  category: 'number',
+  category: 'integers',
   glyph: '×',
   blurb: 'Sign rules for times and divide.',
   // Soft: a nudge about what this builds on, not a gate.

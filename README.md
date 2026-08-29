@@ -260,24 +260,42 @@ too small to be worth drilling. Nothing else in the codebase needs to change.
 
 ### Where a new skill goes on the map
 
-Categories group by *the object being worked with*, never by the branch of
-mathematics it is traditionally filed under. That separation is an accident of
-how textbooks are sold, and it hides the fact that they are one subject:
-Graphs holds coordinate geometry beside linear functions, which a textbook
-would file two years apart.
+Two layers. A **subject** is the broad territory — Arithmetic, Algebra,
+Geometry, Trigonometry, Chance & Data. A **category** is a working group of
+three to ten skills inside it.
 
-Expressions and Equations are separate categories because the boundary is real
-rather than a size cut. An expression is a thing you rearrange; an equation is
-a claim you test. Blurring the two is behind a great deal of what looks like
-carelessness later.
+Two rather than one because "Trigonometry" and "Calculus" are territories, not
+groups. Filing every trigonometric skill under a single heading produces
+exactly the twenty-skill bucket that tells a student nothing, which is the
+failure the split exists to avoid. `check-catalogue.mjs` fails a category that
+grows past ten.
 
-Categories with no skills yet are declared anyway. They cost a line, they say
-what the catalogue is for, and they stop the next skill being filed under
-whichever existing name is least wrong. Empty ones do not render.
+**A subject is where a category is filed, not a claim about which branch owns
+it.** The separation of arithmetic from algebra from geometry is an accident of
+how textbooks are sold, and several categories genuinely sit in two places:
+Coordinates is coordinate geometry *and* it is linear functions; Powers &
+Roots is arithmetic *and* it is algebra. Each is filed once, where a student is
+most likely to look, and a comment beside it says where else it belongs.
+Nothing in the engine treats a subject as ownership, so no skill is kept from
+anything by the box it sits in.
 
-A skill filed under a name the registry does not declare would not appear on
-the map at all, silently — the map is built by walking the categories. That is
-a typo away at any time, so `scripts/check-catalogue.mjs` fails on it.
+Expressions and Equations are separate categories because that boundary is
+real rather than a size cut. An expression is a thing you rearrange; an
+equation is a claim you test. Blurring the two is behind a great deal of what
+later looks like carelessness.
+
+The subject and category travel on the card rather than as headings above the
+grid: a heading per group forces a row break, and with two skills in a group
+every row would leave a track empty.
+
+Categories and subjects with no skills yet are declared anyway. They cost a
+line, they say what the catalogue is for, and they stop the next skill being
+filed under whichever existing name is least wrong. Empty ones do not render.
+
+A skill filed under a category the registry does not declare — or a category
+under an undeclared subject — would not appear on the map at all, silently,
+because the map is built by walking subjects and then categories. That is a
+typo away at any time, so both are failing checks.
 
 ### Answer types
 

@@ -23,40 +23,78 @@ export const SKILLS = [intAddSub, intMulDiv, fracAddSub, fracMulDiv, fracMixed, 
 export const getSkill = (id) => SKILLS.find((s) => s.id === id);
 
 /**
- * How the map is grouped.
+ * How the map is grouped, in two layers.
  *
- * By the object being worked with, never by the branch of mathematics it is
- * traditionally filed under. That is deliberate: the separation of arithmetic
- * from algebra from geometry from trigonometry is an accident of how textbooks
- * are sold, and it hides the fact that they are the same subject. Grouping by
- * object puts things where they belong to each other -- Graphs holds
- * coordinate geometry beside linear functions, which a textbook would file in
- * two different years.
+ * A subject is the broad territory -- Arithmetic, Algebra, Geometry. A
+ * category is a working group of three to ten skills inside it. Two layers
+ * rather than one because "Trigonometry" and "Calculus" are territories, not
+ * groups: filing every trigonometric skill under one heading would produce
+ * exactly the twenty-skill bucket that tells a student nothing.
  *
- * A single "Algebra" bucket would swallow twenty skills and tell a student
- * nothing. Expressions and Equations are separated because the boundary is
+ * A subject is where a category is *filed*, not a claim about which branch
+ * owns it. The separation of arithmetic from algebra from geometry is an
+ * accident of how textbooks are sold, and several categories genuinely sit in
+ * two places: Coordinates is coordinate geometry and it is linear functions,
+ * Powers & Roots is arithmetic and it is algebra. Each is filed once, where a
+ * student is most likely to look for it, and the comments say where else it
+ * belongs. Nothing in the engine treats a subject as ownership, so a skill is
+ * never kept from anything by the box it sits in.
+ *
+ * Expressions and Equations are separate categories because that boundary is
  * real rather than a size cut: an expression is a thing you rearrange, an
- * equation is a claim you test, and blurring the two is behind a great deal of
- * what looks like carelessness later.
+ * equation is a claim you test.
  *
- * Categories with no skills yet are declared anyway. They cost a line, they
- * say what the catalogue is for, and they stop the next skill being filed
- * under whichever existing name is least wrong. Empty ones do not render.
- *
- * Names are short because they sit in a card footer beside the solved count.
+ * Categories and subjects with no skills yet are declared anyway. They cost a
+ * line, they say what the catalogue is for, and they stop the next skill being
+ * filed under whichever existing name is least wrong. Empty ones do not render.
  */
-export const CATEGORIES = [
-  { id: 'number', name: 'Number', glyph: '±' },
-  { id: 'parts', name: 'Parts & Wholes', glyph: '½' },
-  { id: 'powers', name: 'Powers & Roots', glyph: 'ⁿ' },
-  { id: 'expressions', name: 'Expressions', glyph: 'x' },
-  { id: 'equations', name: 'Equations', glyph: '=' },
-  { id: 'graphs', name: 'Graphs', glyph: '⌗' },
-  { id: 'shape', name: 'Shape & Space', glyph: '△' },
-  { id: 'trig', name: 'Trigonometry', glyph: '∡' },
-  { id: 'functions', name: 'Functions', glyph: 'ƒ' },
-  { id: 'chance', name: 'Chance & Data', glyph: '⚄' },
+export const SUBJECTS = [
+  { id: 'arithmetic', name: 'Arithmetic' },
+  { id: 'algebra', name: 'Algebra' },
+  { id: 'geometry', name: 'Geometry' },
+  { id: 'trigonometry', name: 'Trigonometry' },
+  { id: 'data', name: 'Chance & Data' },
 ];
+
+/** Names are short: they sit in a card footer beside the solved count. */
+export const CATEGORIES = [
+  // ── Arithmetic ────────────────────────────────────────────────────────
+  { id: 'integers', subject: 'arithmetic', name: 'Integers', glyph: '±' },
+  { id: 'fractions', subject: 'arithmetic', name: 'Fractions', glyph: '½' },
+  { id: 'decimals', subject: 'arithmetic', name: 'Decimals & Percents', glyph: '%' },
+  // Also algebra: the exponent rules are the same rules with letters in them.
+  { id: 'powers', subject: 'arithmetic', name: 'Powers & Roots', glyph: 'ⁿ' },
+  { id: 'factors', subject: 'arithmetic', name: 'Factors & Multiples', glyph: '×' },
+
+  // ── Algebra ───────────────────────────────────────────────────────────
+  { id: 'expressions', subject: 'algebra', name: 'Expressions', glyph: 'x' },
+  { id: 'equations', subject: 'algebra', name: 'Equations', glyph: '=' },
+  { id: 'sequences', subject: 'algebra', name: 'Sequences', glyph: '…' },
+  // Also analysis: this is where calculus readiness is actually decided.
+  { id: 'functions', subject: 'algebra', name: 'Functions', glyph: 'ƒ' },
+
+  // ── Geometry ──────────────────────────────────────────────────────────
+  // Also algebra: reading a point off a grid and graphing a line are one skill.
+  { id: 'coordinates', subject: 'geometry', name: 'Coordinates', glyph: '⌗' },
+  { id: 'angles', subject: 'geometry', name: 'Lines & Angles', glyph: '∠' },
+  { id: 'shapes', subject: 'geometry', name: 'Shapes', glyph: '△' },
+  { id: 'measure', subject: 'geometry', name: 'Area & Volume', glyph: '▭' },
+
+  // ── Trigonometry ──────────────────────────────────────────────────────
+  { id: 'right-triangles', subject: 'trigonometry', name: 'Right Triangles', glyph: '◺' },
+  { id: 'unit-circle', subject: 'trigonometry', name: 'The Unit Circle', glyph: '◯' },
+  { id: 'identities', subject: 'trigonometry', name: 'Identities', glyph: '≡' },
+
+  // ── Chance & Data ─────────────────────────────────────────────────────
+  { id: 'probability', subject: 'data', name: 'Probability', glyph: '⚄' },
+  { id: 'statistics', subject: 'data', name: 'Statistics', glyph: '⌾' },
+];
+
+/** The subject a category is filed under. */
+export const subjectOf = (categoryId) => {
+  const cat = CATEGORIES.find((c) => c.id === categoryId);
+  return SUBJECTS.find((s) => s.id === cat?.subject) ?? null;
+};
 
 /**
  * The learning graph.

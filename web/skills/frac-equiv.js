@@ -38,7 +38,7 @@ export const PAR_SECONDS = [14, 14, 14, 18, 16, 16];
 export default {
   id: 'frac-equiv',
   name: 'Equivalent & Simplest Form',
-  category: 'parts',
+  category: 'fractions',
   glyph: '≡',
   blurb: 'Same amount, different pieces.',
   answerInput: 'int',
