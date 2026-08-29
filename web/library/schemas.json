@@ -159,6 +159,40 @@
         ]
       }
     },
+    "plane": {
+      "xRange": {
+        "type": "array",
+        "of": {
+          "type": "number"
+        },
+        "required": true
+      },
+      "yRange": {
+        "type": "array",
+        "of": {
+          "type": "number"
+        },
+        "required": true
+      },
+      "grid": {
+        "type": "number",
+        "min": 0,
+        "max": 20
+      },
+      "marks": {
+        "type": "array",
+        "of": {
+          "type": "object"
+        }
+      },
+      "answer": {
+        "type": "array",
+        "of": {
+          "type": "object"
+        },
+        "phase": "answer"
+      }
+    },
     "evalmodel": {
       "lines": {
         "type": "array",

@@ -6,6 +6,7 @@ import { drawFitsModel } from './fitsmodel.js';
 import { drawWholesModel } from './wholesmodel.js';
 import { drawEquivModel } from './equivmodel.js';
 import { drawEvalModel } from './evalmodel.js';
+import { drawPlane } from './plane.js';
 
 /**
  * Visual registry.
@@ -107,6 +108,17 @@ export const VISUALS = {
   // Reveal here is progressive, not binary: the lesson walks the working one
   // line at a time, so `lines` is both question and answer depending on how
   // far the student has stepped. Covered by check-reveal.mjs.
+  plane: {
+    schema: {
+      xRange: { type: 'array', of: { type: 'number' }, required: true },
+      yRange: { type: 'array', of: { type: 'number' }, required: true },
+      grid: { type: 'number', min: 0, max: 20 },
+      marks: { type: 'array', of: { type: 'object' } },
+      // Anything that would answer the question is withheld until one is
+      // committed, so the renderer never receives it and cannot leak it.
+      answer: { type: 'array', of: { type: 'object' }, phase: 'answer' },
+    },
+  },
   evalmodel: {
     schema: {
       lines: { type: 'array', of: { type: 'string' }, required: true },
@@ -150,6 +162,17 @@ const RENDERERS = {
 
   evalmodel(container, spec, opts) {
     drawEvalModel(container, spec, opts);
+  },
+
+  /** The plane owns an <svg> inside the container, as the number line does. */
+  plane(container, spec, opts) {
+    let svg = container.querySelector('svg.pl');
+    if (!svg) {
+      svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('class', 'pl');
+      container.replaceChildren(svg);
+    }
+    drawPlane(svg, spec, { verdict: opts.verdict });
   },
 
   signmodel(container, spec, opts) {

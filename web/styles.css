@@ -1124,3 +1124,24 @@ h1, h2, h3, .display { font-family: var(--display); font-weight: 700; letter-spa
   padding: .04em .12em 0 .06em; margin-top: .08em;
 }
 .root-term .is-blank { color: var(--gold); }
+
+/* ── The x/y plane ────────────────────────────────────────────────────── */
+.pl { display: block; width: 100%; height: auto; overflow: visible; }
+.pl__grid line { stroke: var(--line); stroke-width: 1; opacity: .45; }
+.pl__axes line { stroke: var(--muted); stroke-width: 1.5; }
+.pl__ticks text {
+  fill: var(--dim); font-family: var(--display); font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.pl__mark { --tone: var(--vec-1); }
+.pl__mark circle { fill: var(--tone); stroke: var(--tone); stroke-width: 2; }
+.pl__mark circle.is-open { fill: var(--bg); }
+.pl__mark line, .pl__mark polyline { stroke: var(--tone); stroke-width: 2.5; stroke-linecap: round; }
+.pl__label { fill: var(--tone); font-family: var(--display); font-size: 11px; font-weight: 700; }
+/* Whatever arrives with the answer is drawn in the result colour, so it reads
+   as the reply rather than as more of the question. */
+.pl__mark.is-answer { --tone: var(--result); }
+.pl__mark.is-answer circle { animation: pop .3s ease-out; }
+.pl__verdict { font-size: 13px; font-weight: 700; }
+.pl__verdict.is-ok { fill: var(--grow); }
+.pl__verdict.is-bad { fill: var(--hot); }

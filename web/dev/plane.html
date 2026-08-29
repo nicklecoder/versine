@@ -1,0 +1,56 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Versine — the plane</title>
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="../styles.css">
+<style>body{padding:24px;font-family:var(--body)}
+ h1{font-family:var(--display);color:var(--cool);font-size:1.1rem;margin:0 0 4px}
+ .note{color:var(--muted);font-size:.82rem;margin-bottom:16px;max-width:62ch;line-height:1.5}
+ .row{display:grid;grid-template-columns:150px 1fr 1fr;gap:16px;align-items:start;
+      padding:14px 0;border-top:1px solid var(--line)}
+ .k{font-family:var(--display);font-size:.8rem;color:var(--gold);padding-top:20px}
+ h2{font-family:var(--body);font-size:.64rem;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--dim);margin:0 0 6px}
+ .box{background:var(--bg-2);border:1px solid var(--line);border-radius:8px;padding:10px}</style>
+<h1>The plane</h1>
+<p class="note">Every mark kind, asking and answered. Marks listed under
+  <code>answer</code> are withheld from the renderer until an answer is
+  committed, so a picture cannot show what it was asked.</p>
+<div id="out"></div>
+<script type="module">
+  import { renderVisual } from '../ui/visuals.js';
+  import { el } from '../ui/dom.js';
+  const R = { xRange:[-8,8], yRange:[-8,8], grid:1 };
+  const curve = [];
+  for (let x = -8; x <= 8; x += 0.5) curve.push([x, Math.max(-8, Math.min(8, x*x/6 - 4))]);
+  const cases = [
+    ['point + reading', { kind:'plane', ...R,
+      marks:[{kind:'point', at:[5,3], tone:'var(--vec-1)'}],
+      answer:[{kind:'segment', from:[5,0], to:[5,3]},{kind:'point', at:[5,0], label:'5'}] }],
+    ['a point on an axis', { kind:'plane', ...R,
+      marks:[{kind:'point', at:[6,0], tone:'var(--vec-1)'}],
+      answer:[{kind:'point', at:[6,0], label:'0 up'}] }],
+    ['withheld point', { kind:'plane', ...R,
+      marks:[], answer:[{kind:'point', at:[-4,-6], label:'(−4, −6)'}] }],
+    ['two points, a span', { kind:'plane', ...R,
+      marks:[{kind:'point', at:[-5,2], tone:'var(--vec-1)'},{kind:'point', at:[3,2], tone:'var(--vec-2)'}],
+      answer:[{kind:'segment', from:[-5,2], to:[3,2], label:'8'}] }],
+    ['a line through two', { kind:'plane', ...R,
+      marks:[{kind:'point', at:[-6,-4], tone:'var(--vec-1)'},{kind:'point', at:[4,6], tone:'var(--vec-1)'}],
+      answer:[{kind:'segment', from:[-8,-6], to:[6,8]}] }],
+    ['a curve, as a polyline', { kind:'plane', ...R,
+      marks:[], answer:[{kind:'path', points:curve}] }],
+    ['an open point', { kind:'plane', ...R,
+      marks:[{kind:'point', at:[2,4], open:true, tone:'var(--vec-2)', label:'not included'}],
+      answer:[] }],
+  ];
+  const out = document.getElementById('out');
+  for (const [name, spec] of cases) {
+    const a = el('div.box'), b = el('div.box');
+    out.append(el('div.row', {}, el('div.k', {}, name),
+      el('div', {}, el('h2', {}, 'asking'), a),
+      el('div', {}, el('h2', {}, 'answered'), b)));
+    renderVisual(a, spec, { reveal: 1 });
+    renderVisual(b, spec, { showAnswer: true, verdict: 'ok' });
+  }
+</script>

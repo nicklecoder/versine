@@ -1,5 +1,5 @@
 {
-  "built": 56,
+  "built": 62,
   "order": {
     "int-addsub": [
       "first-steps",
@@ -74,9 +74,17 @@
       "simplest-radical-form",
       "which-form",
       "all-together"
+    ],
+    "coords": [
+      "reading-across",
+      "reading-up",
+      "negative-directions",
+      "which-quadrant",
+      "distance-along-a-line",
+      "all-together"
     ]
   },
-  "sources": "1786e850155fc69e3fdfd889c445adaa55641e0abc83d6135b09aebd2efb965c",
+  "sources": "dbd85b2a084fa3d59334fc42dd56086f27e569e23e590c535a06ead77b7a1ada",
   "levels": [
     {
       "skill": "int-addsub",
@@ -637,6 +645,66 @@
       "exhaustive": true,
       "signed": false,
       "file": "roots-5.json"
+    },
+    {
+      "skill": "coords",
+      "level": 0,
+      "slug": "reading-across",
+      "name": "Reading Across",
+      "count": 80,
+      "exhaustive": true,
+      "signed": false,
+      "file": "coords-0.json"
+    },
+    {
+      "skill": "coords",
+      "level": 1,
+      "slug": "reading-up",
+      "name": "Reading Up",
+      "count": 80,
+      "exhaustive": true,
+      "signed": false,
+      "file": "coords-1.json"
+    },
+    {
+      "skill": "coords",
+      "level": 2,
+      "slug": "negative-directions",
+      "name": "Negative Directions",
+      "count": 576,
+      "exhaustive": true,
+      "signed": true,
+      "file": "coords-2.json"
+    },
+    {
+      "skill": "coords",
+      "level": 3,
+      "slug": "which-quadrant",
+      "name": "Which Quadrant",
+      "count": 256,
+      "exhaustive": true,
+      "signed": false,
+      "file": "coords-3.json"
+    },
+    {
+      "skill": "coords",
+      "level": 4,
+      "slug": "distance-along-a-line",
+      "name": "Distance Along a Line",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "coords-4.json"
+    },
+    {
+      "skill": "coords",
+      "level": 5,
+      "slug": "all-together",
+      "name": "All Together",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": true,
+      "file": "coords-5.json"
     }
   ]
 }
