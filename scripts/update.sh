@@ -91,7 +91,7 @@ libraries_valid() {
   # A server without a JavaScript runtime still gets the library check above,
   # which is the one that catches a broken problem reaching a student.
   if command -v node >/dev/null 2>&1; then
-    for check in check-catalogue.mjs check-reveal.mjs check-parser.mjs; do
+    for check in check-catalogue.mjs check-reveal.mjs check-parser.mjs check-session.mjs; do
       [ -f "$ROOT/scripts/$check" ] || continue
       node "$ROOT/scripts/$check" 2>&1 | while IFS= read -r line; do log "  $line"; done
       [ "${PIPESTATUS[0]}" = "0" ] || return 1

@@ -1,0 +1,105 @@
+/**
+ * The play loop, driven headlessly.
+ *
+ * Everything else checks a part: that a problem is well-formed, that a picture
+ * holds its answer back, that an expression parses. Nothing checked that a run
+ * actually runs -- and the prompt vocabulary, the visual dispatcher, the answer
+ * types, level identity and the map's grouping have all been rebuilt underneath
+ * it. A loop that no longer works would pass every other check in the repo.
+ *
+ * So this plays real levels from real libraries: deals problems, answers them
+ * correctly and incorrectly, and holds the loop to what a student would notice.
+ */
+import { readFileSync, existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+
+const stub = () => ({
+  classList: { add() {}, remove() {}, toggle() {}, contains: () => false },
+  setAttribute() {}, append() {}, addEventListener() {}, focus() {},
+  style: { setProperty() {} }, replaceChildren() {}, querySelector: () => null,
+});
+globalThis.document = { createElement: stub, createElementNS: stub, createTextNode: (t) => ({ t }) };
+globalThis.performance ??= { now: () => Date.now() };
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const { SKILLS } = await import(join(ROOT, 'web/engine/registry.js'));
+const { Session } = await import(join(ROOT, 'web/engine/session.js'));
+const { MODES } = await import(join(ROOT, 'web/engine/modes.js'));
+const { dealer } = await import(join(ROOT, 'web/engine/library.js'));
+const { getType } = await import(join(ROOT, 'web/math/answer.js'));
+
+const fail = [];
+const libOf = (skill, level) => {
+  const path = join(ROOT, 'web/library', `${skill.id}-${level}.json`);
+  return existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')) : null;
+};
+
+let played = 0, answered = 0;
+for (const skill of SKILLS) {
+  for (let level = 0; level < skill.levels.length; level++) {
+    const lib = libOf(skill, level);
+    if (!lib) { fail.push(`${skill.id} L${level + 1}: no library`); continue; }
+
+    const deck = dealer(lib.problems, () => 0.5);
+    const session = new Session({
+      skill, level, mode: MODES.practice, seed: 7, deal: () => deck.next(),
+    });
+    session.start();
+    played++;
+
+    // Answer ten problems correctly; the loop must serve and accept each.
+    for (let i = 0; i < 10; i++) {
+      const p = session.problem;
+      if (!p) { fail.push(`${skill.id} L${level + 1}: ran out of problems at ${i}`); break; }
+      const type = getType(p.answer.type);
+      const raw = type.format(p.answer.value);
+      const res = session.submit(raw);
+      answered++;
+      if (res.status !== 'correct') {
+        fail.push(`${skill.id} L${level + 1}: its own answer "${raw}" to "${p.text}" was judged ${res.status}`
+          + (res.hint ? ` — ${res.hint}` : ''));
+        break;
+      }
+      session.nextProblem();
+    }
+
+    // A wrong answer must be refused rather than accepted or thrown on.
+    const p = session.problem;
+    if (p) {
+      const type = getType(p.answer.type);
+      const wrong = p.answer.type === 'choice'
+        ? (p.answer.options.find((o) => o.id !== p.answer.value)?.id ?? 'nope')
+        : type.format(p.answer.value) + '9';
+      let res;
+      try { res = session.submit(wrong); }
+      catch (err) { fail.push(`${skill.id} L${level + 1}: threw on a wrong answer — ${err.message}`); }
+      if (res && res.status === 'correct') {
+        fail.push(`${skill.id} L${level + 1}: accepted "${wrong}" for "${p.text}"`);
+      }
+    }
+
+    // And gibberish must be rejected as unreadable, not counted as wrong.
+    if (session.problem && session.problem.answer.type !== 'choice') {
+      const res = session.submit('%%%');
+      if (res.status !== 'invalid') {
+        fail.push(`${skill.id} L${level + 1}: judged gibberish as ${res.status} rather than unreadable`);
+      }
+    }
+
+    session.end('quit');
+    const s = session.summary();
+    if (typeof s.solved !== 'number' || s.solved < 1) {
+      fail.push(`${skill.id} L${level + 1}: summary reports ${s.solved} solved after ten correct`);
+    }
+  }
+}
+
+if (fail.length) {
+  console.log(`${fail.length} problem(s) in the play loop:`);
+  for (const f of fail.slice(0, 20)) console.log('  ' + f);
+  if (fail.length > 20) console.log(`  ... and ${fail.length - 20} more`);
+  process.exit(1);
+}
+console.log(`play loop: ${played} levels played, ${answered} answers submitted — all accepted, `
+  + `wrong answers refused, gibberish rejected`);
