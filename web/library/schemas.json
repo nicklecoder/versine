@@ -235,5 +235,12 @@
       "c",
       "v"
     ]
-  }
+  },
+  "answerTypes": [
+    "int",
+    "frac",
+    "mixed",
+    "decimal",
+    "choice"
+  ]
 }

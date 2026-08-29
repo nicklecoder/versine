@@ -21,6 +21,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 LIB = ROOT / "web" / "library"
+# Filled from schemas.json, which the build writes from the renderers and
+# the answer types themselves. Kept as a fallback for a library built
+# before the list was published.
 KNOWN_TYPES = {"int", "frac", "mixed", "choice"}
 
 # The presentation vocabulary, exported from the renderers by
@@ -36,6 +39,8 @@ if _schema_path.is_file():
         SCHEMAS = _v.get("visuals", {})
         TERM_KINDS = set(_v.get("terms", []))
         BLANK_FIELDS = _v.get("blankFields", {})
+        if _v.get("answerTypes"):
+            KNOWN_TYPES = set(_v["answerTypes"])
     except json.JSONDecodeError:
         pass
 

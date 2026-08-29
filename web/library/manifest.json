@@ -1,5 +1,5 @@
 {
-  "built": 62,
+  "built": 75,
   "order": {
     "int-addsub": [
       "first-steps",
@@ -82,9 +82,26 @@
       "which-quadrant",
       "distance-along-a-line",
       "all-together"
+    ],
+    "decimals": [
+      "tenths-and-hundredths",
+      "which-is-bigger",
+      "adding-and-taking-away",
+      "multiplying",
+      "into-fractions",
+      "which-form",
+      "all-together"
+    ],
+    "percents": [
+      "out-of-a-hundred",
+      "as-a-decimal",
+      "percent-of-a-number",
+      "what-percent-is-it",
+      "up-and-down",
+      "all-together"
     ]
   },
-  "sources": "dbd85b2a084fa3d59334fc42dd56086f27e569e23e590c535a06ead77b7a1ada",
+  "sources": "756905d02c96972193e013c2fd00aae1ad003b080d84fbbbf0c9c251919c030c",
   "levels": [
     {
       "skill": "int-addsub",
@@ -705,6 +722,136 @@
       "exhaustive": false,
       "signed": true,
       "file": "coords-5.json"
+    },
+    {
+      "skill": "decimals",
+      "level": 0,
+      "slug": "tenths-and-hundredths",
+      "name": "Tenths and Hundredths",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "decimals-0.json"
+    },
+    {
+      "skill": "decimals",
+      "level": 1,
+      "slug": "which-is-bigger",
+      "name": "Which Is Bigger",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "decimals-1.json"
+    },
+    {
+      "skill": "decimals",
+      "level": 2,
+      "slug": "adding-and-taking-away",
+      "name": "Adding and Taking Away",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "decimals-2.json"
+    },
+    {
+      "skill": "decimals",
+      "level": 3,
+      "slug": "multiplying",
+      "name": "Multiplying",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "decimals-3.json"
+    },
+    {
+      "skill": "decimals",
+      "level": 4,
+      "slug": "into-fractions",
+      "name": "Into Fractions",
+      "count": 99,
+      "exhaustive": true,
+      "signed": false,
+      "file": "decimals-4.json"
+    },
+    {
+      "skill": "decimals",
+      "level": 5,
+      "slug": "which-form",
+      "name": "Which Form?",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "decimals-5.json"
+    },
+    {
+      "skill": "decimals",
+      "level": 6,
+      "slug": "all-together",
+      "name": "All Together",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "decimals-6.json"
+    },
+    {
+      "skill": "percents",
+      "level": 0,
+      "slug": "out-of-a-hundred",
+      "name": "Out of a Hundred",
+      "count": 98,
+      "exhaustive": true,
+      "signed": false,
+      "file": "percents-0.json"
+    },
+    {
+      "skill": "percents",
+      "level": 1,
+      "slug": "as-a-decimal",
+      "name": "As a Decimal",
+      "count": 189,
+      "exhaustive": true,
+      "signed": false,
+      "file": "percents-1.json"
+    },
+    {
+      "skill": "percents",
+      "level": 2,
+      "slug": "percent-of-a-number",
+      "name": "Percent of a Number",
+      "count": 169,
+      "exhaustive": true,
+      "signed": false,
+      "file": "percents-2.json"
+    },
+    {
+      "skill": "percents",
+      "level": 3,
+      "slug": "what-percent-is-it",
+      "name": "What Percent Is It",
+      "count": 78,
+      "exhaustive": true,
+      "signed": false,
+      "file": "percents-3.json"
+    },
+    {
+      "skill": "percents",
+      "level": 4,
+      "slug": "up-and-down",
+      "name": "Up and Down",
+      "count": 126,
+      "exhaustive": true,
+      "signed": false,
+      "file": "percents-4.json"
+    },
+    {
+      "skill": "percents",
+      "level": 5,
+      "slug": "all-together",
+      "name": "All Together",
+      "count": 660,
+      "exhaustive": true,
+      "signed": false,
+      "file": "percents-5.json"
     }
   ]
 }

@@ -95,7 +95,7 @@ for (const skill of SKILLS) {
   generators.set(skill.id, (await import(path)).generate);
 }
 const { makeRng } = await import(join(ROOT, 'web/engine/rng.js'));
-const { getType } = await import(join(ROOT, 'web/math/answer.js'));
+const { getType, TYPE_IDS } = await import(join(ROOT, 'web/math/answer.js'));
 const { VISUALS } = await import(join(ROOT, 'web/ui/visuals.js'));
 const { TERM_KINDS, BLANK_FIELDS } = await import(join(ROOT, 'web/ui/prompt.js'));
 
@@ -221,6 +221,7 @@ const schemasJson = JSON.stringify({
   visuals: Object.fromEntries(Object.entries(VISUALS).map(([k, v]) => [k, v.schema])),
   terms: TERM_KINDS,
   blankFields: BLANK_FIELDS,
+  answerTypes: TYPE_IDS(),
 }, null, 2) + '\n';
 const schemasPath = join(OUT, 'schemas.json');
 if (!existsSync(schemasPath) || readFileSync(schemasPath, 'utf8') !== schemasJson) {

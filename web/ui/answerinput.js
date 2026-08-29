@@ -36,7 +36,9 @@ function intInput(spec, opts = {}) {
     pattern: '-?[0-9]*', maxlength: 7,
     autocomplete: 'off', autocorrect: 'off', spellcheck: 'false', placeholder: '?',
     oninput: () => {
-      const clean = input.value.replace(/[^0-9-]/g, '').replace(/(?!^)-/g, '');
+      const clean = input.value.replace(/[^0-9.-]/g, '')
+        .replace(/(?!^)-/g, '')
+        .replace(/(\..*)\./g, '$1');
       if (clean !== input.value) input.value = clean;
     },
   });
@@ -54,7 +56,24 @@ function intInput(spec, opts = {}) {
   };
 }
 
-const WIDGETS = { int: intInput, frac: fracInput, mixed: mixedInput, choice: choiceInput };
+/**
+ * Decimals reuse the integer box with a decimal pad and a dot allowed. iOS
+ * offers a decimal point on `inputmode="decimal"` -- but still no minus, so a
+ * level that can go negative falls back to the full keyboard exactly as the
+ * integer input does.
+ */
+function decimalInput(spec, opts = {}) {
+  const w = intInput(spec, opts);
+  w.node.setAttribute('inputmode', opts.signed ? 'text' : 'decimal');
+  w.node.setAttribute('pattern', '-?[0-9]*\\.?[0-9]*');
+  w.node.setAttribute('maxlength', '9');
+  return w;
+}
+
+const WIDGETS = {
+  int: intInput, frac: fracInput, mixed: mixedInput,
+  choice: choiceInput, decimal: decimalInput,
+};
 
 /**
  * @param {string} answerType

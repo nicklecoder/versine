@@ -22,6 +22,14 @@ export function defineType(type) {
   return type;
 }
 
+/**
+ * Every answer type that exists, published so the deploy gate can check a
+ * catalogue row against it rather than keeping its own list. The gate had a
+ * hardcoded set once and declared four thousand correct problems broken the
+ * first time a type was added.
+ */
+export const TYPE_IDS = () => Object.keys(TYPES);
+
 /** @param {string} id @returns {AnswerType} */
 export function getType(id) {
   const t = TYPES[id];
@@ -138,6 +146,45 @@ defineType({
       : '';
     if (!rest) return String(whole);
     return whole ? `<span class="mixed-term">${whole}${frac}</span>` : frac;
+  },
+});
+
+defineType({
+  id: 'decimal',
+  input: 'decimal',
+  hint: 'Type a decimal, like 0.75.',
+  /**
+   * Held as an exact fraction over a power of ten, never as a float.
+   *
+   * 0.1 + 0.2 is not 0.3 in binary floating point, and a drill that marks a
+   * correct answer wrong once has lost the student's trust for the rest of the
+   * session. Comparison is therefore integer cross-multiplication, the same as
+   * fractions, and only the formatting turns back into a decimal.
+   */
+  parse(raw) {
+    const s = normalize(raw);
+    const m = s.match(/^([+-]?)(\d*)(?:\.(\d*))?$/);
+    if (!m || (m[2] === '' && !m[3])) return { ok: false };
+    const sign = m[1] === '-' ? -1 : 1;
+    const whole = m[2] || '0';
+    const frac = m[3] || '';
+    const d = 10 ** frac.length;
+    const n = sign * (parseInt(whole, 10) * d + (frac ? parseInt(frac, 10) : 0));
+    return { ok: true, value: { n, d } };
+  },
+  equals: (a, b) => a.n * b.d === b.n * a.d,
+  /** Trailing zeros are dropped: 0.50 and 0.5 are the same number. */
+  format(v) {
+    const neg = v.n < 0;
+    const n = Math.abs(v.n);
+    const whole = Math.floor(n / v.d);
+    const rem = n - whole * v.d;
+    let out = String(whole);
+    if (rem) {
+      const places = String(v.d).length - 1;
+      out += '.' + String(rem).padStart(places, '0').replace(/0+$/, '');
+    }
+    return (neg ? '−' : '') + out;
   },
 });
 
