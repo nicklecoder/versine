@@ -16,10 +16,11 @@ import decimals from '../skills/decimals.js';
 import percents from '../skills/percents.js';
 import simplify from '../skills/simplify.js';
 import equations from '../skills/equations.js';
+import equationsBoth from '../skills/equations-both.js';
 
 /** @type {any[]} */
 export const SKILLS = [intAddSub, intMulDiv, fracAddSub, fracMulDiv, fracMixed, fracEquiv,
-  orderOps, exponents, roots, coords, decimals, percents, simplify, equations];
+  orderOps, exponents, roots, coords, decimals, percents, simplify, equations, equationsBoth];
 
 export const getSkill = (id) => SKILLS.find((s) => s.id === id);
 

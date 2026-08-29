@@ -24,30 +24,107 @@ problems: list[str] = []
 checked = 0
 
 
-def evaluate(src: str, var: str | None = None, value=None) -> Fraction:
+class Evaluator:
     """
-    Arithmetic in exact rationals.
+    A small, correct evaluator over exact rationals.
 
-    Every numeric literal becomes a Fraction *before* anything is evaluated.
-    The first version of this let Python compute 0.08 + 9.2 in floats and
-    converted the result, which reported 5224175567749775/562949953421312 --
-    the binary approximation, exactly the fault this check exists to catch,
-    committed by the check itself.
+    Written properly rather than by translating the text into Python and
+    calling eval, which was tried and produced three separate wrong answers
+    from the checker itself: floats where rationals were meant, "1/2 ÷ 1/10"
+    read as 1/2/1/10, and "2(a + 1)" split apart on its spaces. The last
+    attempt got 10 ÷ 2 × 2 wrong -- which is the exact problem order-ops L2
+    exists to teach.
+
+        expr   := term (('+' | '-') term)*
+        term   := frac (('×' | '÷' | '*') frac)*      left to right
+        frac   := factor ('/' factor)*                binds tighter
+        factor := '-' factor | power
+        power  := atom ('^' factor)?
+        atom   := number | '(' expr ')'
+
+    The fraction bar and the division sign are two different operators here,
+    and the bar binds tighter: "1/2 ÷ 1/10" is one half divided by one tenth,
+    which is 5, not 1/20. Collapsing both to a slash loses that -- and reading
+    it as a slash also makes "10 ÷ 2 × 2" come out as 5/2, which is the exact
+    mistake order-ops L2 exists to teach.
+
+    Juxtaposition is a multiplication, so 2(a + 1) works.
     """
-    # Bracket each operand before touching the operators. "1/2 ÷ 1/10" would
-    # otherwise flatten to 1/2/1/10 and be read left to right as 1/20 -- the
-    # slash inside a fraction and the slash of division are not the same slash.
-    parts = src.replace("−", "-").split(" ")
-    e = " ".join(t if t in ("+", "-", "×", "÷", "*", "/") else f"({t})" for t in parts)
-    e = e.replace("×", "*").replace("÷", "/").replace("^", "**")
-    if var:
-        e = e.replace(var, f"({value})")
-    e = re.sub(r"(\d)\s*\(", r"\1*(", e)
-    e = re.sub(r"\)\s*(\d)", r")*\1", e)
-    e = re.sub(r"\)\s*\(", r")*(", e)
-    # One pass: re.sub does not rescan its own replacements.
-    e = re.sub(r"\d+\.\d+|\d+", lambda m: f'F("{m.group(0)}")', e)
-    return Fraction(eval(e, {"__builtins__": {}}, {"F": Fraction}))
+
+    TOKEN = re.compile(r"\d+\.\d+|\d+|÷|[-+*/^()]")
+
+    def __init__(self, src: str):
+        text = src.replace("−", "-").replace("×", "*").replace("·", "*")
+        self.t = self.TOKEN.findall(text)
+        if "".join(self.t) != re.sub(r"\s+", "", text):
+            raise ValueError(f"unreadable: {src}")
+        self.i = 0
+
+    def peek(self):
+        return self.t[self.i] if self.i < len(self.t) else None
+
+    def expr(self) -> Fraction:
+        out = self.term()
+        while self.peek() in ("+", "-"):
+            op = self.t[self.i]; self.i += 1
+            out = out + self.term() if op == "+" else out - self.term()
+        return out
+
+    def term(self) -> Fraction:
+        out = self.frac()
+        while True:
+            nxt = self.peek()
+            if nxt in ("*", "÷"):
+                self.i += 1
+                rhs = self.frac()
+                out = out * rhs if nxt == "*" else out / rhs
+            elif nxt == "(":                      # juxtaposition: 2(a + 1)
+                out = out * self.frac()
+            else:
+                return out
+
+    def frac(self) -> Fraction:
+        out = self.factor()
+        while self.peek() == "/":
+            self.i += 1
+            out /= self.factor()
+        return out
+
+    def factor(self) -> Fraction:
+        if self.peek() == "-":
+            self.i += 1
+            return -self.factor()
+        return self.power()
+
+    def power(self) -> Fraction:
+        base = self.atom()
+        if self.peek() == "^":
+            self.i += 1
+            return base ** int(self.factor())
+        return base
+
+    def atom(self) -> Fraction:
+        tok = self.peek()
+        if tok is None:
+            raise ValueError("ends early")
+        if tok == "(":
+            self.i += 1
+            inner = self.expr()
+            if self.peek() != ")":
+                raise ValueError("unclosed bracket")
+            self.i += 1
+            return inner
+        self.i += 1
+        return Fraction(tok)
+
+
+def evaluate(src: str, var: str | None = None, value=None) -> Fraction:
+    text = src if var is None else src.replace(var, f"({value})")
+    ev = Evaluator(text)
+    out = ev.expr()
+    if ev.i != len(ev.t):
+        raise ValueError(f"trailing input in {src}")
+    return out
 
 
 def var_in(text: str) -> str | None:

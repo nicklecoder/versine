@@ -1,5 +1,5 @@
 {
-  "built": 87,
+  "built": 93,
   "order": {
     "int-addsub": [
       "first-steps",
@@ -115,9 +115,17 @@
       "negatives-in-the-way",
       "which-step-first",
       "all-together"
+    ],
+    "equations-both": [
+      "unknowns-both-sides",
+      "gather-then-undo",
+      "brackets-first",
+      "answers-that-are-not-whole",
+      "which-side",
+      "all-together"
     ]
   },
-  "sources": "d37008daacc72e945927dbb4c688d66fadf32bfbfea8345e25bf6515bac0b78e",
+  "sources": "0425e8bb00df7cc53788b296e9c294d09cefb39e2ac6f552fbf80115615ddc4e",
   "levels": [
     {
       "skill": "int-addsub",
@@ -988,6 +996,66 @@
       "exhaustive": false,
       "signed": false,
       "file": "equations-5.json"
+    },
+    {
+      "skill": "equations-both",
+      "level": 0,
+      "slug": "unknowns-both-sides",
+      "name": "Unknowns Both Sides",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "equations-both-0.json"
+    },
+    {
+      "skill": "equations-both",
+      "level": 1,
+      "slug": "gather-then-undo",
+      "name": "Gather Then Undo",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "equations-both-1.json"
+    },
+    {
+      "skill": "equations-both",
+      "level": 2,
+      "slug": "brackets-first",
+      "name": "Brackets First",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "equations-both-2.json"
+    },
+    {
+      "skill": "equations-both",
+      "level": 3,
+      "slug": "answers-that-are-not-whole",
+      "name": "Answers That Are Not Whole",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "equations-both-3.json"
+    },
+    {
+      "skill": "equations-both",
+      "level": 4,
+      "slug": "which-side",
+      "name": "Which Side?",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "equations-both-4.json"
+    },
+    {
+      "skill": "equations-both",
+      "level": 5,
+      "slug": "all-together",
+      "name": "All Together",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "equations-both-5.json"
     }
   ]
 }
