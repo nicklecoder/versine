@@ -715,6 +715,52 @@ Free entry makes the `accept` list load-bearing: with shaped fields, `2^5` and
 strings that both have to be judged. That is the form-versus-value question
 again, and `requireSimplest` already models it.
 
+### Show what was understood, while it is being typed
+
+Unstructured entry is unnerving because nothing tells you whether the system
+read what you meant. So a level using `entry: 'free'` renders the input back
+as notation while the student types.
+
+**It renders structure, and never evaluates.** This is the rule the feature
+lives or dies by:
+
+| typed | renders | not |
+|---|---|---|
+| `2^1/2` | `2¹/2` | `√2` |
+| `4/8` | `4/8` | `1/2` |
+| `2+3` | `2+3` | `5` |
+
+The first row is the whole point — it shows the exponent bound tightly, which
+is the ambiguity worth surfacing. The other two are the trap. A preview that
+simplifies or evaluates does the student's work and hands back the answer, and
+it would be easy to build by accident: a parser that returns a *value* is more
+natural to write than one that returns a faithful *tree*. The bug would look
+like a nice feature until you noticed nobody was learning anything.
+
+Rendering only what was typed also keeps the preview clear of reveal
+discipline. It reflects the student's own input, so there is nothing in it to
+leak.
+
+It goes in a strip immediately above the answer box, not in the blank slot of
+the prompt. Two reasons. The screen runs prompt, visual, input, keyboard, so
+anything below the input can end up under the keyboard, and anything as far up
+as the prompt is a real head-move while typing. And the blank slot already has
+a job -- it is where the correct answer lands on reveal -- so putting live
+input there would give one place two meanings, mutating from "what I typed"
+into "what was right" at exactly the moment a student got it wrong.
+
+While typing, be forgiving: `2^` is not an error, it is somebody mid-keystroke.
+Hold the last thing that parsed, or show a muted placeholder. Never flash red
+before submit -- a preview that scolds you while you are still typing teaches
+people to stop looking at it.
+
+The renderer for this already exists: `renderPrompt` turns terms into notation
+today, so a parser emitting terms feeds it directly. The preview is the parser
+plus a little wiring, and it doubles as the parser's test surface -- a page
+listing input strings against their rendered interpretations, in the shape of
+`web/dev/prompts.html`, is how precedence and grouping get verified before a
+student meets them.
+
 ### One constraint on how small a field can be
 
 The answer box is `clamp(1.6rem, 6vw, 2.2rem)` with 8px of padding — around 45
