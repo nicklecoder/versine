@@ -50,6 +50,16 @@ for (const c of CATEGORIES) {
     fail.push(`category "${c.id}": subject "${c.subject}" is not declared, so its skills would not appear on the map`);
   }
 }
+// A skill long enough to be two skills is a sign the split was not made.
+// Split it by depth rather than by size: the foundational levels stay, the
+// harder ones become a skill that depends on them. A student then finishes
+// something, rather than grinding down a list that never ends.
+for (const s of SKILLS) {
+  if (s.levels.length > 8) {
+    fail.push(`${s.id} has ${s.levels.length} levels; split it — foundations in one skill, the harder work in another that depends on it`);
+  }
+}
+
 // A category big enough to be a subject is a sign the split was not made.
 for (const c of CATEGORIES) {
   const n = SKILLS.filter((s) => s.category === c.id).length;

@@ -1,5 +1,5 @@
 {
-  "built": 81,
+  "built": 87,
   "order": {
     "int-addsub": [
       "first-steps",
@@ -107,9 +107,17 @@
       "distribute-and-collect",
       "which-form",
       "all-together"
+    ],
+    "equations": [
+      "undo-by-adding",
+      "undo-by-multiplying",
+      "two-steps",
+      "negatives-in-the-way",
+      "which-step-first",
+      "all-together"
     ]
   },
-  "sources": "92137c860de938196d7855d2dfd7a80b05fdfc63b6a8972919175f6b55d4f434",
+  "sources": "d37008daacc72e945927dbb4c688d66fadf32bfbfea8345e25bf6515bac0b78e",
   "levels": [
     {
       "skill": "int-addsub",
@@ -920,6 +928,66 @@
       "exhaustive": false,
       "signed": false,
       "file": "simplify-5.json"
+    },
+    {
+      "skill": "equations",
+      "level": 0,
+      "slug": "undo-by-adding",
+      "name": "Undo by Adding",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "equations-0.json"
+    },
+    {
+      "skill": "equations",
+      "level": 1,
+      "slug": "undo-by-multiplying",
+      "name": "Undo by Multiplying",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "equations-1.json"
+    },
+    {
+      "skill": "equations",
+      "level": 2,
+      "slug": "two-steps",
+      "name": "Two Steps",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "equations-2.json"
+    },
+    {
+      "skill": "equations",
+      "level": 3,
+      "slug": "negatives-in-the-way",
+      "name": "Negatives in the Way",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "equations-3.json"
+    },
+    {
+      "skill": "equations",
+      "level": 4,
+      "slug": "which-step-first",
+      "name": "Which Step First?",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "equations-4.json"
+    },
+    {
+      "skill": "equations",
+      "level": 5,
+      "slug": "all-together",
+      "name": "All Together",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "equations-5.json"
     }
   ]
 }

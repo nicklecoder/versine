@@ -17,6 +17,8 @@ export const pow = (b, e, s = 1) => ({ t: 'pow', b: String(b), e, s });
 export const root = (v, c, s = 1) => (c === undefined
   ? { t: 'root', v, s }
   : { t: 'root', c, v, s });
+/** A variable. Named `letter` because `var` is a reserved word. */
+export const letter = (v, s = 1) => ({ t: 'var', v: String(v), s });
 export const op = (v) => ({ t: 'op', v });
 export const blank = () => ({ t: 'blank' });
 export const prose = (v, s = 1) => ({ t: 'prose', v: String(v), s });

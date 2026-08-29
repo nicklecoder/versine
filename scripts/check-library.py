@@ -52,6 +52,7 @@ TERM_FIELDS = {
     "num": ("v",), "frac": ("n", "d"), "mixed": ("w", "n", "d"),
     "op": ("v",), "blank": (), "prose": ("v",),
     "pow": ("b", "e"), "root": ("v",),
+    "var": ("v",), "group": (), "juxt": (),
 }
 
 
@@ -80,8 +81,23 @@ def check_prompt(prompt, where, out):
         return
     if not has_somewhere_for_the_answer(prompt):
         out.append(f"{where}: prompt has nowhere for the answer to go")
-    for i, term in enumerate(prompt):
-        at = f"{where}: prompt[{i}]"
+    check_terms(prompt, where, "prompt", out)
+
+
+def check_terms(terms, where, path, out):
+    """
+    Validate a list of terms, descending into nested ones.
+
+    A term's parts may themselves be term lists -- (x+1)/2 has an expression
+    above the bar, x/10 has a variable there -- so a check that insisted on
+    scalars would reject every prompt built from a typed expression. It did:
+    the first equations build produced 992 complaints about a numerator that
+    was perfectly good.
+    """
+    NESTED = {"frac": ("n", "d"), "pow": ("b", "e"), "root": ("c", "v"),
+              "group": ("terms",), "juxt": ("terms",)}
+    for i, term in enumerate(terms):
+        at = f"{where}: {path}[{i}]"
         if not isinstance(term, dict):
             out.append(f"{at} is not a term object")
             continue
@@ -89,12 +105,17 @@ def check_prompt(prompt, where, out):
         if TERM_KINDS and kind not in TERM_KINDS:
             out.append(f"{at} is kind {kind!r}, which nothing can render")
             continue
+        for field in NESTED.get(kind, ()):
+            value = term.get(field)
+            if isinstance(value, list):
+                check_terms(value, where, f"{path}[{i}].{field}", out)
         for field in TERM_FIELDS.get(kind, ()):
             if field not in term:
                 out.append(f"{at} ({kind}) is missing {field!r}")
             elif field in ("n", "d", "w") and term[field] is not None \
-                    and not isinstance(term[field], int):
-                out.append(f"{at} ({kind}) has a non-integer {field!r}")
+                    and not isinstance(term[field], (int, list)):
+                out.append(f"{at} ({kind}) has a {type(term[field]).__name__} {field!r}, "
+                           f"which is neither a number nor a nested term list")
 
 
 def check_field(value, rule, where, field, out):

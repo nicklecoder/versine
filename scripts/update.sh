@@ -87,6 +87,14 @@ libraries_valid() {
   python3 "$checker" 2>&1 | while IFS= read -r line; do log "  $line"; done
   [ "${PIPESTATUS[0]}" = "0" ] || return 1
 
+  # And that the answers are right, not merely well-formed -- re-derived here
+  # in Python, knowing nothing about the generators that produced them.
+  local answers="$ROOT/scripts/check-answers.py"
+  if [ -f "$answers" ]; then
+    python3 "$answers" 2>&1 | while IFS= read -r line; do log "  $line"; done
+    [ "${PIPESTATUS[0]}" = "0" ] || return 1
+  fi
+
   # The catalogue's shape as well as its contents -- but only if node is here.
   # A server without a JavaScript runtime still gets the library check above,
   # which is the one that catches a broken problem reaching a student.
