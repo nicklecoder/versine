@@ -1,5 +1,5 @@
 {
-  "built": 100,
+  "built": 107,
   "order": {
     "int-addsub": [
       "first-steps",
@@ -57,6 +57,15 @@
       "cut-it-down",
       "all-the-way-down",
       "missing-piece",
+      "all-together"
+    ],
+    "ratio": [
+      "equivalent-ratios",
+      "simplest-form",
+      "part-and-whole",
+      "unit-rate",
+      "scaling-up-and-down",
+      "scale-or-find-one",
       "all-together"
     ],
     "order-ops": [
@@ -134,7 +143,7 @@
       "all-together"
     ]
   },
-  "sources": "84f2fa36cee5991269340bdc469f23079a4201547e36649c7356c7652e4d6d89",
+  "sources": "a71d3b8506734714bd8dacf3e7e767e41d0205aa80c45fa0c0f52c4086df617f",
   "levels": [
     {
       "skill": "int-addsub",
@@ -575,6 +584,76 @@
       "exhaustive": true,
       "signed": false,
       "file": "frac-equiv-5.json"
+    },
+    {
+      "skill": "ratio",
+      "level": 0,
+      "slug": "equivalent-ratios",
+      "name": "Equivalent Ratios",
+      "count": 424,
+      "exhaustive": true,
+      "signed": false,
+      "file": "ratio-0.json"
+    },
+    {
+      "skill": "ratio",
+      "level": 1,
+      "slug": "simplest-form",
+      "name": "Simplest Form",
+      "count": 424,
+      "exhaustive": true,
+      "signed": false,
+      "file": "ratio-1.json"
+    },
+    {
+      "skill": "ratio",
+      "level": 2,
+      "slug": "part-and-whole",
+      "name": "Part and Whole",
+      "count": 428,
+      "exhaustive": true,
+      "signed": false,
+      "file": "ratio-2.json"
+    },
+    {
+      "skill": "ratio",
+      "level": 3,
+      "slug": "unit-rate",
+      "name": "Unit Rate",
+      "count": 448,
+      "exhaustive": true,
+      "signed": false,
+      "file": "ratio-3.json"
+    },
+    {
+      "skill": "ratio",
+      "level": 4,
+      "slug": "scaling-up-and-down",
+      "name": "Scaling Up and Down",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "ratio-4.json"
+    },
+    {
+      "skill": "ratio",
+      "level": 5,
+      "slug": "scale-or-find-one",
+      "name": "Scale, or Find One?",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "ratio-5.json"
+    },
+    {
+      "skill": "ratio",
+      "level": 6,
+      "slug": "all-together",
+      "name": "All Together",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "ratio-6.json"
     },
     {
       "skill": "order-ops",

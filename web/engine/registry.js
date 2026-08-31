@@ -9,6 +9,7 @@ import fracAddSub from '../skills/frac-addsub.js';
 import fracMulDiv from '../skills/frac-muldiv.js';
 import fracMixed from '../skills/frac-mixed.js';
 import fracEquiv from '../skills/frac-equiv.js';
+import ratio from '../skills/ratio.js';
 import orderOps from '../skills/order-ops.js';
 import exponents from '../skills/exponents.js';
 import roots from '../skills/roots.js';
@@ -21,7 +22,7 @@ import equationsBoth from '../skills/equations-both.js';
 
 /** @type {any[]} */
 export const SKILLS = [intAddSub, intMulDiv, factors, fracAddSub, fracMulDiv, fracMixed, fracEquiv,
-  orderOps, exponents, roots, coords, decimals, percents, simplify, equations, equationsBoth];
+  ratio, orderOps, exponents, roots, coords, decimals, percents, simplify, equations, equationsBoth];
 
 export const getSkill = (id) => SKILLS.find((s) => s.id === id);
 
@@ -68,6 +69,10 @@ export const CATEGORIES = [
   // Also algebra: the exponent rules are the same rules with letters in them.
   { id: 'powers', subject: 'arithmetic', name: 'Powers & Roots', glyph: 'ⁿ' },
   { id: 'factors', subject: 'arithmetic', name: 'Factors & Multiples', glyph: '×' },
+  // Also algebra, and also geometry: a rate is a slope, a proportion is a
+  // linear equation with one unknown, and similar figures are a ratio held
+  // constant. Filed under arithmetic because that is where it is first met.
+  { id: 'ratio', subject: 'arithmetic', name: 'Ratio & Rate', glyph: '∷' },
 
   // ── Algebra ───────────────────────────────────────────────────────────
   { id: 'expressions', subject: 'algebra', name: 'Expressions', glyph: 'x' },

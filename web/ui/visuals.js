@@ -6,6 +6,7 @@ import { drawFitsModel } from './fitsmodel.js';
 import { drawWholesModel } from './wholesmodel.js';
 import { drawEquivModel } from './equivmodel.js';
 import { drawEvalModel } from './evalmodel.js';
+import { drawRatioModel } from './ratiomodel.js';
 import { drawPlane } from './plane.js';
 
 /**
@@ -38,12 +39,14 @@ import { drawPlane } from './plane.js';
  * below; scripts/check-reveal.mjs covers them by rendering every problem in
  * ask-state and failing if the answer appears in the output.
  *
- * A note on naming, learned the hard way: every one of the eight kinds below
- * serves exactly one skill, because each was named after the situation that
+ * A note on naming, learned the hard way: nearly every kind below serves
+ * exactly one skill, because each was named after the situation that
  * prompted it rather than the shape it draws. `barmodel`, `fitsmodel`,
  * `wholesmodel` and `equivmodel` are all a length cut into segments with some
  * emphasised. Name a primitive after its geometry, not its pedagogy, and it
- * gets reused; name it after the lesson and it never will.
+ * gets reused; name it after the lesson and it never will. `ratiomodel` is
+ * the first entry to arrive as an adapter over that primitive rather than
+ * as a renderer of its own, which is what the lesson was for.
  */
 const FRAC = { type: 'frac' };
 
@@ -105,6 +108,17 @@ export const VISUALS = {
       reveal: { type: 'enum', values: ['to', 'from', 'none'] },
     },
   },
+  // A ratio and, once answered, the same ratio scaled. `to` carries the
+  // result, so it never reaches the renderer while the question is open.
+  ratiomodel: {
+    schema: {
+      a: { type: 'int', min: 1, required: true },
+      b: { type: 'int', min: 1, required: true },
+      to: { type: 'object', phase: 'answer' },
+      by: { type: 'string' },
+      note: { type: 'string' },
+    },
+  },
   // Reveal here is progressive, not binary: the lesson walks the working one
   // line at a time, so `lines` is both question and answer depending on how
   // far the student has stepped. Covered by check-reveal.mjs.
@@ -158,6 +172,10 @@ const RENDERERS = {
 
   equivmodel(container, spec, opts) {
     drawEquivModel(container, spec, { reveal: opts.showAnswer, verdict: opts.verdict });
+  },
+
+  ratiomodel(container, spec, opts) {
+    drawRatioModel(container, spec, { reveal: opts.showAnswer, verdict: opts.verdict });
   },
 
   evalmodel(container, spec, opts) {

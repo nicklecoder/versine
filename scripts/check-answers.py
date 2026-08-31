@@ -144,6 +144,16 @@ ASKED_IN_WORDS = (
      lambda a, b: a * b // math.gcd(a, b)),
     (re.compile(r"^smallest prime factor of (\d+)$"),
      lambda n: next(d for d in range(2, n + 1) if n % d == 0)),
+    (re.compile(r"^(\d+) : (\d+) = (\d+) : \?$"),
+     lambda a, b, c: Fraction(b * c, a)),
+    (re.compile(r"^(\d+) : (\d+) = \? : (\d+)$"),
+     lambda a, b, c: Fraction(a * c, b)),
+    (re.compile(r"^(\d+) : (\d+) of (\d+), (first|second) share$"),
+     lambda a, b, total, which: Fraction((a if which == "first" else b) * total, a + b)),
+    (re.compile(r"^unit rate of (\d+) per (\d+)$"),
+     lambda total, n: Fraction(total, n)),
+    (re.compile(r"^(\d+) for (\d+), then (\d+)$"),
+     lambda cost, n, want: Fraction(cost * want, n)),
 )
 
 
@@ -171,9 +181,10 @@ for path in sorted(LIB.glob("*.json")):
         # Asked in words: re-derive it from the numbers in the sentence.
         elif any(rule.match(text) for rule, _ in ASKED_IN_WORDS):
             rule, solve = next(r for r in ASKED_IN_WORDS if r[0].match(text))
-            want = solve(*(int(g) for g in rule.match(text).groups()))
+            args = [g if not g.isdigit() else int(g) for g in rule.match(text).groups()]
+            want = Fraction(solve(*args))
             checked += 1
-            if want != answer["value"]:
+            if want != Fraction(answer["value"]):
                 problems.append(f"{where}: {text} is {want}, not {answer['value']}")
 
         # A plain arithmetic expression: work it out and compare.

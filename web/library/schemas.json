@@ -159,6 +159,28 @@
         ]
       }
     },
+    "ratiomodel": {
+      "a": {
+        "type": "int",
+        "min": 1,
+        "required": true
+      },
+      "b": {
+        "type": "int",
+        "min": 1,
+        "required": true
+      },
+      "to": {
+        "type": "object",
+        "phase": "answer"
+      },
+      "by": {
+        "type": "string"
+      },
+      "note": {
+        "type": "string"
+      }
+    },
     "plane": {
       "xRange": {
         "type": "array",

@@ -627,7 +627,7 @@ Each skill names the kind of picture its problems want, and `web/ui/visuals.js`
 dispatches on it. The play screen never learns what kinds exist, so adding a
 bar model for fractions means adding one entry to that registry.
 
-Eight exist so far:
+Ten exist so far:
 
 - **`numberline`** — integer addition and subtraction. Chained hops.
 - **`signmodel`** — integer multiplication and division. Splits the problem
@@ -661,6 +661,19 @@ Eight exist so far:
   only the first line shows — that line *is* the question; everything after it
   is the answer. The stepped lesson uses the same renderer with one more line
   each press, which is what makes a walkthrough of this skill worth having.
+- **`plane`** — coordinates. An x/y grid with the marks a problem asks about;
+  anything that would answer the question is withheld until one is committed,
+  so the renderer is never handed the point it would otherwise plot.
+- **`ratiomodel`** — ratio and proportion. One bar cut into every part with the
+  first share shaded, so 3 : 5 is eight cells with three filled. One bar rather
+  than two on purpose: bars drawn together are stacked and each flexes to the
+  full width, so three parts and five parts would come out the same length — a
+  picture of a ratio that gets the ratio wrong. Cutting one bar keeps the
+  proportions honest and puts both readings on screen at once, 3 to 5 against
+  the unshaded part and 3 of 8 against the whole, which is the confusion the
+  skill exists to settle. It is also the first entry that is an *adapter* over
+  the shared segments primitive rather than a renderer of its own, which is
+  what the naming lesson below was for.
 - **`barmodel`** — adding and subtracting fractions. Two bars of *identical*
   length, divided by their own denominators. That alignment is the point: it
   makes visible that a half and a third are different-sized pieces, which is
@@ -669,8 +682,10 @@ Eight exist so far:
   compare a third against three eighths by eye on a circle. On reveal both bars
   re-divide into the common denominator and a result bar appears.
 
-Both obey the same rule: nothing derived from the answer is drawn until an
-answer has been committed.
+They all obey the same rule: nothing derived from the answer is drawn until an
+answer has been committed. It is structural rather than remembered — a schema
+marks the answer-bearing fields and `visuals.js` strips them before the
+renderer is called, so a renderer cannot leak a field it was never given.
 
 ## The number line
 
@@ -869,10 +884,10 @@ comparable between siblings and across months.
 
 ## Roadmap
 
-Skills the engine is built for but that aren't written yet: ratios and
-proportions, scientific notation, and then the three subjects the map declares
-and nothing yet fills — geometry beyond coordinates, trigonometry, and chance
-and data.
+Skills the engine is built for but that aren't written yet: scientific
+notation, and then the three subjects the map declares and nothing yet fills —
+geometry beyond coordinates, trigonometry, and chance and data. Ratio is the
+rung trigonometry stands on, so that is the order to take them in.
 
 Ideas parked for later: live head-to-head races over the LAN (the server is
 already the right shape for it), a spaced-repetition "daily mix" across skills,
