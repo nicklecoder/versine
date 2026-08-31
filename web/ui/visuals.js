@@ -8,6 +8,7 @@ import { drawEquivModel } from './equivmodel.js';
 import { drawEvalModel } from './evalmodel.js';
 import { drawRatioModel } from './ratiomodel.js';
 import { drawQuantityModel } from './quantitymodel.js';
+import { drawCompareModel } from './comparemodel.js';
 import { drawPlane } from './plane.js';
 
 /**
@@ -115,6 +116,18 @@ export const VISUALS = {
       reveal: { type: 'enum', values: ['to', 'from', 'none'] },
     },
   },
+  // Two fractions to be compared. Recutting both into the common
+  // denominator is the answer -- once the pieces match you can just count
+  // them -- so the recut bars are withheld.
+  comparemodel: {
+    schema: {
+      a: { ...FRAC, required: true },
+      b: { ...FRAC, required: true },
+      common: { type: 'int', min: 1, max: 64, phase: 'answer' },
+      left: { ...FRAC, phase: 'answer' },
+      right: { ...FRAC, phase: 'answer' },
+    },
+  },
   // A fraction of a quantity, which is the ratio bar in fraction notation.
   // What one part is worth is a division away from the answer, so it is
   // withheld alongside it.
@@ -196,6 +209,10 @@ const RENDERERS = {
 
   ratiomodel(container, spec, opts) {
     drawRatioModel(container, spec, { reveal: opts.showAnswer, verdict: opts.verdict });
+  },
+
+  comparemodel(container, spec, opts) {
+    drawCompareModel(container, spec, { reveal: opts.showAnswer, verdict: opts.verdict });
   },
 
   quantitymodel(container, spec, opts) {

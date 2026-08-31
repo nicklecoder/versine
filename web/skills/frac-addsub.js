@@ -9,6 +9,16 @@
  * From the "Simplify" level onward, simplest form is required — declared per
  * level rather than hardcoded, so the requirement arrives exactly when it has
  * been taught and stays required after that.
+ *
+ * Two levels here are the common denominator doing jobs other than addition.
+ * Which Is Bigger? is the same rewrite used to compare rather than combine,
+ * and it is the reason to bother: a student who can find a common denominator
+ * but still guesses at whether 1/3 beats 3/8 has learned a procedure without
+ * its use. Crossing Zero takes away more than there was, which is the first
+ * time in the fractions strand that a negative appears at all — the integer
+ * skills teach the sign rules and then nothing else in the catalogue used
+ * them, so the arithmetic was quietly being taught as a thing that only
+ * happens to whole numbers.
  */
 
 export const LEVELS = [
@@ -21,7 +31,20 @@ export const LEVELS = [
     // multiple, whether or not it is being called that yet.
     dependsOn: [{ skill: 'factors', level: 4 }],
   },
+  {
+    name: 'Which Is Bigger?', slug: 'which-is-bigger',
+    blurb: 'A third or three eighths? Match the pieces and then just count them.',
+    // The comparison is the common denominator doing a second job, so it
+    // belongs immediately after the level that builds one.
+    dependsOn: [{ skill: 'factors', level: 4 }],
+  },
   { name: 'Taking Away', slug: 'taking-away', blurb: 'Subtraction, same rules.' },
+  {
+    name: 'Crossing Zero', slug: 'crossing-zero',
+    blurb: 'Take away more than you had. The answer is a negative fraction.',
+    // The arithmetic is int-addsub's, done on numerators.
+    dependsOn: [{ skill: 'int-addsub', level: 2 }],
+  },
   {
     name: 'Simplify the Answer', slug: 'simplify-the-answer',
     blurb: 'Right value, lowest terms. From here on, simplest form is expected.',
@@ -37,7 +60,7 @@ export const LEVELS = [
 
 export const LAST_LEVEL = LEVELS.length - 1;
 
-export const PAR_SECONDS = [12, 16, 20, 20, 22, 22];
+export const PAR_SECONDS = [12, 16, 20, 18, 20, 22, 22, 22];
 
 /**
  * The runtime definition of this skill: what the student sees and how the

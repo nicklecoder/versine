@@ -1,4 +1,5 @@
 import { drawSegments } from './segments.js';
+import { nths } from '../math/frac.js';
 
 /**
  * Wholes and what is left over — the picture for improper fractions and mixed
@@ -84,7 +85,7 @@ export function drawWholesModel(container, spec, { reveal = false, verdict = nul
         },
         restRow,
       ],
-      note: `Each whole is ${d}/${d}. How many ${d}ths altogether?`,
+      note: `Each whole is ${d}/${d}. How many ${nths(d)} altogether?`,
     }, { verdict });
   }
 

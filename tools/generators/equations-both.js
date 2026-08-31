@@ -29,14 +29,21 @@ function ask(src, v) {
 const term = (k, v) => (k === 1 ? v : k === -1 ? `-${v}` : `${k}${v}`);
 const tail = (c) => (c === 0 ? '' : c > 0 ? ` + ${c}` : ` - ${-c}`);
 
-/** ax = bx + c, with a > b so the gathering leaves a positive coefficient. */
+/**
+ * ax = bx + c, with a > b so the gathering leaves a positive coefficient.
+ *
+ * The solution may land either side of zero. By this skill a student has met
+ * Answers Below Zero, and the point of having met it is that a negative
+ * stops needing its own level and starts turning up wherever the numbers
+ * happen to send it -- which is where it turns up in real work.
+ */
 function bothSides(rng) {
   const v = rng.pick(VARS);
-  const x = rng.int(2, 12);
+  const x = rng.int(2, 12) * rng.pick([1, 1, -1]);
   const b = rng.int(1, 6);
   const a = b + rng.int(1, 6);
   const c = (a - b) * x;
-  const src = `${term(a, v)} = ${term(b, v)} + ${c}`;
+  const src = `${term(a, v)} = ${term(b, v)}${tail(c)}`;
   return {
     prompt: ask(src, v), text: src,
     answer: { type: 'int', value: x },
@@ -54,7 +61,7 @@ function bothSides(rng) {
 /** ax + p = bx + q. */
 function gatherThenUndo(rng) {
   const v = rng.pick(VARS);
-  const x = rng.int(2, 12);
+  const x = rng.int(2, 12) * rng.pick([1, 1, -1]);
   const b = rng.int(1, 6);
   const a = b + rng.int(1, 6);
   const p = rng.int(1, 15);
@@ -78,7 +85,7 @@ function gatherThenUndo(rng) {
 /** k(x + b) = c, solvable by dividing first or expanding first. */
 function brackets(rng) {
   const v = rng.pick(VARS);
-  const x = rng.int(1, 12);
+  const x = rng.int(1, 12) * rng.pick([1, 1, -1]);
   const k = rng.int(2, 8);
   const b = rng.int(1, 12);
   const c = k * (x + b);
@@ -98,26 +105,29 @@ function brackets(rng) {
   };
 }
 
-/** kx = c where the answer is a fraction, and that is fine. */
+/** kx = c where the answer is a fraction, and that is fine -- either sign. */
 function notWhole(rng) {
   const v = rng.pick(VARS);
   const k = rng.int(2, 12);
   let c = rng.int(2, 40);
   if (c % k === 0) c += 1;                    // insist it does not come out whole
+  if (rng.chance(0.3)) c = -c;
   const value = reduce({ n: c, d: k });
   const src = `${term(k, v)} = ${c}`;
+  const shown = `${value.n}/${value.d}`;
   return {
     prompt: ask(src, v), text: src,
     answer: { type: 'frac', value, requireSimplest: true },
     visual: {
       kind: 'evalmodel',
       lines: [src, `${v} = ${c}/${k}`,
-              value.d === k ? `${v} = ${c}/${k}` : `${v} = ${value.n}/${value.d}`],
+              value.d === k ? `${v} = ${c}/${k}` : `${v} = ${shown}`],
       rules: [`divide both sides by ${k}`, 'in lowest terms'],
       hint: 'It will not divide evenly. That is allowed.',
     },
     explain: `${c} ÷ ${k} does not come out whole, and it does not need to: `
-      + `${v} = ${value.n}/${value.d} exactly. A fraction is an answer, not a mistake.`,
+      + `${v} = ${shown} exactly. A fraction is an answer, not a mistake`
+      + `${c < 0 ? ', and neither is a minus sign in front of one' : ''}.`,
   };
 }
 
@@ -143,9 +153,15 @@ function whichSide(rng) {
     answer: {
       type: 'choice',
       value: bigLeft ? 'left' : 'right',
+      // The notes describe the two moves and nothing about this problem.
+      // They used to say which side "leaves a positive number of xs", which
+      // is the answer stated as fact on one of the two buttons: a student
+      // could pick the level clean without ever looking at the equation.
       options: rng.shuffle([
-        { id: 'left', label: 'Gather them on the left', note: `leaves ${bigLeft ? 'a positive' : 'a negative'} number of ${v}s` },
-        { id: 'right', label: 'Gather them on the right', note: `leaves ${bigLeft ? 'a negative' : 'a positive'} number of ${v}s` },
+        { id: 'left', label: 'Gather them on the left',
+          note: `take the right-hand ${v}s across` },
+        { id: 'right', label: 'Gather them on the right',
+          note: `take the left-hand ${v}s across` },
       ]),
     },
     visual: null,

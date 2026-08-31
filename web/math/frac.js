@@ -60,3 +60,18 @@ export const equals = (a, b) => a.n * b.d === b.n * a.d;
 export const toNumber = (f) => f.n / f.d;
 
 export const format = (f) => (f.d === 1 ? `${f.n}` : `${f.n}/${f.d}`);
+
+/**
+ * A denominator said out loud: 10 -> "10ths", 22 -> "22nds", 21 -> "21sts".
+ *
+ * Every caller used to write `${d}ths`, which is right for most denominators
+ * and produced "22ths" and "33ths" for the rest -- in the explanations, in
+ * the bar model's caption, and so in the shipped library. Shared rather than
+ * repeated because the generators and the renderers both have to say it and
+ * they must say it the same way.
+ */
+export const nths = (d) => {
+  const suffix = d % 100 >= 11 && d % 100 <= 13 ? 'th'
+    : { 1: 'st', 2: 'nd', 3: 'rd' }[d % 10] ?? 'th';
+  return `${d}${suffix}s`;
+};

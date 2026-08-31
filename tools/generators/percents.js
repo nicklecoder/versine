@@ -125,6 +125,85 @@ function change(rng) {
   };
 }
 
+/**
+ * The change as a percentage of what it started from.
+ *
+ * 40 to 50 is a rise of 25%, not of 10, and the 10 is not a silly mistake --
+ * it is the difference, which is the number in front of you. What makes it a
+ * percentage is dividing it by the original, and the level exists because
+ * that division is the step people skip.
+ *
+ * Both directions, because a fall of 10 from 50 is 20% and a rise of 10 from
+ * 40 is 25%: the same difference, two percentages, and the reason is which
+ * number the whole is. Only ever asking about rises would let a student read
+ * the smaller number as the whole every time and never be caught.
+ */
+function byWhatPercent(rng) {
+  const p = rng.pick([5, 10, 12, 15, 20, 25, 30, 40, 50, 60, 75, 80]);
+  const base = rng.pick([20, 40, 50, 60, 80, 100, 120, 140, 160, 180, 200,
+                         240, 250, 300, 400, 500, 600, 800]);
+  const delta = (p * base) / 100;
+  if (!Number.isInteger(delta) || delta === 0) return byWhatPercent(rng);
+  const up = rng.chance(0.55);
+  const now = up ? base + delta : base - delta;
+  if (now <= 0) return byWhatPercent(rng);
+
+  return {
+    prompt: [T.prose(`Something goes from ${base} to ${now}. `
+      + `What percent ${up ? 'increase' : 'decrease'} is that?`)],
+    text: `${base} to ${now}, percent change`,
+    answer: { type: 'int', value: p },
+    visual: {
+      kind: 'evalmodel',
+      lines: [`${base} to ${now}`, `a change of ${delta}`, `${delta}/${base}`, `${p}%`],
+      rules: ['find the difference', 'over what it STARTED from', 'as hundredths'],
+      hint: 'The difference is easy. A percentage of what, though?',
+    },
+    explain: `The change is ${delta}. A percentage needs a whole to be a percentage `
+      + `*of*, and it is the original ${base}, not the ${now}: ${delta}/${base} = ${p}%. `
+      + `Dividing by ${now} instead would answer a different question.`,
+  };
+}
+
+/**
+ * The original, recovered from the figure after the change.
+ *
+ * The wrong move is to take the percent back off, and it is wrong in the
+ * expensive direction: £60 after a 20% rise is not £60 − 20% = £48, it is
+ * £50, because the 20% was of the smaller number. Saying so in the explain
+ * is the whole level -- this is the point at which "a hundred of WHAT" stops
+ * being a slogan and costs someone eight pounds.
+ */
+function workingBackwards(rng) {
+  const p = rng.pick([5, 10, 12, 15, 20, 25, 30, 40, 50, 60, 75, 80]);
+  const base = rng.pick([20, 40, 50, 60, 80, 100, 120, 140, 160, 180, 200,
+                         240, 250, 300, 400, 500, 600, 800]);
+  const up = rng.chance(0.6);
+  const factor = up ? 100 + p : 100 - p;
+  const now = (base * factor) / 100;
+  if (!Number.isInteger(now) || now <= 0) return workingBackwards(rng);
+  const naive = up ? now - (now * p) / 100 : now + (now * p) / 100;
+
+  return {
+    prompt: [T.prose(`After ${up ? 'a rise' : 'a fall'} of ${p}% it is ${now}. `
+      + 'What was it before?')],
+    text: `${now} after ${up ? 'up' : 'down'} ${p}%, before`,
+    answer: { type: 'int', value: base },
+    visual: {
+      kind: 'evalmodel',
+      lines: [`${now} is ${factor}% of the original`, `1% is ${now} ÷ ${factor}`,
+              `100% is ${now} ÷ ${factor} × 100`, String(base)],
+      rules: ['name what the new figure is a percent OF', 'find one percent',
+              'then a hundred of them'],
+      hint: 'The new figure is what percent of the old one?',
+    },
+    explain: `The ${p}% was of the original, not of ${now}, so ${now} is ${factor}% of `
+      + `what you want. One percent is ${now} ÷ ${factor} = ${now / factor}, so 100% is `
+      + `${base}. Taking ${p}% ${up ? 'off' : 'on to'} ${now} instead gives ${naive}, `
+      + `which is wrong — that is ${p}% of the wrong number.`,
+  };
+}
+
 /** @param {import('../../web/engine/rng.js').Rng} rng @param {number} level */
 export function generate(rng, level) {
   const build = (lv) => {
@@ -134,7 +213,10 @@ export function generate(rng, level) {
       case 2: return percentOf(rng);
       case 3: return whatPercent(rng);
       case 4: return change(rng);
-      default: return rng.pick([outOfHundred, asDecimal, percentOf, whatPercent, change])(rng);
+      case 5: return byWhatPercent(rng);
+      case 6: return workingBackwards(rng);
+      default: return rng.pick([outOfHundred, asDecimal, percentOf, whatPercent, change,
+                                byWhatPercent, workingBackwards])(rng);
     }
   };
   const p = build(level >= LAST_LEVEL ? rng.int(0, LAST_LEVEL - 1) : level);

@@ -163,6 +163,30 @@
         ]
       }
     },
+    "comparemodel": {
+      "a": {
+        "type": "frac",
+        "required": true
+      },
+      "b": {
+        "type": "frac",
+        "required": true
+      },
+      "common": {
+        "type": "int",
+        "min": 1,
+        "max": 64,
+        "phase": "answer"
+      },
+      "left": {
+        "type": "frac",
+        "phase": "answer"
+      },
+      "right": {
+        "type": "frac",
+        "phase": "answer"
+      }
+    },
     "quantitymodel": {
       "n": {
         "type": "int",

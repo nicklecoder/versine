@@ -11,17 +11,29 @@ import { el } from './dom.js';
  * in the app, and the play screen owns it -- a widget that also submitted
  * would make one keypress both answer the problem and skip its own reveal.
  */
-export function fracInput() {
-  const box = (cls, placeholder) => el(`input.frac-box.${cls}`, {
-    type: 'text', inputmode: 'numeric', maxlength: 4,
+/**
+ * @param {object} [spec]
+ * @param {{signed?: boolean}} [opts]  whether this level ever asks for a
+ *        negative answer, which only the numerator can carry
+ */
+export function fracInput(spec, opts = {}) {
+  // Only the numerator goes negative -- a denominator never does -- so only
+  // it pays the keyboard cost. The reasoning is the integer input's: no
+  // iPhone numeric pad carries a minus, so a level that can go negative asks
+  // for the full keyboard and accepts the extra tap.
+  const box = (cls, placeholder, signable = false) => el(`input.frac-box.${cls}`, {
+    type: 'text', inputmode: signable && opts.signed ? 'text' : 'numeric', maxlength: 4,
     autocomplete: 'off', spellcheck: 'false', placeholder,
     oninput: (e) => {
-      const clean = e.target.value.replace(/[^0-9-]/g, '').replace(/(?!^)-/g, '');
+      // A denominator is never negative, so it does not keep a minus at all.
+      const clean = signable
+        ? e.target.value.replace(/[^0-9-]/g, '').replace(/(?!^)-/g, '')
+        : e.target.value.replace(/[^0-9]/g, '');
       if (clean !== e.target.value) e.target.value = clean;
     },
   });
 
-  const num = box('frac-box--num', 'n');
+  const num = box('frac-box--num', 'n', true);
   const den = box('frac-box--den', 'd');
 
   const onKey = (e) => {

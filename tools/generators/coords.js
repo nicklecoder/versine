@@ -102,6 +102,51 @@ function distance(rng) {
   };
 }
 
+/**
+ * The gradient of the line through two points.
+ *
+ * This is the join between Coordinates and Ratio, and it is the reason the
+ * ratio skill was worth building before any geometry. Rise over run is a unit
+ * rate -- how much it goes up for each one along -- so a student who has done
+ * Unit Rate already owns the arithmetic and only has to see that the picture
+ * is the same picture. The explain says so in those words rather than
+ * introducing "gradient" as a new idea with a new formula.
+ *
+ * Whole-number gradients only, and the run is never zero. A vertical line has
+ * no gradient at all, which is a genuinely interesting fact and an unfair
+ * thing to meet in a timed drill.
+ */
+function steepness(rng) {
+  const run = rng.int(1, 5);
+  const m = rng.nonZero(-4, 4);
+  const x1 = rng.int(-SPAN + 1, SPAN - run - 1);
+  const rise = m * run;
+  const y1 = rng.int(-SPAN + 1, SPAN - 1);
+  const y2 = y1 + rise;
+  if (Math.abs(y2) > SPAN) return steepness(rng);
+  const from = [x1, y1];
+  const to = [x1 + run, y2];
+
+  return {
+    prompt: [T.prose(`What is the gradient of the line through (${from[0]}, ${from[1]}) `
+      + `and (${to[0]}, ${to[1]})?`)],
+    text: `gradient (${from[0]},${from[1]}) to (${to[0]},${to[1]})`,
+    answer: { type: 'int', value: m },
+    visual: {
+      kind: 'plane', ...RANGE,
+      marks: [
+        { kind: 'point', at: from, tone: 'var(--vec-1)' },
+        { kind: 'point', at: to, tone: 'var(--vec-2)' },
+      ],
+      answer: [{ kind: 'segment', from, to, label: `${m > 0 ? '+' : '−'}${Math.abs(m)} each step` }],
+    },
+    explain: `Along, it moves ${run}. Up, it moves ${y2} − ${y1} = ${rise}. `
+      + `The gradient is ${rise} ÷ ${run} = ${m} — how far it rises for each one along, `
+      + 'which is a unit rate and nothing more. '
+      + `${m < 0 ? 'It is negative because the line falls as you go right.' : ''}`,
+  };
+}
+
 /** @param {import('../../web/engine/rng.js').Rng} rng @param {number} level */
 export function generate(rng, level) {
   const build = (lv) => {
@@ -111,8 +156,9 @@ export function generate(rng, level) {
       case 2: return read(rng, rng.chance(0.5) ? 'x' : 'y', true);
       case 3: return quadrant(rng);
       case 4: return distance(rng);
+      case 5: return steepness(rng);
       default: return rng.pick([
-        (r) => read(r, 'x', true), (r) => read(r, 'y', true), quadrant, distance,
+        (r) => read(r, 'x', true), (r) => read(r, 'y', true), quadrant, distance, steepness,
       ])(rng);
     }
   };

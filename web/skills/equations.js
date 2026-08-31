@@ -13,6 +13,15 @@
  * off the input before solving anything. Fractional solutions get their own
  * level in the follow-on skill, where they are the whole level.
  *
+ * Whole, but not necessarily positive. Answers Below Zero exists because a
+ * student who has only ever seen solutions come out positive learns to read a
+ * negative as evidence of a slip and goes hunting for an error that is not
+ * there -- the same habit that made a fractional answer look wrong, and it
+ * wants the same cure. The mixed level deals from it too: a negative answer
+ * that only ever turns up in the level named after it has been quarantined,
+ * not taught. That costs this skill the numeric keypad on two levels, since
+ * no iPhone pad carries a minus, and it is worth it.
+ *
  * The harder half — unknowns on both sides, brackets, non-whole answers —
  * lives in `equations-both`, which depends on this.
  */
@@ -27,6 +36,14 @@ export const LEVELS = [
   { name: 'Negatives in the Way', slug: 'negatives-in-the-way',
     blurb: 'A minus in front of x, or a negative to undo. Same rule, more care.' },
   {
+    name: 'Answers Below Zero', slug: 'answers-below-zero',
+    blurb: 'The answer comes out negative. That is an answer, not a mistake.',
+    // The sign rules are int-muldiv's, and this is the first place in the
+    // skill where getting one wrong changes the answer rather than the
+    // working.
+    dependsOn: [{ skill: 'int-muldiv', level: 0 }],
+  },
+  {
     name: 'Which Step First?', slug: 'which-step-first', kind: 'strategy',
     blurb: 'Subtract or divide first? What the brackets are doing decides.',
     // After both moves are available, which is the first point at which
@@ -38,7 +55,7 @@ export const LEVELS = [
 ];
 
 export const LAST_LEVEL = LEVELS.length - 1;
-export const PAR_SECONDS = [14, 14, 18, 20, 16, 20];
+export const PAR_SECONDS = [14, 14, 18, 20, 20, 16, 20];
 
 /**
  * The runtime definition of this skill: what the student sees and how the

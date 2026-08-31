@@ -4,6 +4,15 @@
  * Levels are ordered by the *idea*, not by the size of the numbers:
  * "subtracting a negative" is the hard one, so it gets a level of its own
  * rather than being buried in a general mix.
+ *
+ * One level asks the questions in words, and it is not decoration. Every
+ * other level in this skill is symbols, so a student could clear the whole
+ * thing having never once been told what a negative number *is* — and the
+ * sign rules are exactly the arithmetic that a student will happily apply
+ * backwards if they have no situation to check the answer against. −6 rising
+ * by 9 is 3 and obviously not −15, and a thermometer says so faster than a
+ * rule does. It sits after the four mechanical levels and before Chains: the
+ * rules first, then what they are for, then speed.
  */
 
 export const LEVELS = [
@@ -11,6 +20,10 @@ export const LEVELS = [
   { name: 'Adding Negatives', slug: 'adding-negatives',      blurb: 'Adding a negative walks you backwards.' },
   { name: 'Subtracting Negatives', slug: 'subtracting-negatives', blurb: 'The tricky one: two minus signs make a plus.' },
   { name: 'Mixed Integers', slug: 'mixed-integers',        blurb: 'Both operations, both signs, bigger numbers.' },
+  {
+    name: 'Above and Below Zero', slug: 'above-and-below-zero',
+    blurb: 'Temperatures, floors, balances. The same line, with something on it.',
+  },
   {
     name: 'Chains', slug: 'chains',
     blurb: 'Three terms at once, left to right.',
@@ -25,7 +38,7 @@ export const LEVELS = [
 /** The last level is always the mixed review: it draws from every level before it. */
 export const LAST_LEVEL = LEVELS.length - 1;
 
-export const PAR_SECONDS = [11, 12, 14, 12, 20, 16];
+export const PAR_SECONDS = [11, 12, 14, 12, 20, 20, 16];
 
 /**
  * The runtime definition of this skill: what the student sees and how the

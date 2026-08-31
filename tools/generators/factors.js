@@ -10,6 +10,7 @@
  * Run via: node scripts/build-library.mjs
  */
 import * as T from '../terms.js';
+import { nths } from '../../web/math/frac.js';
 import { LEVELS, LAST_LEVEL, PAR_SECONDS } from '../../web/skills/factors.js';
 
 /** Small enough to be recognised on sight, which is the point of knowing them. */
@@ -330,7 +331,7 @@ const SITUATIONS = [
     want: 'lcm',
     why: 'Both buses must have run whole numbers of trips, so the time is one both counts reach. '
       + 'The first is the lowest common multiple.' },
-  { text: 'Adding {a}ths and {b}ths — what should the denominator become?',
+  { text: 'Adding {aths} and {bths} — what should the denominator become?',
     want: 'lcm',
     why: 'Both fractions have to be rewritten into pieces of the same size, and a denominator both '
       + 'can reach is a common multiple. The smallest is the lowest common multiple.' },
@@ -343,7 +344,9 @@ const SITUATIONS = [
 function gcfOrLcm(rng) {
   const { x, y } = pairSharing(rng);
   const situation = rng.pick(SITUATIONS);
-  const fill = (t) => t.replace(/\{a\}/g, String(x)).replace(/\{b\}/g, String(y));
+  const fill = (t) => t
+    .replace(/\{aths\}/g, nths(x)).replace(/\{bths\}/g, nths(y))
+    .replace(/\{a\}/g, String(x)).replace(/\{b\}/g, String(y));
   return {
     prompt: [T.prose(fill(situation.text))],
     text: fill(situation.text),

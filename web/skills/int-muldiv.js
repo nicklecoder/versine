@@ -17,11 +17,17 @@ export const LEVELS = [
   { name: 'Dividing', slug: 'dividing',      blurb: 'Same sign rules, sharing instead of grouping.' },
   { name: 'Bigger Facts', slug: 'bigger-facts',  blurb: 'Both operations, both signs, further up the tables.' },
   {
+    name: 'Owing and Falling', slug: 'owing-and-falling',
+    blurb: 'A loss repeated, and a loss shared out. Where a negative product comes from.',
+    // The situations only make sense once both sign rules are known.
+    dependsOn: [{ skill: 'int-addsub', level: 4 }],
+  },
+  {
     name: 'Chains', slug: 'chains',
     blurb: 'Three at a time — count the negatives.',
     trial: { duration: 180 },
     // Evaluating three terms left to right is the same habit either way.
-    dependsOn: [{ skill: 'int-addsub', level: 4 }],
+    dependsOn: [{ skill: 'int-addsub', level: 5 }],
   },
   { name: 'All Together', slug: 'all-together',  blurb: 'Everything mixed, with no warning which is coming. '
     + 'Clear this against the clock to finish the skill for the day.' },
@@ -29,7 +35,7 @@ export const LEVELS = [
 
 export const LAST_LEVEL = LEVELS.length - 1;
 
-export const PAR_SECONDS = [10, 11, 13, 13, 21, 15];
+export const PAR_SECONDS = [10, 11, 13, 13, 20, 21, 15];
 
 /**
  * The runtime definition of this skill: what the student sees and how the

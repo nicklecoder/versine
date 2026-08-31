@@ -11,6 +11,13 @@
  * Multiplying gets its own level for the result that surprises everyone:
  * 0.3 × 0.4 is smaller than either. Same fact as multiplying proper fractions,
  * met again in the notation most people actually use.
+ *
+ * Dividing gets one for the opposite surprise — 4.8 ÷ 0.4 is twelve, which is
+ * bigger than either — and because the move it needs is not a new rule at
+ * all. Multiplying both numbers by ten leaves the quotient alone, which is
+ * the equivalent-fractions move under another name, and saying so is the
+ * difference between a shift a student can reconstruct and one they have to
+ * remember the direction of.
  */
 
 export const LEVELS = [
@@ -22,6 +29,13 @@ export const LEVELS = [
     blurb: 'Line up the point, then it is ordinary arithmetic.' },
   { name: 'Multiplying', slug: 'multiplying',
     blurb: 'Multiply the digits, then count the places. Answers get smaller.' },
+  {
+    name: 'Dividing', slug: 'dividing',
+    blurb: 'Shift both until the thing you are dividing by is whole. Then divide.',
+    // Multiplying both by ten is building an equivalent fraction: 4.8/0.4 and
+    // 48/4 are the same quotient, which is why the shift is allowed at all.
+    dependsOn: [{ skill: 'frac-equiv', level: 0 }],
+  },
   { name: 'Into Fractions', slug: 'into-fractions',
     blurb: 'Every terminating decimal is a fraction. Read it off and simplify.' },
   {
@@ -36,7 +50,7 @@ export const LEVELS = [
 ];
 
 export const LAST_LEVEL = LEVELS.length - 1;
-export const PAR_SECONDS = [14, 14, 18, 20, 18, 16, 20];
+export const PAR_SECONDS = [14, 14, 18, 20, 22, 18, 16, 20];
 
 /**
  * The runtime definition of this skill: what the student sees and how the

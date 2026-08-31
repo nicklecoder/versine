@@ -10,6 +10,7 @@
  * Run via: node scripts/build-library.mjs
  */
 import * as T from '../terms.js';
+import { minus } from '../../web/ui/dom.js';
 import { LEVELS, LAST_LEVEL, PAR_SECONDS } from '../../web/skills/roots.js';
 
 /**
@@ -137,6 +138,92 @@ const SITUATIONS = [
     why: 'A position on a line is a decimal. The exact form does not tell you where to put the dot.' },
 ];
 
+/**
+ * Cubes, and cube roots.
+ *
+ * Asked in words rather than with a radical sign carrying a little three,
+ * because the prompt vocabulary has one root term and it draws a square root.
+ * Inventing a term kind for a level is the wrong way round -- the words are
+ * perfectly clear, and a cube root written out is what a student will meet in
+ * a question anyway.
+ *
+ * Small numbers only: the cubes up to 10 are the ones worth knowing on sight,
+ * and 12³ is a different skill (arithmetic) wearing this one's clothes.
+ */
+const CUBES = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+function cubes(rng) {
+  const shape = rng.int(0, 2);
+
+  if (shape === 0) {                             // r³
+    const r = rng.pick(CUBES);
+    const cube = r ** 3;
+    return {
+      prompt: T.asks(T.pow(r, 3, 1)),
+      text: `${r}^3`,
+      answer: { type: 'int', value: cube },
+      visual: {
+        kind: 'evalmodel',
+        lines: [`${r}³`, `${r} × ${r} × ${r}`, `${r * r} × ${r}`, String(cube)],
+        rules: ['a cube is three of them multiplied', 'two of them first', 'then the third'],
+        hint: 'How many of them are multiplied together?',
+      },
+      explain: `${r}³ is ${r} × ${r} × ${r} = ${cube}. Squaring uses two; cubing uses three.`,
+    };
+  }
+
+  if (shape === 1) {                             // an exact cube root, either sign
+    // Negative cubes are the whole reason this level earns its place beside
+    // the square-root ones. √(−27) does not exist; the cube root of −27 is
+    // −3, because three negatives multiplied stay negative. An odd power
+    // keeps the sign and an even one destroys it, and a student who has only
+    // met square roots has been taught the opposite as if it were general.
+    const r = rng.pick(CUBES) * (rng.chance(0.35) ? -1 : 1);
+    const cube = r ** 3;
+    return {
+      prompt: [T.prose(`What is the cube root of ${minus(cube)}?`)],
+      text: `cube root of ${minus(cube)}`,
+      answer: { type: 'int', value: r },
+      visual: {
+        kind: 'evalmodel',
+        lines: [`cube root of ${minus(cube)}`, `what cubed gives ${minus(cube)}?`,
+                `${minus(r)} × ${minus(r)} × ${minus(r)} = ${minus(cube)}`, minus(r)],
+        rules: ['a root asks the power question backwards', 'and this one fits',
+                'so the root is'],
+        hint: 'What number, multiplied by itself twice more, gives this?',
+      },
+      explain: `The cube root of ${minus(cube)} asks what cubed gives ${minus(cube)}. `
+        + `${minus(r)} × ${minus(r)} × ${minus(r)} = ${minus(cube)}, so it is ${minus(r)}.`
+        + (r < 0
+          ? ' Three negatives multiplied stay negative, which is why a cube root of a '
+            + 'negative exists at all — a square root of one does not.'
+          : ''),
+    };
+  }
+
+  // Not a perfect cube: which whole number does it sit just above?
+  const r = rng.int(2, 9);
+  const low = r ** 3;
+  const n = rng.int(low + 1, (r + 1) ** 3 - 1);
+  return {
+    prompt: [T.prose(`The cube root of ${n} lies between two whole numbers. `
+      + 'Which is the lower one?')],
+    text: `cube root of ${n} lies just above ?`,
+    answer: { type: 'int', value: r },
+    visual: {
+      kind: 'evalmodel',
+      lines: [`cube root of ${n}`, `${r}³ = ${low} and ${r + 1}³ = ${(r + 1) ** 3}`,
+              `${low} < ${n} < ${(r + 1) ** 3}`, String(r)],
+      rules: ['find the cubes it sits between', 'and it does sit between them',
+              'so the root starts with'],
+      hint: 'Which cubes is it between?',
+    },
+    explain: `${r}³ = ${low} and ${r + 1}³ = ${(r + 1) ** 3}, and ${n} is between them, `
+      + `so its cube root is between ${r} and ${r + 1}. Most cube roots are not whole — `
+      + 'knowing which two it sits between is usually the useful part.',
+  };
+}
+
 function whichForm(rng) {
   const outside = rng.int(2, 6);
   const inside = rng.pick([2, 3, 5, 6, 7]);
@@ -167,8 +254,9 @@ export function generate(rng, level) {
       case 1: return between(rng);
       case 2: return simplify(rng, false);
       case 3: return simplify(rng, true);
-      case 4: return whichForm(rng);
-      default: return rng.pick([perfect, between, (r) => simplify(r, true)])(rng);
+      case 4: return cubes(rng);
+      case 5: return whichForm(rng);
+      default: return rng.pick([perfect, between, (r) => simplify(r, true), cubes])(rng);
     }
   };
   const p = build(level >= LAST_LEVEL ? rng.int(0, LAST_LEVEL - 2) : level);

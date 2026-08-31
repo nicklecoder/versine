@@ -58,7 +58,6 @@ function twoTerm(rng, level) {
     prompt: T.asks(T.num(minus(a), 1), T.op(op === '+' ? '+' : '−'), T.num(signed(b), 2)),
     text: `${minus(a)} ${op === '+' ? '+' : '−'} ${signed(b)}`,
     answer: { type: 'int', value: answer },
-    parSeconds: PAR_SECONDS[level],
     visual: {
       kind: 'numberline',
       ...bounds,
@@ -89,7 +88,6 @@ function threeTerm(rng) {
       T.op(op2 === '+' ? '+' : '−'), T.num(signed(c), 3)),
     text: `${minus(a)} ${op1 === '+' ? '+' : '−'} ${signed(b)} ${op2 === '+' ? '+' : '−'} ${signed(c)}`,
     answer: { type: 'int', value: answer },
-    parSeconds: PAR_SECONDS[4],
     visual: {
       kind: 'numberline',
       ...niceBounds([a, mid, answer, 0]),
@@ -104,17 +102,96 @@ function threeTerm(rng) {
       + `then ${minus(mid)} ${op2 === '+' ? '+' : '−'} ${signed(c)} = ${minus(answer)}.`,
   };
 }
+/**
+ * Situations a negative number is actually about.
+ *
+ * Two shapes, because they are two different questions and only one of them
+ * is easy. "It was −6 and rose 9, what is it now?" is an addition with a
+ * story on it. "It was −6 and is now 3, how much did it rise?" is a
+ * subtraction across zero, which is where 3 − (−6) comes from and the only
+ * place in this skill where a student can see *why* subtracting a negative
+ * adds: the gap from −6 up to 3 is plainly nine, whatever the rule says.
+ *
+ * Each context carries its own units and its own words for up and down. A
+ * thermometer rises and falls, a lift goes up and down, a balance is paid
+ * into and taken out of -- and using the wrong verb for the wrong object is
+ * what makes a word problem read as a translation exercise.
+ */
+const SITUATIONS = [
+  { noun: 'The temperature', at: (v) => `${minus(v)}°C`, now: 'What is it now?',
+    change: (n, up) => `${up ? 'rises' : 'falls'} ${n} degrees`,
+    moved: (up) => (up ? 'risen' : 'fallen') },
+  { noun: 'The lift', at: (v) => `floor ${minus(v)}`, now: 'Which floor is it on now?',
+    change: (n, up) => `goes ${up ? 'up' : 'down'} ${n} floors`,
+    moved: (up) => (up ? 'gone up' : 'gone down') },
+  { noun: 'The account', at: (v) => `£${minus(v)}`, now: 'What is the balance now?',
+    change: (n, up) => (up ? `has £${n} paid in` : `has £${n} taken out`),
+    moved: (up) => (up ? 'gone up' : 'gone down') },
+  { noun: 'The diver', at: (v) => `${minus(v)} m`, now: 'What depth are they at now?',
+    change: (n, up) => `${up ? 'rises' : 'descends'} ${n} m`,
+    moved: (up) => (up ? 'risen' : 'descended') },
+];
+
+function situations(rng) {
+  const s = rng.pick(SITUATIONS);
+  const start = rng.nonZero(-15, 12);
+  const delta = rng.nonZero(-14, 14);
+  const end = start + delta;
+  if (end === start || Math.abs(end) > 25) return situations(rng);
+  // At least one end of the move has to be below zero. A level about what a
+  // negative number means, a third of whose rows never show one, is a level
+  // about addition with a story on it.
+  if (start > 0 && end > 0) return situations(rng);
+  const askEnd = rng.chance(0.6);
+  const sentence = askEnd
+    ? `${s.noun} is at ${s.at(start)}, then ${s.change(Math.abs(delta), delta > 0)}. ${s.now}`
+    : `${s.noun} was at ${s.at(start)} and is now at ${s.at(end)}. `
+      + `How far has it ${s.moved(delta > 0)}?`;
+  const answer = askEnd ? end : Math.abs(delta);
+  const line = askEnd
+    ? [{ from: 0, to: start, label: minus(start) },
+       { from: start, to: end, label: `${delta > 0 ? '+' : '−'}${Math.abs(delta)}` }]
+    : [{ from: 0, to: start, label: minus(start) },
+       { from: start, to: end, label: '?' }];
+
+  return {
+    prompt: [T.prose(sentence)],
+    text: askEnd
+      ? `${s.noun} ${minus(start)} then ${delta > 0 ? '+' : '−'}${Math.abs(delta)}`
+      : `${s.noun} ${minus(start)} to ${minus(end)}, how far`,
+    answer: { type: 'int', value: answer },
+    visual: {
+      kind: 'numberline',
+      ...niceBounds([start, end, 0]),
+      answer: end,
+      steps: line,
+    },
+    explain: askEnd
+      ? `Start at ${minus(start)} and move ${delta > 0 ? 'up' : 'down'} `
+        + `${Math.abs(delta)}: ${minus(start)} ${delta > 0 ? '+' : '−'} ${Math.abs(delta)} `
+        + `= ${minus(end)}.`
+      : `From ${minus(start)} to ${minus(end)} is ${minus(end)} − ${signed(start)} = `
+        + `${Math.abs(delta)}. Counting the gap on the line gives the same `
+        + `${Math.abs(delta)}, which is why subtracting a negative adds.`,
+  };
+}
+
 /** @param {import('../../web/engine/rng.js').Rng} rng @param {number} level */
 
   /** @param {import('../engine/rng.js').Rng} rng @param {number} level */
 export function generate(rng, level) {
+  // Level 4 is Above and Below Zero, level 5 is Chains.
+  const build = (lv) => (lv === 4 ? situations(rng)
+    : lv === 5 ? threeTerm(rng)
+    : twoTerm(rng, lv));
   if (level >= LAST_LEVEL) {
     // Mixed review: pick any earlier level at random, so they can't settle
     // into one shape and coast.
-    const from = rng.int(0, LAST_LEVEL - 1);
-    const problem = from >= 4 ? threeTerm(rng) : twoTerm(rng, from);
+    const problem = build(rng.int(0, LAST_LEVEL - 1));
     problem.parSeconds = PAR_SECONDS[LAST_LEVEL];
     return problem;
   }
-  return level >= 4 ? threeTerm(rng) : twoTerm(rng, level);
+  const problem = build(level);
+  problem.parSeconds = PAR_SECONDS[level];
+  return problem;
 }

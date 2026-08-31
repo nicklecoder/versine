@@ -1,11 +1,12 @@
 {
-  "built": 111,
+  "built": 134,
   "order": {
     "int-addsub": [
       "first-steps",
       "adding-negatives",
       "subtracting-negatives",
       "mixed-integers",
+      "above-and-below-zero",
       "chains",
       "all-together"
     ],
@@ -14,6 +15,7 @@
       "two-negatives",
       "dividing",
       "bigger-facts",
+      "owing-and-falling",
       "chains",
       "all-together"
     ],
@@ -30,7 +32,9 @@
       "same-denominator",
       "one-fits-the-other",
       "unlike-denominators",
+      "which-is-bigger",
       "taking-away",
+      "crossing-zero",
       "simplify-the-answer",
       "all-together"
     ],
@@ -94,6 +98,7 @@
       "between-whole-numbers",
       "pulling-out-squares",
       "simplest-radical-form",
+      "cubes-and-cube-roots",
       "which-form",
       "all-together"
     ],
@@ -103,6 +108,7 @@
       "negative-directions",
       "which-quadrant",
       "distance-along-a-line",
+      "steepness",
       "all-together"
     ],
     "decimals": [
@@ -110,8 +116,17 @@
       "which-is-bigger",
       "adding-and-taking-away",
       "multiplying",
+      "dividing",
       "into-fractions",
       "which-form",
+      "all-together"
+    ],
+    "rounding": [
+      "to-the-nearest-whole",
+      "to-a-decimal-place",
+      "exactly-halfway",
+      "roughly-how-much",
+      "exact-or-close-enough",
       "all-together"
     ],
     "percents": [
@@ -120,6 +135,8 @@
       "percent-of-a-number",
       "what-percent-is-it",
       "up-and-down",
+      "by-what-percent",
+      "working-backwards",
       "all-together"
     ],
     "simplify": [
@@ -127,6 +144,7 @@
       "what-will-not-combine",
       "distributing",
       "distribute-and-collect",
+      "taking-a-factor-out",
       "which-form",
       "all-together"
     ],
@@ -135,6 +153,7 @@
       "undo-by-multiplying",
       "two-steps",
       "negatives-in-the-way",
+      "answers-below-zero",
       "which-step-first",
       "all-together"
     ],
@@ -145,9 +164,17 @@
       "answers-that-are-not-whole",
       "which-side",
       "all-together"
+    ],
+    "inequalities": [
+      "which-numbers-work",
+      "undo-by-adding",
+      "undo-by-multiplying",
+      "the-flip",
+      "does-it-flip",
+      "all-together"
     ]
   },
-  "sources": "018ad44cb2733c5ade6be348596cab8efa953be338d4d994991e8e6b275f9bd8",
+  "sources": "abb307782e625e36a6c800e6be4a5849e602b44e2588c1767030c59457629afb",
   "levels": [
     {
       "skill": "int-addsub",
@@ -192,8 +219,8 @@
     {
       "skill": "int-addsub",
       "level": 4,
-      "slug": "chains",
-      "name": "Chains",
+      "slug": "above-and-below-zero",
+      "name": "Above and Below Zero",
       "count": 1000,
       "exhaustive": false,
       "signed": true,
@@ -202,12 +229,22 @@
     {
       "skill": "int-addsub",
       "level": 5,
+      "slug": "chains",
+      "name": "Chains",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": true,
+      "file": "int-addsub-5.json"
+    },
+    {
+      "skill": "int-addsub",
+      "level": 6,
       "slug": "all-together",
       "name": "All Together",
       "count": 1000,
       "exhaustive": false,
       "signed": true,
-      "file": "int-addsub-5.json"
+      "file": "int-addsub-6.json"
     },
     {
       "skill": "int-muldiv",
@@ -252,22 +289,32 @@
     {
       "skill": "int-muldiv",
       "level": 4,
-      "slug": "chains",
-      "name": "Chains",
-      "count": 1000,
-      "exhaustive": false,
+      "slug": "owing-and-falling",
+      "name": "Owing and Falling",
+      "count": 352,
+      "exhaustive": true,
       "signed": true,
       "file": "int-muldiv-4.json"
     },
     {
       "skill": "int-muldiv",
       "level": 5,
+      "slug": "chains",
+      "name": "Chains",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": true,
+      "file": "int-muldiv-5.json"
+    },
+    {
+      "skill": "int-muldiv",
+      "level": 6,
       "slug": "all-together",
       "name": "All Together",
       "count": 1000,
       "exhaustive": false,
       "signed": true,
-      "file": "int-muldiv-5.json"
+      "file": "int-muldiv-6.json"
     },
     {
       "skill": "factors",
@@ -372,8 +419,8 @@
     {
       "skill": "frac-addsub",
       "level": 3,
-      "slug": "taking-away",
-      "name": "Taking Away",
+      "slug": "which-is-bigger",
+      "name": "Which Is Bigger?",
       "count": 312,
       "exhaustive": true,
       "signed": false,
@@ -382,8 +429,8 @@
     {
       "skill": "frac-addsub",
       "level": 4,
-      "slug": "simplify-the-answer",
-      "name": "Simplify the Answer",
+      "slug": "taking-away",
+      "name": "Taking Away",
       "count": 312,
       "exhaustive": true,
       "signed": false,
@@ -392,12 +439,32 @@
     {
       "skill": "frac-addsub",
       "level": 5,
+      "slug": "crossing-zero",
+      "name": "Crossing Zero",
+      "count": 156,
+      "exhaustive": true,
+      "signed": true,
+      "file": "frac-addsub-5.json"
+    },
+    {
+      "skill": "frac-addsub",
+      "level": 6,
+      "slug": "simplify-the-answer",
+      "name": "Simplify the Answer",
+      "count": 312,
+      "exhaustive": true,
+      "signed": false,
+      "file": "frac-addsub-6.json"
+    },
+    {
+      "skill": "frac-addsub",
+      "level": 7,
       "slug": "all-together",
       "name": "All Together",
       "count": 1000,
       "exhaustive": false,
-      "signed": false,
-      "file": "frac-addsub-5.json"
+      "signed": true,
+      "file": "frac-addsub-7.json"
     },
     {
       "skill": "frac-muldiv",
@@ -872,22 +939,32 @@
     {
       "skill": "roots",
       "level": 4,
-      "slug": "which-form",
-      "name": "Which Form?",
-      "count": 150,
-      "exhaustive": true,
-      "signed": false,
+      "slug": "cubes-and-cube-roots",
+      "name": "Cubes and Cube Roots",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": true,
       "file": "roots-4.json"
     },
     {
       "skill": "roots",
       "level": 5,
-      "slug": "all-together",
-      "name": "All Together",
-      "count": 682,
+      "slug": "which-form",
+      "name": "Which Form?",
+      "count": 150,
       "exhaustive": true,
       "signed": false,
       "file": "roots-5.json"
+    },
+    {
+      "skill": "roots",
+      "level": 6,
+      "slug": "all-together",
+      "name": "All Together",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": true,
+      "file": "roots-6.json"
     },
     {
       "skill": "coords",
@@ -942,12 +1019,22 @@
     {
       "skill": "coords",
       "level": 5,
+      "slug": "steepness",
+      "name": "Steepness",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": true,
+      "file": "coords-5.json"
+    },
+    {
+      "skill": "coords",
+      "level": 6,
       "slug": "all-together",
       "name": "All Together",
       "count": 1000,
       "exhaustive": false,
       "signed": true,
-      "file": "coords-5.json"
+      "file": "coords-6.json"
     },
     {
       "skill": "decimals",
@@ -976,7 +1063,7 @@
       "name": "Adding and Taking Away",
       "count": 1000,
       "exhaustive": false,
-      "signed": false,
+      "signed": true,
       "file": "decimals-2.json"
     },
     {
@@ -992,32 +1079,102 @@
     {
       "skill": "decimals",
       "level": 4,
-      "slug": "into-fractions",
-      "name": "Into Fractions",
-      "count": 99,
-      "exhaustive": true,
+      "slug": "dividing",
+      "name": "Dividing",
+      "count": 1000,
+      "exhaustive": false,
       "signed": false,
       "file": "decimals-4.json"
     },
     {
       "skill": "decimals",
       "level": 5,
-      "slug": "which-form",
-      "name": "Which Form?",
-      "count": 1000,
-      "exhaustive": false,
+      "slug": "into-fractions",
+      "name": "Into Fractions",
+      "count": 99,
+      "exhaustive": true,
       "signed": false,
       "file": "decimals-5.json"
     },
     {
       "skill": "decimals",
       "level": 6,
+      "slug": "which-form",
+      "name": "Which Form?",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "decimals-6.json"
+    },
+    {
+      "skill": "decimals",
+      "level": 7,
+      "slug": "all-together",
+      "name": "All Together",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": true,
+      "file": "decimals-7.json"
+    },
+    {
+      "skill": "rounding",
+      "level": 0,
+      "slug": "to-the-nearest-whole",
+      "name": "To the Nearest Whole",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "rounding-0.json"
+    },
+    {
+      "skill": "rounding",
+      "level": 1,
+      "slug": "to-a-decimal-place",
+      "name": "To a Decimal Place",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "rounding-1.json"
+    },
+    {
+      "skill": "rounding",
+      "level": 2,
+      "slug": "exactly-halfway",
+      "name": "Exactly Halfway",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "rounding-2.json"
+    },
+    {
+      "skill": "rounding",
+      "level": 3,
+      "slug": "roughly-how-much",
+      "name": "Roughly How Much",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "rounding-3.json"
+    },
+    {
+      "skill": "rounding",
+      "level": 4,
+      "slug": "exact-or-close-enough",
+      "name": "Exact, or Close Enough?",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "rounding-4.json"
+    },
+    {
+      "skill": "rounding",
+      "level": 5,
       "slug": "all-together",
       "name": "All Together",
       "count": 1000,
       "exhaustive": false,
       "signed": false,
-      "file": "decimals-6.json"
+      "file": "rounding-5.json"
     },
     {
       "skill": "percents",
@@ -1072,12 +1229,32 @@
     {
       "skill": "percents",
       "level": 5,
-      "slug": "all-together",
-      "name": "All Together",
-      "count": 660,
+      "slug": "by-what-percent",
+      "name": "By What Percent?",
+      "count": 398,
       "exhaustive": true,
       "signed": false,
       "file": "percents-5.json"
+    },
+    {
+      "skill": "percents",
+      "level": 6,
+      "slug": "working-backwards",
+      "name": "Working Backwards",
+      "count": 398,
+      "exhaustive": true,
+      "signed": false,
+      "file": "percents-6.json"
+    },
+    {
+      "skill": "percents",
+      "level": 7,
+      "slug": "all-together",
+      "name": "All Together",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "percents-7.json"
     },
     {
       "skill": "simplify",
@@ -1122,8 +1299,8 @@
     {
       "skill": "simplify",
       "level": 4,
-      "slug": "which-form",
-      "name": "Which Form?",
+      "slug": "taking-a-factor-out",
+      "name": "Taking a Factor Out",
       "count": 1000,
       "exhaustive": false,
       "signed": false,
@@ -1132,12 +1309,22 @@
     {
       "skill": "simplify",
       "level": 5,
+      "slug": "which-form",
+      "name": "Which Form?",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "simplify-5.json"
+    },
+    {
+      "skill": "simplify",
+      "level": 6,
       "slug": "all-together",
       "name": "All Together",
       "count": 1000,
       "exhaustive": false,
       "signed": false,
-      "file": "simplify-5.json"
+      "file": "simplify-6.json"
     },
     {
       "skill": "equations",
@@ -1182,22 +1369,32 @@
     {
       "skill": "equations",
       "level": 4,
-      "slug": "which-step-first",
-      "name": "Which Step First?",
+      "slug": "answers-below-zero",
+      "name": "Answers Below Zero",
       "count": 1000,
       "exhaustive": false,
-      "signed": false,
+      "signed": true,
       "file": "equations-4.json"
     },
     {
       "skill": "equations",
       "level": 5,
-      "slug": "all-together",
-      "name": "All Together",
+      "slug": "which-step-first",
+      "name": "Which Step First?",
       "count": 1000,
       "exhaustive": false,
       "signed": false,
       "file": "equations-5.json"
+    },
+    {
+      "skill": "equations",
+      "level": 6,
+      "slug": "all-together",
+      "name": "All Together",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": true,
+      "file": "equations-6.json"
     },
     {
       "skill": "equations-both",
@@ -1206,7 +1403,7 @@
       "name": "Unknowns Both Sides",
       "count": 1000,
       "exhaustive": false,
-      "signed": false,
+      "signed": true,
       "file": "equations-both-0.json"
     },
     {
@@ -1216,7 +1413,7 @@
       "name": "Gather Then Undo",
       "count": 1000,
       "exhaustive": false,
-      "signed": false,
+      "signed": true,
       "file": "equations-both-1.json"
     },
     {
@@ -1226,7 +1423,7 @@
       "name": "Brackets First",
       "count": 1000,
       "exhaustive": false,
-      "signed": false,
+      "signed": true,
       "file": "equations-both-2.json"
     },
     {
@@ -1236,7 +1433,7 @@
       "name": "Answers That Are Not Whole",
       "count": 1000,
       "exhaustive": false,
-      "signed": false,
+      "signed": true,
       "file": "equations-both-3.json"
     },
     {
@@ -1256,8 +1453,68 @@
       "name": "All Together",
       "count": 1000,
       "exhaustive": false,
-      "signed": false,
+      "signed": true,
       "file": "equations-both-5.json"
+    },
+    {
+      "skill": "inequalities",
+      "level": 0,
+      "slug": "which-numbers-work",
+      "name": "Which Numbers Work",
+      "count": 480,
+      "exhaustive": true,
+      "signed": true,
+      "file": "inequalities-0.json"
+    },
+    {
+      "skill": "inequalities",
+      "level": 1,
+      "slug": "undo-by-adding",
+      "name": "Undo by Adding",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": true,
+      "file": "inequalities-1.json"
+    },
+    {
+      "skill": "inequalities",
+      "level": 2,
+      "slug": "undo-by-multiplying",
+      "name": "Undo by Multiplying",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": true,
+      "file": "inequalities-2.json"
+    },
+    {
+      "skill": "inequalities",
+      "level": 3,
+      "slug": "the-flip",
+      "name": "The Flip",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": true,
+      "file": "inequalities-3.json"
+    },
+    {
+      "skill": "inequalities",
+      "level": 4,
+      "slug": "does-it-flip",
+      "name": "Does It Flip?",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "inequalities-4.json"
+    },
+    {
+      "skill": "inequalities",
+      "level": 5,
+      "slug": "all-together",
+      "name": "All Together",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": true,
+      "file": "inequalities-5.json"
     }
   ]
 }

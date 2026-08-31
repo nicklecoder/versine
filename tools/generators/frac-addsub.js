@@ -9,7 +9,7 @@
  *
  * Run via: node scripts/build-library.mjs
  */
-import { frac, reduce, combine, isSimplest, format, gcd } from '../../web/math/frac.js';
+import { frac, reduce, combine, isSimplest, format, gcd, nths } from '../../web/math/frac.js';
 import { LEVELS, LAST_LEVEL, PAR_SECONDS } from '../../web/skills/frac-addsub.js';
 import * as T from '../terms.js';
 /**
@@ -84,6 +84,87 @@ function draw(rng, level) {
     }
   }
 }
+/** Level indices `build` does not handle, because they are not sums. */
+const COMPARE = 3;
+const CROSSING = 5;
+
+/**
+ * Which of two fractions is bigger.
+ *
+ * Weighted toward the trap, the way the decimal comparison is: most rows have
+ * the fraction with the bigger numbers on the smaller side, so "more pieces"
+ * and "more" come apart. 3/8 against 1/3 is the shape -- eight is the biggest
+ * number on screen and 3/8 is the bigger fraction, but 5/12 against 1/2 has
+ * twelve on the losing side.
+ */
+function compare(rng) {
+  const [d1, d2] = rng.pick(rng.chance(0.75) ? UNLIKE : NESTED);
+  const a = frac(coprimeNumerator(rng, d1, d1 - 1), d1);
+  const b = frac(coprimeNumerator(rng, d2, d2 - 1), d2);
+  // Equal fractions have no answer, and the level is not about spotting them.
+  if (a.n * b.d === b.n * a.d) return compare(rng);
+  const common = (a.d * b.d) / gcd(a.d, b.d);
+  const left = frac(a.n * (common / a.d), common);
+  const right = frac(b.n * (common / b.d), common);
+  const bigger = left.n > right.n ? a : b;
+
+  return {
+    prompt: [T.prose(`Which is bigger, ${format(a)} or ${format(b)}?`)],
+    text: `bigger: ${format(a)} or ${format(b)}`,
+    answer: {
+      type: 'choice',
+      value: format(bigger),
+      options: rng.shuffle([a, b].map((f) => ({ id: format(f), label: format(f) }))),
+    },
+    visual: { kind: 'comparemodel', a, b, common, left, right },
+    explain: `Rewrite both in ${nths(common)}: ${format(a)} is ${format(left)} and `
+      + `${format(b)} is ${format(right)}. Now the pieces are the same size, so it is `
+      + `only a question of how many — ${format(bigger)} is bigger. `
+      + 'A bigger denominator means smaller pieces, not a smaller fraction.',
+  };
+}
+
+/**
+ * Taking away more than there was.
+ *
+ * No bar model: the bar draws a single whole cut into pieces, and there is no
+ * honest way to shade minus three twelfths of it. The working is written out
+ * instead, which is also the form the answer wants -- once both are in
+ * twelfths the sign question is 4 − 9 and nothing more, and naming it as such
+ * is the point of the level.
+ */
+function crossingZero(rng) {
+  const [d1, d2] = rng.pick(rng.chance(0.75) ? UNLIKE : NESTED);
+  const a = frac(coprimeNumerator(rng, d1, d1 - 1), d1);
+  const b = frac(coprimeNumerator(rng, d2, d2 - 1), d2);
+  // The first must be the smaller, so the subtraction runs past zero.
+  if (a.n * b.d >= b.n * a.d) return crossingZero(rng);
+  const common = (a.d * b.d) / gcd(a.d, b.d);
+  const left = a.n * (common / a.d);
+  const right = b.n * (common / b.d);
+  const value = reduce(frac(left - right, common));
+
+  return {
+    prompt: T.asks(T.frac(a.n, a.d, 1), T.op('−'), T.frac(b.n, b.d, 2)),
+    text: `${format(a)} − ${format(b)}`,
+    answer: { type: 'frac', value, requireSimplest: true },
+    visual: {
+      kind: 'evalmodel',
+      lines: [`${format(a)} − ${format(b)}`,
+              `${left}/${common} − ${right}/${common}`,
+              `${left} − ${right} = ${left - right}`,
+              format(value)],
+      rules: [`rewrite both in ${nths(common)}`, 'now it is a subtraction of whole numbers',
+              'in lowest terms'],
+      hint: 'Which is bigger — and what happens if you take it off the other?',
+    },
+    explain: `In ${nths(common)} this is ${left} − ${right}, and ${right} is more than `
+      + `${left}, so the answer is below zero: ${format(value)}. Taking away more than `
+      + 'you had is a negative, and a fraction is no different from a whole number '
+      + 'about that.',
+  };
+}
+
 function build(rng, level, requireSimplest) {
   let a, b, op, work;
   for (let i = 0; i < 40; i++) {
@@ -121,18 +202,17 @@ function explain(a, b, opSign, work, requireSimplest) {
       + `denominator: ${format(work.result)}.${tail}`;
   }
   return `${a.d} and ${b.d} both divide into ${work.common}, so rewrite both in `
-    + `${work.common}ths: ${format(work.left)} and ${format(work.right)}. `
+    + `${nths(work.common)}: ${format(work.left)} and ${format(work.right)}. `
     + `Now the pieces match, so combine them: ${format(work.result)}.${tail}`;
 }
 /** @param {import('../../web/engine/rng.js').Rng} rng @param {number} level */
 
   /** @param {import('../engine/rng.js').Rng} rng @param {number} level */
 export function generate(rng, level) {
-  if (level >= LAST_LEVEL) {
-    const from = rng.int(0, LAST_LEVEL - 1);
-    const problem = build(rng, from, true);
-    problem.parSeconds = PAR_SECONDS[LAST_LEVEL];
-    return problem;
-  }
-  return build(rng, level, !!LEVELS[level].requireSimplest);
+  const at = level >= LAST_LEVEL ? rng.int(0, LAST_LEVEL - 1) : level;
+  const problem = at === COMPARE ? compare(rng)
+    : at === CROSSING ? crossingZero(rng)
+    : build(rng, at, level >= LAST_LEVEL || !!LEVELS[level].requireSimplest);
+  problem.parSeconds = PAR_SECONDS[level];
+  return problem;
 }

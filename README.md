@@ -637,7 +637,7 @@ Each skill names the kind of picture its problems want, and `web/ui/visuals.js`
 dispatches on it. The play screen never learns what kinds exist, so adding a
 bar model for fractions means adding one entry to that registry.
 
-Eleven exist so far:
+Twelve exist so far:
 
 - **`numberline`** — integer addition and subtraction. Chained hops.
 - **`signmodel`** — integer multiplication and division. Splits the problem
@@ -695,6 +695,12 @@ Eleven exist so far:
   deliberately: `3/8 × 24` and "they are in the ratio 3 : 5, how many of the
   24 are red" are one question in two notations, and a student shown two
   different diagrams learns them as two topics.
+- **`comparemodel`** — comparing two fractions. The bar model's ask-state in
+  a second job: two bars of identical length cut by their own denominators,
+  because you cannot see whether a third beats three eighths unless the
+  wholes are the same length. Recutting both into the common denominator *is*
+  the answer — once the pieces match you only have to count them — so the
+  recut bars arrive with the reveal.
 - **`barmodel`** — adding and subtracting fractions. Two bars of *identical*
   length, divided by their own denominators. That alignment is the point: it
   makes visible that a half and a third are different-sized pieces, which is
@@ -906,9 +912,21 @@ comparable between siblings and across months.
 ## Roadmap
 
 Skills the engine is built for but that aren't written yet: scientific
-notation, and then the three subjects the map declares and nothing yet fills —
-geometry beyond coordinates, trigonometry, and chance and data. Ratio is the
-rung trigonometry stands on, so that is the order to take them in.
+notation, sequences, functions, and then the three subjects the map declares
+and nothing yet fills — geometry beyond coordinates, trigonometry, and chance
+and data. Ratio and gradient are the rungs trigonometry stands on and both are
+in, so that is the order to take them in.
+
+One thing worth not repeating. Negatives were taught in the Integers category
+and then never used again: for a long stretch the catalogue held tens of
+thousands of problems across fractions, decimals, percents, ratio and
+equations without a single negative answer among them, so a student drilled to
+fluency on −7 + 3 had still never solved `x + 7 = 3`. Nothing caught it,
+because every check asks whether a problem is well-formed or right and none of
+them asks what the catalogue as a whole never does. A gap of that shape is
+invisible to a test suite and shows up only by counting — which is worth doing
+deliberately, now and then, along whichever axis a skill might have been
+quarantined on.
 
 Ideas parked for later: live head-to-head races over the LAN (the server is
 already the right shape for it), a spaced-repetition "daily mix" across skills,

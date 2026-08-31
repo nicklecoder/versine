@@ -15,14 +15,16 @@ import exponents from '../skills/exponents.js';
 import roots from '../skills/roots.js';
 import coords from '../skills/coords.js';
 import decimals from '../skills/decimals.js';
+import rounding from '../skills/rounding.js';
 import percents from '../skills/percents.js';
 import simplify from '../skills/simplify.js';
 import equations from '../skills/equations.js';
 import equationsBoth from '../skills/equations-both.js';
+import inequalities from '../skills/inequalities.js';
 
 /** @type {any[]} */
 export const SKILLS = [intAddSub, intMulDiv, factors, fracAddSub, fracMulDiv, fracMixed, fracEquiv,
-  ratio, orderOps, exponents, roots, coords, decimals, percents, simplify, equations, equationsBoth];
+  ratio, orderOps, exponents, roots, coords, decimals, rounding, percents, simplify, equations, equationsBoth, inequalities];
 
 export const getSkill = (id) => SKILLS.find((s) => s.id === id);
 
@@ -77,6 +79,11 @@ export const CATEGORIES = [
   // ── Algebra ───────────────────────────────────────────────────────────
   { id: 'expressions', subject: 'algebra', name: 'Expressions', glyph: 'x' },
   { id: 'equations', subject: 'algebra', name: 'Equations', glyph: '=' },
+  // Its own category rather than a third skill under Equations: an equation
+  // is a claim you test and an inequality is a claim about a whole range,
+  // and the one rule that differs -- the flip -- is the reason students who
+  // are fluent with equations still get these wrong.
+  { id: 'inequalities', subject: 'algebra', name: 'Inequalities', glyph: '<' },
   { id: 'sequences', subject: 'algebra', name: 'Sequences', glyph: '…' },
   // Also analysis: this is where calculus readiness is actually decided.
   { id: 'functions', subject: 'algebra', name: 'Functions', glyph: 'ƒ' },

@@ -116,7 +116,6 @@ function chain(rng) {
       T.op(ops[1]), T.num(signed(c), 3)),
     text: `${minus(a)} ${ops[0]} ${signed(b)} ${ops[1]} ${signed(c)}`,
     answer: { type: 'int', value: answer },
-    parSeconds: PAR_SECONDS[4],
     visual: model(values, ops, answer),
     explain: `Count the negatives: ${negatives} of them, so the answer is `
       + `${negatives % 2 === 0 ? 'positive' : 'negative'}. `
@@ -124,15 +123,73 @@ function chain(rng) {
       + `= ${Math.abs(answer)}, so the answer is ${minus(answer)}.`,
   };
 }
+/**
+ * Where a negative product comes from, and where a negative quotient does.
+ *
+ * Multiplying gives the total of a loss repeated -- eight pounds owed to each
+ * of five people is −40, and nobody has to be told the sign. Dividing shares
+ * a known total change back out over equal steps, which is the reading of
+ * −40 ÷ 5 that makes the answer obviously −8 rather than a rule about signs.
+ *
+ * Both are deliberately one-negative cases. Two negatives multiplied is a
+ * genuinely awkward thing to put a situation to -- the honest examples are
+ * contrived, and a contrived story is worse than none -- so Two Negatives
+ * keeps its symbols and this level does not pretend otherwise.
+ */
+const REPEATS = [
+  { who: 'Someone', each: (n) => `owes £${n}`, over: (k) => `to each of ${k} people`,
+    total: 'What is the total owed, as a change to the balance?', unit: '£',
+    share: (t, k) => `A balance changed by £${t} over ${k} equal payments. What was each?` },
+  { who: 'The temperature', each: (n) => `falls ${n} degrees`,
+    over: (k) => `each hour for ${k} hours`,
+    total: 'What is the total change in temperature?', unit: '°',
+    share: (t, k) => `The temperature changed by ${t}° over ${k} equal hours. `
+      + 'What was the change each hour?' },
+  { who: 'A diver', each: (n) => `descends ${n} m`,
+    over: (k) => `each minute for ${k} minutes`,
+    total: 'What is the total change in depth?', unit: 'm',
+    share: (t, k) => `A diver's depth changed by ${t} m over ${k} equal minutes. `
+      + 'What was the change each minute?' },
+];
+
+function owingAndFalling(rng) {
+  const s = rng.pick(REPEATS);
+  const each = rng.int(2, 12);
+  const k = rng.int(2, 9);
+  const total = -each * k;
+  const dividing = rng.chance(0.4);
+
+  if (dividing) {
+    return {
+      prompt: [T.prose(s.share(minus(total), k))],
+      text: `${minus(total)} shared over ${k}`,
+      answer: { type: 'int', value: -each },
+      visual: model([total, k], ['÷'], -each),
+      explain: `${minus(total)} ÷ ${k} = ${minus(-each)}. A negative shared into `
+        + `${k} equal parts gives ${k} equal negative parts — the sign is not a rule `
+        + 'here, it is what "going down" means.',
+    };
+  }
+  return {
+    prompt: [T.prose(`${s.who} ${s.each(each)} ${s.over(k)}. ${s.total}`)],
+    text: `${each} ${s.unit} down, ${k} times`,
+    answer: { type: 'int', value: total },
+    visual: model([-each, k], ['×'], total),
+    explain: `A loss of ${each} repeated ${k} times is ${minus(-each)} × ${k} = `
+      + `${minus(total)}. One negative in the multiplication, so the answer is negative — `
+      + 'and going down again and again could hardly come out positive.',
+  };
+}
+
 /** @param {import('../../web/engine/rng.js').Rng} rng @param {number} level */
 
   /** @param {import('../engine/rng.js').Rng} rng @param {number} level */
 export function generate(rng, level) {
-  if (level >= LAST_LEVEL) {
-    const from = rng.int(0, LAST_LEVEL - 1);
-    const problem = from >= 4 ? chain(rng) : twoTerm(rng, from);
-    problem.parSeconds = PAR_SECONDS[LAST_LEVEL];
-    return problem;
-  }
-  return level >= 4 ? chain(rng) : twoTerm(rng, level);
+  // Level 4 is Owing and Falling, level 5 is Chains.
+  const build = (lv) => (lv === 4 ? owingAndFalling(rng)
+    : lv === 5 ? chain(rng)
+    : twoTerm(rng, lv));
+  const problem = build(level >= LAST_LEVEL ? rng.int(0, LAST_LEVEL - 1) : level);
+  problem.parSeconds = PAR_SECONDS[level];
+  return problem;
 }

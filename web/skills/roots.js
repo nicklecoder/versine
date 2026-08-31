@@ -21,6 +21,13 @@ export const LEVELS = [
     blurb: 'Take out every square there is, not just the first one you spot.',
   },
   {
+    name: 'Cubes and Cube Roots', slug: 'cubes-and-cube-roots',
+    blurb: 'The same question one dimension up. Three of them multiplied.',
+    // A cube is a power before it is a root, and reading a power both ways is
+    // exactly what the first exponents level is.
+    dependsOn: [{ skill: 'exponents', level: 0 }],
+  },
+  {
     name: 'Which Form?', slug: 'which-form',
     kind: 'strategy',
     blurb: 'Exact or approximate? Simplified or as it came? The job decides.',
@@ -36,7 +43,7 @@ export const LEVELS = [
 ];
 
 export const LAST_LEVEL = LEVELS.length - 1;
-export const PAR_SECONDS = [14, 18, 20, 22, 18, 22];
+export const PAR_SECONDS = [14, 18, 20, 22, 18, 18, 22];
 
 /**
  * The runtime definition of this skill: what the student sees and how the

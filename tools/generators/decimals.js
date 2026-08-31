@@ -8,7 +8,7 @@
  * Run via: node scripts/build-library.mjs
  */
 import * as T from '../terms.js';
-import { reduce, gcd } from '../../web/math/frac.js';
+import { reduce, gcd, nths } from '../../web/math/frac.js';
 import { LAST_LEVEL, PAR_SECONDS } from '../../web/skills/decimals.js';
 
 /** Exact throughout: a decimal is an integer over a power of ten, never a float. */
@@ -78,7 +78,9 @@ function addSub(rng) {
   const d = 10 ** places;
   const a = dec(rng.int(1, 40 * d) , places);
   const plus = rng.chance(0.6);
-  const b = dec(plus ? rng.int(1, 40 * d) : rng.int(1, a.n), places);
+  // Subtraction may take away more than there was. Every other skill now
+  // lets a difference cross zero, and a decimal is no different about it.
+  const b = dec(plus ? rng.int(1, 40 * d) : rng.int(1, 40 * d), places);
   const value = dec(plus ? a.n + b.n : a.n - b.n, places);
   const sign = plus ? '+' : '−';
   return {
@@ -158,7 +160,7 @@ const SITUATIONS = [
   { text: 'You need to multiply by {n}/{odd} and keep the answer exact.', want: 'fraction',
     why: 'Multiplying by a fraction stays exact; multiplying by a rounded decimal loses a little every time.' },
   { text: 'You need to measure a length of about {da} metres with a ruler.', want: 'decimal',
-    why: 'A ruler is marked in tenths, not in {odd}ths.' },
+    why: 'A ruler is marked in tenths, not in {oddths}.' },
   { text: 'You need to add {n}/{even} to {m}/{even}.', want: 'fraction',
     why: 'They already share a bottom, so the addition is immediate. Converting first is work for nothing.' },
   { text: 'You need to plot {da} on a number line.', want: 'decimal',
@@ -185,6 +187,7 @@ function whichForm(rng) {
   const da = show(dec(rng.int(11, 99), 2));
   const db = show(dec(rng.int(101, 999), 3));
   const fill = (t) => t
+    .replace(/\{oddths\}/g, nths(odd))
     .replace(/\{odd\}/g, String(odd)).replace(/\{even\}/g, String(even))
     .replace(/\{whole\}/g, String(whole))
     .replace(/\{da\}/g, da).replace(/\{db\}/g, db)
@@ -204,6 +207,70 @@ function whichForm(rng) {
   };
 }
 
+/**
+ * Dividing, built outwards from the quotient so it always comes out exact.
+ *
+ * Two shapes. Dividing by a whole number is the easy half and is here so the
+ * hard half has something to be different from; dividing by a decimal is the
+ * point of the level. 4.8 ÷ 0.4 = 12 surprises people twice -- the answer is
+ * bigger than what you started with, and the way in is to change both numbers
+ * before dividing either.
+ *
+ * The explain names that move as the equivalent-fractions move rather than as
+ * a rule about points, because a student who knows only "move both points the
+ * same way" has nothing to check the direction against.
+ */
+function divide(rng) {
+  const byWhole = rng.chance(0.4);
+
+  if (byWhole) {
+    const places = rng.int(1, 2);
+    const k = rng.int(2, 9);
+    const q = dec(rng.int(11, 10 ** places * 12), places);
+    // A whole quotient makes a whole dividend, and "96 ÷ 8" is not a decimal
+    // division at all -- it is the integer skill wearing this level's name.
+    if (q.n % q.d === 0) return divide(rng);
+    const a = dec(q.n * k, places);
+    return {
+      prompt: T.asks(T.num(show(a), 1), T.op('÷'), T.num(String(k), 2)),
+      text: `${show(a)} ÷ ${k}`,
+      answer: { type: 'decimal', value: q },
+      visual: {
+        kind: 'evalmodel',
+        lines: [`${show(a)} ÷ ${k}`, `${a.n} ${nths(a.d)} ÷ ${k}`,
+                `${q.n} ${nths(a.d)}`, show(q)],
+        rules: ['count in the smallest place', 'ordinary division', 'put the point back'],
+        hint: 'What unit is the number counted in?',
+      },
+      explain: `${show(a)} is ${a.n} ${nths(a.d)}. Sharing ${a.n} of them into ${k} `
+        + `equal parts gives ${q.n}, which is ${show(q)}.`,
+    };
+  }
+
+  // 4.8 ÷ 0.4: shift both by ten until the divisor is a whole number.
+  let bn = rng.int(2, 25);
+  if (bn % 10 === 0) bn += 1;                    // a whole divisor is the other shape
+  const b = dec(bn, 1);
+  const q = rng.int(2, 30);
+  const a = dec(bn * q, 1);
+  return {
+    prompt: T.asks(T.num(show(a), 1), T.op('÷'), T.num(show(b), 2)),
+    text: `${show(a)} ÷ ${show(b)}`,
+    answer: { type: 'decimal', value: dec(q, 0) },
+    visual: {
+      kind: 'evalmodel',
+      lines: [`${show(a)} ÷ ${show(b)}`, `${a.n} ÷ ${b.n}`, String(q)],
+      rules: ['multiply both by 10, which leaves the answer alone', 'now both are whole'],
+      hint: 'Can you divide by something that is not a whole number?',
+    },
+    explain: `Multiply both by 10: ${show(a)} ÷ ${show(b)} becomes ${a.n} ÷ ${b.n} = ${q}. `
+      + 'Scaling both parts of a division by the same amount leaves the answer alone — '
+      + `it is ${show(a)}/${show(b)} and ${a.n}/${b.n} being the same fraction. `
+      + `And the answer is bigger than ${show(a)}, because ${show(b)} fits into it `
+      + 'more than once over.',
+  };
+}
+
 /** @param {import('../../web/engine/rng.js').Rng} rng @param {number} level */
 export function generate(rng, level) {
   const build = (lv) => {
@@ -212,9 +279,10 @@ export function generate(rng, level) {
       case 1: return compare(rng);
       case 2: return addSub(rng);
       case 3: return multiply(rng);
-      case 4: return toFraction(rng);
-      case 5: return whichForm(rng);
-      default: return rng.pick([placeValue, compare, addSub, multiply, toFraction])(rng);
+      case 4: return divide(rng);
+      case 5: return toFraction(rng);
+      case 6: return whichForm(rng);
+      default: return rng.pick([placeValue, compare, addSub, multiply, divide, toFraction])(rng);
     }
   };
   const p = build(level >= LAST_LEVEL ? rng.int(0, LAST_LEVEL - 2) : level);

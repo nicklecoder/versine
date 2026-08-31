@@ -24,6 +24,13 @@ export const LEVELS = [
   { name: 'Distribute and Collect', slug: 'distribute-and-collect',
     blurb: 'Open the bracket, then gather what matches.' },
   {
+    name: 'Taking a Factor Out', slug: 'taking-a-factor-out',
+    blurb: 'Distributing backwards. What do both terms share?',
+    // "What do both terms share, all of it" is the greatest common factor
+    // with a letter in it.
+    dependsOn: [{ skill: 'factors', level: 3 }],
+  },
+  {
     name: 'Which Form?', slug: 'which-form', kind: 'strategy',
     blurb: 'Keep the brackets or open them? What you are about to do decides.',
     // After both forms can be produced, which is the first point at which
@@ -35,7 +42,7 @@ export const LEVELS = [
 ];
 
 export const LAST_LEVEL = LEVELS.length - 1;
-export const PAR_SECONDS = [16, 20, 20, 26, 18, 26];
+export const PAR_SECONDS = [16, 20, 20, 26, 24, 18, 26];
 
 /**
  * The runtime definition of this skill: what the student sees and how the
@@ -50,6 +57,6 @@ export default {
   glyph: '2x',
   blurb: 'Gathering what matches, and opening brackets when it helps.',
   answerInput: 'expr',
-  dependsOn: ['order-ops', 'int-muldiv'],
+  dependsOn: ['order-ops', 'int-muldiv', 'factors'],
   levels: LEVELS,
 };

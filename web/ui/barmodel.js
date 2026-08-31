@@ -1,4 +1,5 @@
 import { drawSegments } from './segments.js';
+import { nths } from '../math/frac.js';
 
 /**
  * Aligned bar model for adding and subtracting fractions.
@@ -66,6 +67,6 @@ export function drawBarModel(container, spec, { reveal = false, verdict = null }
       { sep: '=', verdict: true },
       resultRow,
     ],
-    note: `Both rewritten in ${common}ths, so the pieces match.`,
+    note: `Both rewritten in ${nths(common)}, so the pieces match.`,
   }, { verdict });
 }

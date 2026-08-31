@@ -96,11 +96,11 @@ function undoMultiply(rng) {
 /**
  * 3x + 4 = 19.
  *
- * Solutions stay positive here, and not for gentleness. The widget follows the
- * answer's type and a level that can go negative gets the full keyboard rather
- * than the numeric pad, so mixing the two would swap a student's keyboard
- * partway through a timed run. Negative solutions get their own level in the
- * follow-on skill, where the whole level allows them.
+ * Solutions stay positive here, because the level after next is where a
+ * negative one is the point. `signed` is a property of the level rather than
+ * of a problem -- one negative answer anywhere in a level puts the full
+ * keyboard on all of it -- so keeping these positive keeps four levels on the
+ * numeric pad rather than saving anything about this problem.
  */
 function twoSteps(rng) {
   const v = rng.pick(VARS);
@@ -165,6 +165,81 @@ function negatives(rng) {
 }
 
 /**
+ * The answer comes out below zero.
+ *
+ * Nothing here is a new move: it is undoAdd, undoMultiply and twoSteps again
+ * with the numbers arranged so the letter lands on the other side of zero.
+ * That is the whole design. If a negative answer needed a new method it would
+ * be a new method; what it actually needs is for the student to have seen one
+ * and carried on, instead of reading it as a slip and going back through
+ * correct working looking for the mistake.
+ *
+ * Built outwards from the solution, like everything else here, so the
+ * equation and the answer cannot disagree.
+ */
+function belowZero(rng) {
+  const v = rng.pick(VARS);
+  const x = -rng.int(2, 15);
+  const shape = rng.int(0, 2);
+
+  if (shape === 0) {                             // x + 12 = 5
+    const b = rng.int(2, 20);
+    const rhs = x + b;
+    const src = `${v} + ${b} = ${rhs}`;
+    return {
+      prompt: ask(src, v), text: src,
+      answer: { type: 'int', value: x },
+      visual: {
+        kind: 'evalmodel',
+        lines: [src, `${v} = ${rhs} − ${b}`, `${v} = ${x}`],
+        rules: [`subtract ${b} from both sides`, 'which goes past zero'],
+        hint: 'What has been added to the letter?',
+      },
+      explain: `Subtract ${b} from both sides: ${rhs} − ${b} = ${x}. `
+        + `Taking ${b} from ${rhs} runs out of numbers above zero and keeps going, `
+        + 'which is what a negative answer is. It is an answer, not a mistake.',
+    };
+  }
+
+  if (shape === 1) {                             // 4x = −20
+    const k = rng.int(2, 9);
+    const rhs = k * x;
+    const src = `${k}${v} = ${rhs}`;
+    return {
+      prompt: ask(src, v), text: src,
+      answer: { type: 'int', value: x },
+      visual: {
+        kind: 'evalmodel',
+        lines: [src, `${v} = ${rhs} ÷ ${k}`, `${v} = ${x}`],
+        rules: [`divide both sides by ${k}`, 'a negative divided by a positive'],
+        hint: 'What is the letter multiplied by?',
+      },
+      explain: `Divide both sides by ${k}. A negative divided by a positive is `
+        + `negative, so ${v} = ${x}. The sign comes along with the number.`,
+    };
+  }
+
+  const k = rng.int(2, 8);                       // 3x + 20 = 2
+  const b = rng.int(2, 20);
+  const rhs = k * x + b;
+  const src = `${k}${v} + ${b} = ${rhs}`;
+  return {
+    prompt: ask(src, v), text: src,
+    answer: { type: 'int', value: x },
+    visual: {
+      kind: 'evalmodel',
+      lines: [src, `${k}${v} = ${rhs} − ${b}`, `${k}${v} = ${k * x}`, `${v} = ${x}`],
+      rules: [`subtract ${b} from both sides`, 'which goes past zero',
+              `divide both sides by ${k}`],
+      hint: 'Same two moves, in the same order as always.',
+    },
+    explain: `Subtract ${b} first: ${rhs} − ${b} = ${k * x}. Then divide by ${k}: `
+      + `${v} = ${x}. Both steps are the ones you already do — only the answer `
+      + 'is on the other side of zero.',
+  };
+}
+
+/**
  * The strategic layer, and the contrast the whole skill turns on.
  *
  * 3x + 4 = 19 and 3(x + 4) = 19 look almost identical and want opposite first
@@ -208,11 +283,17 @@ function whichFirst(rng) {
  * branch here: every level is either one of these, the strategy level, or a
  * mix of these. An earlier version had one, and it was unreachable.
  */
-const CONTENT = [undoAdd, undoMultiply, twoSteps, negatives];
+const CONTENT = [undoAdd, undoMultiply, twoSteps, negatives, belowZero];
+
+/** The strategy level's position; everything after it is the mixed level. */
+const STRATEGY = 5;
 
 /** @param {import('../../web/engine/rng.js').Rng} rng @param {number} level */
 export function generate(rng, level) {
-  const p = level === 4 ? whichFirst(rng)
+  // The mixed level deals from all five content levels, `belowZero`
+  // included. Leaving it out would teach that a negative answer only happens
+  // when you have been warned to expect one.
+  const p = level === STRATEGY ? whichFirst(rng)
     : level >= LAST_LEVEL ? rng.pick(CONTENT)(rng)
     : CONTENT[level](rng);
   p.parSeconds = PAR_SECONDS[level];

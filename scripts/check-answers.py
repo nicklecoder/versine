@@ -137,6 +137,14 @@ def as_fraction(v):
     return Fraction(v["n"], v["d"]) if isinstance(v, dict) else Fraction(v)
 
 
+def half_up(x: Fraction, places: int) -> Fraction:
+    """Round to `places` decimals, halves going up, without ever touching a float."""
+    scale = 10 ** places
+    y = x * scale
+    whole = y // 1
+    return Fraction(int(whole) + (1 if (y - whole) * 2 >= 1 else 0), scale)
+
+
 # Questions the evaluator cannot read as an expression: asked in words, or
 # written with a blank in them. Both left whole levels resting on nothing but
 # the generator agreeing with itself -- every prose-asked level, and, less
@@ -169,7 +177,46 @@ BY_RULE = (
      lambda n, d, big_n: Fraction(big_n * d, n)),
     (re.compile(r"^(\d+)/(\d+) in lowest terms$"),
      lambda n, d: Fraction(n, d)),
+    # Rounding, re-derived in exact rationals. Doing it in floats is the one
+    # way to get this wrong that matters: 2.675 is not 2.675 as a double, so a
+    # float check would call the correct 2.68 an error.
+    (re.compile(r"^([\d.]+) to the nearest whole$"),
+     lambda v: half_up(Fraction(v), 0)),
+    (re.compile(r"^([\d.]+) to (\d) dp$"),
+     lambda v, places: half_up(Fraction(v), places)),
+    # Percent change and reverse percentage, each re-derived from the two
+    # numbers rather than from the percent the generator started with.
+    (re.compile(r"^(\d+) to (\d+), percent change$"),
+     lambda a, b: Fraction(abs(b - a) * 100, a)),
+    (re.compile(r"^(\d+) after (up|down) (\d+)%, before$"),
+     lambda now, way, pct: Fraction(now * 100, 100 + pct if way == "up" else 100 - pct)),
+    (re.compile(r"^estimate ([\d.]+) ([×+]) ([\d.]+)$"),
+     lambda a, op, b: (half_up(Fraction(a), 0) * half_up(Fraction(b), 0) if op == "×"
+                       else half_up(Fraction(a), 0) + half_up(Fraction(b), 0))),
+    # A linear inequality, solved from scratch -- including the flip, which is
+    # derived here from the sign of the coefficient rather than copied from
+    # the generator's own reasoning about it.
+    (re.compile(r"^(\u2212?)(\d*)([a-z])(?: ([+\u2212]) (\d+))? "
+                r"([<>\u2265\u2264]) (\u2212?\d+), (largest|smallest)$"),
+     lambda neg, coeff, _v, op, b, sign, rhs, want:
+        solve_inequality(neg, coeff, op, b, sign, rhs, want)),
 )
+
+
+def solve_inequality(neg, coeff, op, b, sign, rhs, want):
+    """kx + c  SIGN  rhs -> the largest or smallest whole number that satisfies it."""
+    k = Fraction(int(coeff) if coeff else 1) * (-1 if neg else 1)
+    c = Fraction(0 if b is None else (int(b) * (-1 if op == "\u2212" else 1)))
+    right = Fraction(str(rhs).replace("\u2212", "-"))
+    boundary = (right - c) / k
+    strict = sign in ("<", ">")
+    # Dividing by a negative turns the relation around, so which end of the
+    # range is wanted turns around with it -- exactly the rule under test.
+    if want == "largest":
+        floor = boundary // 1
+        return floor - 1 if strict and floor == boundary else floor
+    ceil = -((-boundary) // 1)
+    return ceil + 1 if strict and ceil == boundary else ceil
 
 
 for path in sorted(LIB.glob("*.json")):
@@ -181,22 +228,30 @@ for path in sorted(LIB.glob("*.json")):
         where = f"{lib['skill']} L{lib['level'] + 1} row {i}"
 
         # An equation: substitute the claimed solution and see if it balances.
-        if " = " in text and answer["type"] == "int" and var_in(text):
+        #
+        # Fractional and negative solutions substitute the same way, since the
+        # evaluator works in exact rationals and reads "10(-6/5)" as the
+        # juxtaposed product it is. Restricting this to whole answers left
+        # every non-whole solution in the catalogue -- a thousand rows of
+        # equations-both -- checked by nothing at all.
+        if " = " in text and answer["type"] in ("int", "frac", "decimal") and var_in(text):
             v = var_in(text)
             lhs, rhs = text.split(" = ", 1)
             if "?" in rhs or "?" in lhs:
                 continue
+            sub = as_fraction(answer["value"])
             try:
                 checked += 1
-                if evaluate(lhs, v, answer["value"]) != evaluate(rhs, v, answer["value"]):
-                    problems.append(f"{where}: {text} does not balance at {v} = {answer['value']}")
+                if evaluate(lhs, v, sub) != evaluate(rhs, v, sub):
+                    problems.append(f"{where}: {text} does not balance at {v} = {sub}")
             except Exception:
                 checked -= 1
 
         # Asked in words, or written with a blank: re-derive from the numbers.
         elif any(rule.match(text) for rule, _ in BY_RULE):
             rule, solve = next(r for r in BY_RULE if r[0].match(text))
-            args = [g if not g.isdigit() else int(g) for g in rule.match(text).groups()]
+            args = [g if g is None or not g.isdigit() else int(g)
+                    for g in rule.match(text).groups()]
             want = Fraction(solve(*args))
             checked += 1
             if want != as_fraction(answer["value"]):

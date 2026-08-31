@@ -9,6 +9,7 @@
  */
 import * as T from '../terms.js';
 import { previewOf } from '../../web/ui/express.js';
+import { gcd } from '../../web/math/frac.js';
 import { LAST_LEVEL, PAR_SECONDS } from '../../web/skills/simplify.js';
 
 const VARS = ['x', 'y', 'n', 'a', 't'];
@@ -132,6 +133,48 @@ const SITUATIONS = [
     why: 'With the {a} outside, the division is one step and stays exact.' },
 ];
 
+/**
+ * Distributing backwards: 6x + 15 becomes 3(2x + 5).
+ *
+ * The strategy level after this one asks whether to keep a bracket or open
+ * it, and until now only one of those two was ever practised -- a judgement
+ * between a skill the student has and one they have only been told about.
+ * Factorising is also the move that makes an equation solvable rather than
+ * merely tidy, which is the sentence the skill's own header has been making
+ * since before there was a level to back it.
+ *
+ * The factor taken out is the greatest one, and the level insists on it: 6x +
+ * 15 = 3(2x + 5) and not, say, nothing at all. What is left inside must share
+ * no factor, or the job is half done -- the same stopping point that "lowest
+ * terms" names for a fraction.
+ */
+function factorise(rng) {
+  const v = rng.pick(VARS);
+  const k = rng.int(2, 9);                       // the factor to come out
+  let m = rng.int(2, 9);                         // what is left in front of the letter
+  let c = rng.int(1, 12);                        // and the number left inside
+  // Nothing shared inside, or the greatest common factor was not taken.
+  if (gcd(m, c) !== 1) return factorise(rng);
+  const src = `${k * m}${v} + ${k * c}`;
+
+  return {
+    prompt: ask(src),
+    text: src,
+    answer: { type: 'expr', value: `${k}(${m === 1 ? v : `${m}${v}`} + ${c})` },
+    visual: {
+      kind: 'evalmodel',
+      lines: [src, `${k} × ${m}${v} and ${k} × ${c}`,
+              `${k}(${m === 1 ? v : `${m}${v}`} + ${c})`],
+      rules: [`${k} divides both ${k * m} and ${k * c}`, 'so it comes outside'],
+      hint: 'What goes into both numbers?',
+    },
+    explain: `${k * m} and ${k * c} share a factor of ${k}, and nothing bigger — `
+      + `so ${k} comes out: ${k * m}${v} ÷ ${k} = ${m === 1 ? v : `${m}${v}`} and `
+      + `${k * c} ÷ ${k} = ${c}, leaving ${k}(${m === 1 ? v : `${m}${v}`} + ${c}). `
+      + `Multiplying it back out returns ${src}, which is how to check it.`,
+  };
+}
+
 function whichForm(rng) {
   const v = rng.pick(VARS);
   const a = rng.int(2, 9);
@@ -166,9 +209,10 @@ export function generate(rng, level) {
       case 1: return partial(rng);
       case 2: return distribute(rng, false);
       case 3: return distribute(rng, true);
-      case 4: return whichForm(rng);
+      case 4: return factorise(rng);
+      case 5: return whichForm(rng);
       default: return rng.pick([collect, partial,
-        (r) => distribute(r, false), (r) => distribute(r, true)])(rng);
+        (r) => distribute(r, false), (r) => distribute(r, true), factorise])(rng);
     }
   };
   const p = build(level >= LAST_LEVEL ? rng.int(0, LAST_LEVEL - 2) : level);

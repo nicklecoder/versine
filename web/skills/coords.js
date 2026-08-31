@@ -22,6 +22,13 @@ export const LEVELS = [
     blurb: 'Two points sharing a row or column. How far apart?',
   },
   {
+    name: 'Steepness', slug: 'steepness',
+    blurb: 'Up divided by along. A gradient is a rate, and a rate is a ratio.',
+    // This is the edge the whole ratio skill was built to make available:
+    // rise over run is a unit rate, and the line is the picture of it.
+    dependsOn: [{ skill: 'ratio', level: 4 }],
+  },
+  {
     name: 'All Together', slug: 'all-together',
     blurb: 'Every kind mixed. Clear this against the clock to finish the '
       + 'skill for the day.',
@@ -29,7 +36,7 @@ export const LEVELS = [
 ];
 
 export const LAST_LEVEL = LEVELS.length - 1;
-export const PAR_SECONDS = [14, 14, 16, 14, 18, 18];
+export const PAR_SECONDS = [14, 14, 16, 14, 18, 22, 18];
 
 /**
  * The runtime definition of this skill: what the student sees and how the
@@ -44,6 +51,6 @@ export default {
   glyph: '⊹',
   blurb: 'Where a pair of numbers puts you, and how to read one off.',
   answerInput: 'int',
-  dependsOn: ['int-addsub'],
+  dependsOn: ['int-addsub', 'ratio'],
   levels: LEVELS,
 };
