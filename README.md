@@ -640,11 +640,13 @@ bar model for fractions means adding one entry to that registry.
 Twelve exist so far:
 
 - **`numberline`** — integer addition and subtraction. Chained hops.
-- **`signmodel`** — integer multiplication and division. Splits the problem
+- **`signmodel`** — multiplying and dividing with signs. Splits the problem
   into the two questions it really is: what *sign* is the answer, and how *big*
   is it? Kids who "can't do negatives" can nearly always do 3 × 4; what they
   lose track of is the sign, so the widget separates the two and answers
-  neither until the student has.
+  neither until the student has. The size row prints whatever it is handed, so
+  the same picture serves signed fractions unchanged — the argument it makes
+  was never about integers, and −2/3 × 3/4 wants exactly the same split.
 - **`areamodel`** — multiplying fractions. One square is one whole; the first
   fraction shades a strip of the width, the second a strip of the height, and
   the product is where they cross. It carries the two things students most

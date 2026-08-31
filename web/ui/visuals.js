@@ -63,11 +63,14 @@ export const VISUALS = {
       steps: { type: 'array', of: { type: 'object' }, required: true },
     },
   },
+  // The result comes as `answer` when it is whole and `result` when it is a
+  // fraction. Both carry the answer, so both are withheld.
   signmodel: {
     schema: {
       terms: { type: 'array', of: { type: 'object' }, required: true },
       ops: { type: 'array', of: { type: 'string' }, required: true },
-      answer: { type: 'int', required: true, phase: 'answer' },
+      answer: { type: 'int', phase: 'answer' },
+      result: { ...FRAC, phase: 'answer' },
     },
   },
   barmodel: {

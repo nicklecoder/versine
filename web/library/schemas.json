@@ -39,7 +39,10 @@
       },
       "answer": {
         "type": "int",
-        "required": true,
+        "phase": "answer"
+      },
+      "result": {
+        "type": "frac",
         "phase": "answer"
       }
     },

@@ -175,8 +175,11 @@ BY_RULE = (
      lambda n, d, big_d: Fraction(n * big_d, d)),
     (re.compile(r"^(\d+)/(\d+) = (\d+)/\?$"),
      lambda n, d, big_n: Fraction(big_n * d, n)),
-    (re.compile(r"^(\d+)/(\d+) in lowest terms$"),
-     lambda n, d: Fraction(n, d)),
+    # Either part may carry a minus: a signed fraction is asked in exactly
+    # this form, and the answer is the same fraction with the sign moved in
+    # front, which Fraction does for itself.
+    (re.compile(r"^(-?\d+)/(-?\d+) in lowest terms$"),
+     lambda n, d: Fraction(int(n), int(d))),
     # Rounding, re-derived in exact rationals. Doing it in floats is the one
     # way to get this wrong that matters: 2.675 is not 2.675 as a double, so a
     # float check would call the correct 2.68 an error.

@@ -1,5 +1,5 @@
 {
-  "built": 134,
+  "built": 140,
   "order": {
     "int-addsub": [
       "first-steps",
@@ -64,6 +64,14 @@
       "missing-piece",
       "through-simplest-form",
       "straight-up-or-simplify",
+      "all-together"
+    ],
+    "frac-signed": [
+      "where-the-minus-lives",
+      "one-negative",
+      "two-negatives",
+      "dividing-with-signs",
+      "what-sign-will-it-be",
       "all-together"
     ],
     "ratio": [
@@ -174,7 +182,7 @@
       "all-together"
     ]
   },
-  "sources": "abb307782e625e36a6c800e6be4a5849e602b44e2588c1767030c59457629afb",
+  "sources": "4936ae5492ab782e0b5c3de352d40328fc96a6bd685a757173542d4906853aec",
   "levels": [
     {
       "skill": "int-addsub",
@@ -685,6 +693,66 @@
       "exhaustive": true,
       "signed": false,
       "file": "frac-equiv-7.json"
+    },
+    {
+      "skill": "frac-signed",
+      "level": 0,
+      "slug": "where-the-minus-lives",
+      "name": "Where the Minus Lives",
+      "count": 633,
+      "exhaustive": true,
+      "signed": true,
+      "file": "frac-signed-0.json"
+    },
+    {
+      "skill": "frac-signed",
+      "level": 1,
+      "slug": "one-negative",
+      "name": "One Negative",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": true,
+      "file": "frac-signed-1.json"
+    },
+    {
+      "skill": "frac-signed",
+      "level": 2,
+      "slug": "two-negatives",
+      "name": "Two Negatives",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "frac-signed-2.json"
+    },
+    {
+      "skill": "frac-signed",
+      "level": 3,
+      "slug": "dividing-with-signs",
+      "name": "Dividing with Signs",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": true,
+      "file": "frac-signed-3.json"
+    },
+    {
+      "skill": "frac-signed",
+      "level": 4,
+      "slug": "what-sign-will-it-be",
+      "name": "What Sign Will It Be?",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "frac-signed-4.json"
+    },
+    {
+      "skill": "frac-signed",
+      "level": 5,
+      "slug": "all-together",
+      "name": "All Together",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": true,
+      "file": "frac-signed-5.json"
     },
     {
       "skill": "ratio",

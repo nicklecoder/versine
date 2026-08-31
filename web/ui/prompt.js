@@ -38,6 +38,11 @@ import { previewOf } from './express.js';
 function part(v, cls) {
   if (v === null || v === undefined) return el(`span.${cls}.is-blank`, {}, '?');
   if (Array.isArray(v)) return el(`span.${cls}`, {}, v.map(drawTerm));
+  // A negative number is drawn with a real minus sign rather than a hyphen,
+  // the same as everywhere else in the app. The catalogue stores numbers here
+  // -- the deploy gate insists on it, and refuses a pre-formatted string --
+  // so the formatting has to happen at the point of drawing.
+  if (typeof v === 'number' && v < 0) return el(`span.${cls}`, {}, `−${Math.abs(v)}`);
   return el(`span.${cls}`, {}, String(v));
 }
 
