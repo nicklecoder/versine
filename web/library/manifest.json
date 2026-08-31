@@ -1,5 +1,5 @@
 {
-  "built": 140,
+  "built": 143,
   "order": {
     "int-addsub": [
       "first-steps",
@@ -53,6 +53,7 @@
       "exactly-whole",
       "both-ways",
       "simplify-too",
+      "working-with-them",
       "which-form",
       "all-together"
     ],
@@ -68,6 +69,8 @@
     ],
     "frac-signed": [
       "where-the-minus-lives",
+      "adding-a-negative",
+      "subtracting-a-negative",
       "one-negative",
       "two-negatives",
       "dividing-with-signs",
@@ -182,7 +185,7 @@
       "all-together"
     ]
   },
-  "sources": "4936ae5492ab782e0b5c3de352d40328fc96a6bd685a757173542d4906853aec",
+  "sources": "a4c0282b901bd2f41a30082f26947422ba902798cbfaeea7c3668f1a037c73f8",
   "levels": [
     {
       "skill": "int-addsub",
@@ -399,7 +402,7 @@
       "level": 0,
       "slug": "same-denominator",
       "name": "Same Denominator",
-      "count": 801,
+      "count": 944,
       "exhaustive": true,
       "signed": false,
       "file": "frac-addsub-0.json"
@@ -597,8 +600,8 @@
     {
       "skill": "frac-mixed",
       "level": 5,
-      "slug": "which-form",
-      "name": "Which Form?",
+      "slug": "working-with-them",
+      "name": "Working With Them",
       "count": 1000,
       "exhaustive": false,
       "signed": false,
@@ -607,12 +610,22 @@
     {
       "skill": "frac-mixed",
       "level": 6,
+      "slug": "which-form",
+      "name": "Which Form?",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "frac-mixed-6.json"
+    },
+    {
+      "skill": "frac-mixed",
+      "level": 7,
       "slug": "all-together",
       "name": "All Together",
       "count": 1000,
       "exhaustive": false,
       "signed": false,
-      "file": "frac-mixed-6.json"
+      "file": "frac-mixed-7.json"
     },
     {
       "skill": "frac-equiv",
@@ -707,8 +720,8 @@
     {
       "skill": "frac-signed",
       "level": 1,
-      "slug": "one-negative",
-      "name": "One Negative",
+      "slug": "adding-a-negative",
+      "name": "Adding a Negative",
       "count": 1000,
       "exhaustive": false,
       "signed": true,
@@ -717,18 +730,18 @@
     {
       "skill": "frac-signed",
       "level": 2,
-      "slug": "two-negatives",
-      "name": "Two Negatives",
+      "slug": "subtracting-a-negative",
+      "name": "Subtracting a Negative",
       "count": 1000,
       "exhaustive": false,
-      "signed": false,
+      "signed": true,
       "file": "frac-signed-2.json"
     },
     {
       "skill": "frac-signed",
       "level": 3,
-      "slug": "dividing-with-signs",
-      "name": "Dividing with Signs",
+      "slug": "one-negative",
+      "name": "One Negative",
       "count": 1000,
       "exhaustive": false,
       "signed": true,
@@ -737,8 +750,8 @@
     {
       "skill": "frac-signed",
       "level": 4,
-      "slug": "what-sign-will-it-be",
-      "name": "What Sign Will It Be?",
+      "slug": "two-negatives",
+      "name": "Two Negatives",
       "count": 1000,
       "exhaustive": false,
       "signed": false,
@@ -747,12 +760,32 @@
     {
       "skill": "frac-signed",
       "level": 5,
+      "slug": "dividing-with-signs",
+      "name": "Dividing with Signs",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": true,
+      "file": "frac-signed-5.json"
+    },
+    {
+      "skill": "frac-signed",
+      "level": 6,
+      "slug": "what-sign-will-it-be",
+      "name": "What Sign Will It Be?",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "frac-signed-6.json"
+    },
+    {
+      "skill": "frac-signed",
+      "level": 7,
       "slug": "all-together",
       "name": "All Together",
       "count": 1000,
       "exhaustive": false,
       "signed": true,
-      "file": "frac-signed-5.json"
+      "file": "frac-signed-7.json"
     },
     {
       "skill": "ratio",

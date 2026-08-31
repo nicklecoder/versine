@@ -20,6 +20,13 @@ export const root = (v, c, s = 1) => (c === undefined
 /** A variable. Named `letter` because `var` is a reserved word. */
 export const letter = (v, s = 1) => ({ t: 'var', v: String(v), s });
 export const op = (v) => ({ t: 'op', v });
+/**
+ * Brackets around a nested list of terms.
+ *
+ * Needed the moment a negative operand follows an operator: `1/2 − −3/4` is
+ * unreadable and `1/2 − (−3/4)` is how it is written everywhere else.
+ */
+export const group = (terms, s = 1) => ({ t: 'group', terms, s });
 export const blank = () => ({ t: 'blank' });
 export const prose = (v, s = 1) => ({ t: 'prose', v: String(v), s });
 

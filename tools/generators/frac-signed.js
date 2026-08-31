@@ -7,7 +7,7 @@
  *
  * Run via: node scripts/build-library.mjs
  */
-import { frac, reduce, multiply, divide, format, gcd } from '../../web/math/frac.js';
+import { frac, reduce, multiply, divide, combine, format, gcd, nths } from '../../web/math/frac.js';
 import { LAST_LEVEL, PAR_SECONDS } from '../../web/skills/frac-signed.js';
 import * as T from '../terms.js';
 
@@ -77,6 +77,97 @@ function whereTheMinus(rng) {
         + 'taking the negative of a division come to the same thing. ')
       + `Then ${Math.abs(n)} and ${Math.abs(den)} share a factor of ${k}, `
       + `leaving ${format(value).replace(/-/g, '−')}.`,
+  };
+}
+
+/**
+ * Adding and subtracting, where at least one of the two is negative.
+ *
+ * The sign of the answer is a *comparison*, not a count. −3/4 + 1/2 is
+ * negative because three quarters is more than a half; −1/4 + 1/2 is positive
+ * with exactly as many negatives in it. A student who has learned "one
+ * negative, so the answer is negative" from the multiplication levels and
+ * applies it here gets half of them wrong, which is why these levels come
+ * first and why the explain says which quantity won rather than how many
+ * minus signs there were.
+ *
+ * Every shape a student can meet is drawn from: negative first, negative
+ * second, both negative, and for subtraction the one that catches everyone --
+ * taking away a negative, where the answer comes out bigger than what you
+ * started with.
+ *
+ * No bar model. There is no honest way to shade minus three quarters of a
+ * whole, and the working is the better picture anyway: once both are over a
+ * common denominator the question is 4 + (−9) and nothing else, which is the
+ * whole of what these levels have to say.
+ */
+/**
+ * Why the answer came out with the sign it did.
+ *
+ * Three genuinely different situations, and saying the wrong one is worse
+ * than saying nothing. Subtracting a negative is the headline case. Otherwise
+ * the two amounts either push the same way, in which case they pile up and no
+ * comparison is involved, or they push against each other, in which case the
+ * bigger one decides -- and only then is "which is bigger" the right thing to
+ * say. An earlier version said it every time, which made "−1/10 − 1/5 is
+ * negative because 2 is more than 1" -- true numbers, wrong reason, and the
+ * reason is the whole point of the level.
+ */
+function why(work, subtracting, b, common) {
+  // What each side actually contributes, once the subtraction is folded in.
+  const left = work.left.n;
+  const right = subtracting ? -work.right.n : work.right.n;
+  if (subtracting && b.n < 0) {
+    return 'Taking away a negative adds: the answer comes out bigger than what you '
+      + 'started with, which is the one that looks wrong and is not.';
+  }
+  if ((left < 0) === (right < 0)) {
+    return `Both move the same way, so they pile up rather than cancel — the answer is `
+      + 'further from zero than either of them.';
+  }
+  return 'They pull against each other, so the bigger one decides the sign, not the '
+    + `number of minus signs: ${Math.abs(left)} against ${Math.abs(right)} `
+    + `${nths(common)}.`;
+}
+
+function signedAddSub(rng, subtracting) {
+  const shape = rng.int(0, 2);
+  // 0: the first is negative   1: the second is   2: both are
+  const a = pick(rng, shape === 1 ? 1 : -1);
+  const b = pick(rng, shape === 0 ? 1 : -1);
+  const work = combine(a, b, subtracting ? '-' : '+');
+  const value = reduce(work.result);
+  if (value.n === 0) return signedAddSub(rng, subtracting);
+  const op = subtracting ? '−' : '+';
+  const common = work.common;
+
+  // A negative operand after an operator is bracketed, the way it is written
+  // everywhere: "1/2 − (−3/4)", never "1/2 − −3/4".
+  const second = b.n < 0
+    ? T.group([T.frac(b.n, b.d, 2)], 2)
+    : T.frac(b.n, b.d, 2);
+  const bText = b.n < 0 ? `(${format(b)})` : format(b);
+  const sum = `${work.left.n} ${op} ${work.right.n < 0 ? `(${work.right.n})` : work.right.n}`;
+
+  return {
+    prompt: T.asks(T.frac(a.n, a.d, 1), T.op(op), second),
+    text: `${format(a)} ${op} ${bText}`,
+    answer: { type: 'frac', value, requireSimplest: true },
+    visual: {
+      kind: 'evalmodel',
+      lines: [`${format(a)} ${op} ${bText}`.replace(/-/g, '−'),
+              `${work.left.n}/${common} ${op} ${work.right.n < 0
+                ? `(${work.right.n}/${common})` : `${work.right.n}/${common}`}`.replace(/-/g, '−'),
+              `${sum} = ${work.result.n}`.replace(/-/g, '−'),
+              format(value).replace(/-/g, '−')],
+      rules: [`rewrite both in ${nths(common)}`,
+              'now it is whole numbers with signs',
+              'in lowest terms'],
+      hint: 'Match the pieces first. The signs come along unchanged.',
+    },
+    explain: `In ${nths(common)} this is ${sum.replace(/-/g, '−')}, which is `
+      + `${String(work.result.n).replace(/-/g, '−')}, `
+      + `so ${format(value).replace(/-/g, '−')}. ${why(work, subtracting, b, common)}`,
   };
 }
 
@@ -159,22 +250,29 @@ function whatSign(rng) {
       + `${count} is ${negative ? 'odd' : 'even'}, so the answer is `
       + `${negative ? 'negative' : 'positive'}. Negatives cancel in pairs, and dividing `
       + 'behaves exactly as multiplying does about this — so the count is all you need, '
-      + 'and you have it before doing any of the arithmetic.',
+      + 'and you have it before doing any of the arithmetic. '
+      + 'Only for × and ÷, though: −3/4 + 1/2 has one negative and so does −1/4 + 1/2, '
+      + 'and they come out with different signs. Adding is decided by which is bigger.',
   };
 }
 
 /** Dividing draws either one negative or two, so both cases stay live. */
 const CONTENT = [
   whereTheMinus,
+  (r) => signedAddSub(r, false),
+  (r) => signedAddSub(r, true),
   (r) => signedOperation(r, 1, false),
   (r) => signedOperation(r, 2, false),
   (r) => signedOperation(r, r.chance(0.6) ? 1 : 2, true),
 ];
 
+/** The strategy level's position; everything after it is the mixed level. */
+const STRATEGY = 6;
+
 /** @param {import('../../web/engine/rng.js').Rng} rng @param {number} level */
 export function generate(rng, level) {
   // The mixed level leaves out the strategy level, whose answer is a choice.
-  const p = level === 4 ? whatSign(rng)
+  const p = level === STRATEGY ? whatSign(rng)
     : level >= LAST_LEVEL ? rng.pick(CONTENT)(rng)
     : CONTENT[level](rng);
   p.parSeconds = PAR_SECONDS[level];

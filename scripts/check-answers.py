@@ -196,6 +196,12 @@ BY_RULE = (
     (re.compile(r"^estimate ([\d.]+) ([×+]) ([\d.]+)$"),
      lambda a, op, b: (half_up(Fraction(a), 0) * half_up(Fraction(b), 0) if op == "×"
                        else half_up(Fraction(a), 0) + half_up(Fraction(b), 0))),
+    # Mixed-number arithmetic. The evaluator cannot read "1 1/10 + 2 1/2" --
+    # a whole beside a fraction is juxtaposition meaning addition, which is
+    # not what juxtaposition means anywhere else in this notation -- so the
+    # conversion to improper happens here, by the same route a student takes.
+    (re.compile(r"^(\d+) (\d+)/(\d+) ([+\u2212×÷]) (\d+) (\d+)/(\d+)$"),
+     lambda aw, an, ad, op, bw, bn, bd: mixed_op(aw, an, ad, op, bw, bn, bd)),
     # A linear inequality, solved from scratch -- including the flip, which is
     # derived here from the sign of the coefficient rather than copied from
     # the generator's own reasoning about it.
@@ -204,6 +210,13 @@ BY_RULE = (
      lambda neg, coeff, _v, op, b, sign, rhs, want:
         solve_inequality(neg, coeff, op, b, sign, rhs, want)),
 )
+
+
+def mixed_op(aw, an, ad, op, bw, bn, bd):
+    """Two mixed numbers combined, each converted to an improper fraction first."""
+    a = Fraction(aw * ad + an, ad)
+    b = Fraction(bw * bd + bn, bd)
+    return {"+": a + b, "\u2212": a - b, "×": a * b, "÷": a / b}[op]
 
 
 def solve_inequality(neg, coeff, op, b, sign, rhs, want):

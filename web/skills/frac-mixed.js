@@ -21,6 +21,14 @@ export const LEVELS = [
     requireSimplest: true,
   },
   {
+    name: 'Working With Them', slug: 'working-with-them',
+    blurb: '2 1/2 × 1 3/4. Convert, do it, convert back — and the middle bit is top-heavy.',
+    requireSimplest: true,
+    // The arithmetic itself is frac-muldiv's and frac-addsub's; what is new
+    // is that both operands and the working are improper on the way through.
+    dependsOn: [{ skill: 'frac-muldiv', level: 1 }],
+  },
+  {
     name: 'Which Form?', slug: 'which-form',
     kind: 'strategy',
     blurb: 'Knowing how to convert is half of it. Knowing when to is the rest.',
@@ -39,7 +47,7 @@ export const LEVELS = [
 ];
 
 export const LAST_LEVEL = LEVELS.length - 1;
-export const PAR_SECONDS = [14, 14, 12, 16, 20, 16, 18];
+export const PAR_SECONDS = [14, 14, 12, 16, 20, 30, 16, 22];
 
 /**
  * The runtime definition of this skill: what the student sees and how the

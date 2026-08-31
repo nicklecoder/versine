@@ -9,7 +9,8 @@
  *
  * Run via: node scripts/build-library.mjs
  */
-import { frac, reduce, isSimplest, format, gcd } from '../../web/math/frac.js';
+import { frac, reduce, multiply, divide, combine, isSimplest, format, gcd, nths }
+  from '../../web/math/frac.js';
 import { LEVELS, LAST_LEVEL, PAR_SECONDS } from '../../web/skills/frac-mixed.js';
 import * as T from '../terms.js';
 /** A denominator worth drawing: small enough that the bars stay readable. */
@@ -152,8 +153,119 @@ function whichForm(rng) {
     explain: fill(situation.why),
   };
 }
+/** A mixed number as a term, and as an improper fraction. */
+function mixedNumber(rng) {
+  const d = denominator(rng);
+  const w = rng.int(1, 5);
+  // As a book would print it: the fractional part is already in lowest terms.
+  const n = leftover(rng, d, false);
+  return { w, n, d, improper: frac(w * d + n, d) };
+}
+
+/**
+ * How the answer is written: a whole, a whole and a bit, or -- when the
+ * result came out under one -- just the bit. Mirrors the mixed answer type's
+ * own formatting, so the explain and the accepted answer agree; an earlier
+ * version wrote "0 13/46", which is not how anyone writes it and is not what
+ * the student would have typed.
+ */
+const asMixed = (f) => {
+  const w = Math.floor(f.n / f.d);
+  const rest = f.n - w * f.d;
+  if (!rest) return String(w);
+  return w ? `${w} ${rest}/${f.d}` : `${rest}/${f.d}`;
+};
+
+/**
+ * Arithmetic on mixed numbers, which nothing in the catalogue asked for.
+ *
+ * The skill taught both conversions and then had a strategy level asking
+ * which form to use before dividing 2 1/2 by 2 -- a judgement about an
+ * operation the student had never once performed and never would. That is
+ * the same shape of hole as a level arbitrating between expanding and
+ * factorising when only expanding was ever drilled: the judgement is real,
+ * and it was being made about nothing.
+ *
+ * It is also, plainly, the form these numbers turn up in. A recipe says 2 1/2
+ * cups and a plank is 6 3/4 feet; nobody outside a worksheet says 5/2.
+ *
+ * Both operations that need converting and both that do not, because the
+ * strategy level after this one arbitrates between exactly those two cases
+ * and needs each to have been met. The working goes through improper
+ * fractions on the way, which is the other thing this level is for: the
+ * middle of the calculation is top-heavy even when neither end is.
+ */
+function mixedArithmetic(rng) {
+  const a = mixedNumber(rng);
+  const b = mixedNumber(rng);
+  const op = rng.pick(['+', '−', '×', '÷']);
+  const times = op === '×' || op === '÷';
+
+  // Subtraction stays above zero: this skill's answer type is a mixed number
+  // and a mixed number has no way to write a minus. Signed fractions are a
+  // skill of their own, where the answer is a plain fraction and can.
+  //
+  // Compared by cross-multiplication, not by numerator. Comparing the tops
+  // across different denominators made 1 16/18 come out "bigger" than 5 1/4,
+  // and the build refused the negative answer that followed -- which is the
+  // round-trip check doing exactly the job it exists for.
+  const bigger = a.improper.n * b.improper.d >= b.improper.n * a.improper.d;
+  const [x, y] = op === '−' && !bigger ? [b, a] : [a, b];
+  const work = times ? null : combine(x.improper, y.improper, op === '−' ? '-' : '+');
+  const raw = op === '×' ? multiply(x.improper, y.improper)
+    : op === '÷' ? divide(x.improper, y.improper)
+    : work.result;
+  const value = reduce(raw);
+  // Nothing to convert back is a different question, and Exactly Whole is it.
+  if (value.n === 0 || value.d === 1) return mixedArithmetic(rng);
+  if (value.n > 400 || value.d > 60) return mixedArithmetic(rng);
+
+  const lhs = `${x.w} ${x.n}/${x.d}`;
+  const rhs = `${y.w} ${y.n}/${y.d}`;
+  const improperLine = `${format(x.improper)} ${op} ${format(y.improper)}`;
+  const middle = times
+    ? format(raw)
+    : `${format(work.left)} ${op} ${format(work.right)}`;
+
+  return {
+    promptTerms: [T.mixed(x.w, x.n, x.d, 1), T.op(op), T.mixed(y.w, y.n, y.d, 2)],
+    text: `${lhs} ${op} ${rhs}`,
+    answer: { type: 'mixed', value, requireSimplest: true },
+    visual: {
+      kind: 'evalmodel',
+      lines: [`${lhs} ${op} ${rhs}`, improperLine, middle,
+              format(raw), asMixed(value)],
+      rules: ['each one as a top-heavy fraction',
+              times ? 'then it is ordinary fraction arithmetic'
+                : `over ${nths(work.common)}, so the pieces match`,
+              'work it out', 'and back to a whole and a bit'],
+      hint: 'What has to happen before these can be combined?',
+    },
+    explain: `${lhs} is ${format(x.improper)} and ${rhs} is ${format(y.improper)}. `
+      + (times
+        ? `${improperLine} = ${format(raw)}`
+        : `Over ${nths(work.common)} that is ${middle} = ${format(raw)}`)
+      + `, which is ${asMixed(value)}. `
+      + (times
+        ? 'Multiplying and dividing need the top-heavy form — there is no way to '
+          + 'multiply the wholes and the parts separately and get the right answer.'
+        : 'Adding and subtracting could be done by keeping the wholes apart, but the '
+          + 'top-heavy form never needs a borrow, which is why it is the safer habit.'),
+  };
+}
+
 function build(rng, level, requireSimplest) {
-  if (level === 5) return whichForm(rng);
+  if (level === 5) {
+    const p = mixedArithmetic(rng);
+    return {
+      prompt: T.asks(...p.promptTerms),
+      text: p.text,
+      answer: p.answer,
+      visual: p.visual,
+      explain: p.explain,
+    };
+  }
+  if (level === 6) return whichForm(rng);
   const make = level === 1 ? toImproper
     : level === 2 ? exactlyWhole
     : level === 0 ? (r) => toMixed(r, requireSimplest)
@@ -178,5 +290,7 @@ export function generate(rng, level) {
     problem.parSeconds = PAR_SECONDS[LAST_LEVEL];
     return problem;
   }
-  return build(rng, level, !!LEVELS[level].requireSimplest);
+  const problem = build(rng, level, !!LEVELS[level].requireSimplest);
+  problem.parSeconds = PAR_SECONDS[level];
+  return problem;
 }

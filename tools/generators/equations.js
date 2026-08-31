@@ -39,7 +39,7 @@ function ask(src, v) {
 /** x + 7 = 12, or x − 4 = 9. */
 function undoAdd(rng) {
   const v = rng.pick(VARS);
-  const x = rng.int(1, 20);
+  const x = rng.int(0, 20);
   const b = rng.int(1, 20);
   const plus = rng.chance(0.6);
   const rhs = plus ? x + b : x - b;
@@ -104,10 +104,11 @@ function undoMultiply(rng) {
  */
 function twoSteps(rng) {
   const v = rng.pick(VARS);
-  const x = rng.int(1, 12);
+  // Zero is allowed to be the answer. It was excluded, and a student who has
+  // never seen a solution of nought reads one as having failed to solve it.
+  const x = rng.int(0, 12);
   const k = rng.int(2, 9);
   const b = rng.int(1, 20);
-  if (x === 0) return twoSteps(rng);
   const rhs = k * x + b;
   const src = b >= 0 ? `${k}${v} + ${b} = ${rhs}` : `${k}${v} - ${-b} = ${rhs}`;
   const undo = b >= 0 ? `subtract ${b} from both sides` : `add ${-b} to both sides`;

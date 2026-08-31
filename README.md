@@ -919,7 +919,7 @@ and nothing yet fills — geometry beyond coordinates, trigonometry, and chance
 and data. Ratio and gradient are the rungs trigonometry stands on and both are
 in, so that is the order to take them in.
 
-One thing worth not repeating. Negatives were taught in the Integers category
+Two things worth not repeating. Negatives were taught in the Integers category
 and then never used again: for a long stretch the catalogue held tens of
 thousands of problems across fractions, decimals, percents, ratio and
 equations without a single negative answer among them, so a student drilled to
@@ -929,6 +929,17 @@ them asks what the catalogue as a whole never does. A gap of that shape is
 invisible to a test suite and shows up only by counting — which is worth doing
 deliberately, now and then, along whichever axis a skill might have been
 quarantined on.
+
+The second is narrower and has the same cause. A skill can teach every idea
+it names and still never present some ordinary *shape* of the problem, and a
+student meeting that shape for the first time in an exam has effectively met
+a new topic. Adding fractions never once summed to exactly one. Solving
+equations never had an answer of nought. Nothing anywhere did arithmetic on a
+mixed number, though a strategy level asked which form to use before dividing
+2 1/2 by 2 — a judgement about an operation the catalogue could not perform.
+None of these are bugs and no check will ever find them, because each level
+does correctly what it says it does. They are found by asking, of a skill you
+believe is finished, what it never asks.
 
 Ideas parked for later: live head-to-head races over the LAN (the server is
 already the right shape for it), a spaced-repetition "daily mix" across skills,

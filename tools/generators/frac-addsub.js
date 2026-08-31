@@ -170,10 +170,20 @@ function build(rng, level, requireSimplest) {
   for (let i = 0; i < 40; i++) {
     ({ a, b, op } = draw(rng, level));
     work = combine(a, b, op);
-    // Reject: nothing to do (zero), a whole number, or a result above one.
-    // A bar model draws a single whole, so improper results have no picture
-    // here -- they belong to the improper/mixed-number skill instead.
-    if (work.result.n > 0 && work.result.n < work.result.d) break;
+    // A result *above* one still has no picture here: the bar model draws a
+    // single whole, and two wholes stacked would each flex to the full width
+    // and show a lie. Improper sums belong to the mixed-number skill.
+    //
+    // Exactly one and exactly zero do have pictures, though -- a result bar
+    // filled to the end, and an empty one -- and they were being thrown away
+    // with the improper ones for no reason beyond sharing a comparison.
+    // 1/4 + 3/4 making a whole is one of the shapes a student meets most.
+    //
+    // It only ever turns up on the same-denominator level, and that is a fact
+    // rather than an oversight: if two fractions in lowest terms sum to one
+    // then each is the other's complement, which forces the denominators to
+    // match. Nothing to fix here, so nobody should try.
+    if (work.result.n >= 0 && work.result.n <= work.result.d) break;
   }
   const expected = requireSimplest ? reduce(work.result) : work.result;
   const opSign = op === '-' ? '−' : '+';
