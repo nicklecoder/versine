@@ -341,6 +341,16 @@ precise edges can never contradict the coarse ones. `validateGraph()` in
 `web/engine/registry.js` checks that, plus unknown ids, out-of-range levels and
 cycles.
 
+The edges worth the most are the ones that say **this is that move again**.
+Scaling a ratio is building an equivalent fraction, putting a ratio in
+simplest form is dividing out the greatest common factor, and taking a share
+of a total is multiplying by a fraction — three notations over one piece of
+arithmetic. Left undeclared, a student meets each a second time as a new
+topic and learns it twice, which is most of what "bad at fractions" turns out
+to mean. So the edge is declared and, where it matters, the *picture* is the
+same picture: `quantitymodel` and `ratiomodel` draw the same bar because
+`3/8 × 24` and "3 : 5 of 24, first share" are the same question.
+
 An earlier design described problems with a faceted tag vocabulary
 (`rule:sub-a-negative` and so on). It was removed: it needed its own grammar,
 its own curation policy, and it invited a combinatorial explosion of
@@ -627,7 +637,7 @@ Each skill names the kind of picture its problems want, and `web/ui/visuals.js`
 dispatches on it. The play screen never learns what kinds exist, so adding a
 bar model for fractions means adding one entry to that registry.
 
-Ten exist so far:
+Eleven exist so far:
 
 - **`numberline`** — integer addition and subtraction. Chained hops.
 - **`signmodel`** — integer multiplication and division. Splits the problem
@@ -655,7 +665,10 @@ Ten exist so far:
   bar cut into different pieces. Only the fraction you were *given* is drawn
   while the question is open; the second bar would let you count the answer
   straight off it, so it arrives with the reveal, aligned underneath, where
-  both shadings stopping in the same place is the whole point.
+  both shadings stopping in the same place is the whole point. A third bar
+  appears for the awkward case: `4/6 = ?/9` has no whole number to multiply
+  by, so the route runs down through lowest terms and back up, and the picture
+  draws that detour rather than captioning itself with a factor of 1.5.
 - **`evalmodel`** — order of operations. The working written out line by line,
   each labelled with the rule that justified it. While the question is open
   only the first line shows — that line *is* the question; everything after it
@@ -671,9 +684,17 @@ Ten exist so far:
   picture of a ratio that gets the ratio wrong. Cutting one bar keeps the
   proportions honest and puts both readings on screen at once, 3 to 5 against
   the unshaded part and 3 of 8 against the whole, which is the confusion the
-  skill exists to settle. It is also the first entry that is an *adapter* over
-  the shared segments primitive rather than a renderer of its own, which is
-  what the naming lesson below was for.
+  skill exists to settle. It takes the same middle bar as `equivmodel` when
+  neither ratio is a whole number of times the other. It was also the first
+  entry to be an *adapter* over the shared segments primitive rather than a
+  renderer of its own, which is what the naming lesson below was for.
+- **`quantitymodel`** — a fraction of a quantity. The whole cut into the
+  denominator's parts with the numerator's worth shaded, and what one part is
+  worth withheld until an answer is in, since it is one multiplication from
+  the answer. The second adapter, and it is drawn to look like the ratio bar
+  deliberately: `3/8 × 24` and "they are in the ratio 3 : 5, how many of the
+  24 are red" are one question in two notations, and a student shown two
+  different diagrams learns them as two topics.
 - **`barmodel`** — adding and subtracting fractions. Two bars of *identical*
   length, divided by their own denominators. That alignment is the point: it
   makes visible that a half and a third are different-sized pieces, which is

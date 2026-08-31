@@ -17,9 +17,20 @@ import { drawSegments } from './segments.js';
  * scaled bar arrives with the reveal, underneath it, where the two shadings
  * ending in the same place is the thing worth seeing.
  *
+ * `via` is for the case where neither ratio is a whole number of times the
+ * other. 6 : 8 = ? : 12 has no single multiplier, and the route runs down to
+ * simplest form and back up; drawing that middle bar shows the detour rather
+ * than asserting a factor that is not a whole number. It is the same middle
+ * bar equivmodel draws for 4/6 = ?/9, deliberately -- the two pictures are
+ * the same picture, and a student meeting the second should recognise it.
+ *
  * @typedef {{a:number, b:number}} Parts
- * @typedef {{a:number, b:number, to?:Parts, by?:string, note?:string}} RatioSpec
+ * @typedef {{a:number, b:number, to?:Parts, via?:Parts, by?:string,
+ *            note?:string}} RatioSpec
  */
+
+/** "1 part", "3 parts" -- a unit ratio is common and reads badly pluralised. */
+const parts = (k) => `${k} part${k === 1 ? '' : 's'}`;
 
 const row = (a, b, tone) => ({ label: `${a} : ${b}`, bars: [{ total: a + b, filled: a, tone }] });
 
@@ -40,23 +51,35 @@ const skinFor = (total) => (total > 20 ? 'fine' : 'ruled');
  * @param {{reveal?:boolean, verdict?:'ok'|'bad'}} [opts]
  */
 export function drawRatioModel(container, spec, { reveal = false, verdict = null } = {}) {
-  const { a, b, to, by, note } = spec;
+  const { a, b, to, via, by, note } = spec;
 
   if (!reveal || !to) {
     return drawSegments(container, {
       rows: [row(a, b, 'var(--vec-1)')],
       skin: skinFor(a + b),
-      note: note ?? `${a} parts to ${b}, so ${a + b} parts in all.`,
+      note: note ?? `${parts(a)} to ${b}, so ${a + b} parts in all.`,
     }, { verdict });
   }
 
+  const sep = (text) => ({ sep: text, tone: 'note', verdict: true });
+
   drawSegments(container, {
-    rows: [
-      row(a, b, 'var(--vec-1)'),
-      { sep: by ?? 'the same ratio, in bigger parts', tone: 'note', verdict: true },
-      row(to.a, to.b, 'var(--result)'),
-    ],
+    rows: via
+      ? [
+        row(a, b, 'var(--vec-1)'),
+        sep(`÷ ${(a + b) / (via.a + via.b)} on both parts`),
+        row(via.a, via.b, 'var(--vec-2)'),
+        sep(`× ${(to.a + to.b) / (via.a + via.b)} on both parts`),
+        row(to.a, to.b, 'var(--result)'),
+      ]
+      : [
+        row(a, b, 'var(--vec-1)'),
+        sep(by ?? 'the same ratio, in bigger parts'),
+        row(to.a, to.b, 'var(--result)'),
+      ],
     skin: skinFor(Math.max(a + b, to.a + to.b)),
-    note: 'Both shadings stop in the same place — the same ratio, differently cut.',
+    note: via
+      ? 'Three cuts of the same length. No single whole number gets from the first to the last.'
+      : 'Both shadings stop in the same place — the same ratio, differently cut.',
   }, { verdict });
 }

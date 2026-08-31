@@ -14,6 +14,9 @@ import { LEVELS, LAST_LEVEL, PAR_SECONDS } from '../../web/skills/ratio.js';
 
 const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
 
+/** "1 part", "3 parts" -- a unit ratio is common and reads badly pluralised. */
+const parts = (k) => `${k} part${k === 1 ? '' : 's'}`;
+
 /**
  * The ratios a level starts from: both parts small, unequal, and sharing no
  * factor.
@@ -53,7 +56,7 @@ function equivalentRatios(rng) {
     visual: {
       kind: 'ratiomodel',
       a, b, to: { a: A, b: B }, by: `× ${k} on both parts`,
-      note: `${a} parts to ${b}. Both parts grow by the same amount or it is a different ratio.`,
+      note: `${parts(a)} to ${b}. Both parts grow by the same amount or it is a different ratio.`,
     },
     explain: `Both parts are multiplied by the same number. ${a} became ${A}, which is × ${k}, `
       + `so ${b} becomes ${b} × ${k} = ${B}.`,
@@ -76,10 +79,60 @@ function simplestForm(rng) {
     visual: {
       kind: 'ratiomodel',
       a: A, b: B, to: { a, b }, by: `÷ ${k} on both parts`,
-      note: `${A} parts to ${B}. The same ratio can be told in fewer parts.`,
+      note: `${parts(A)} to ${B}. The same ratio can be told in fewer parts.`,
     },
     explain: `${A} and ${B} share a factor of ${k}, and dividing both by it is the same ratio in `
       + `fewer parts. ${A} ÷ ${k} = ${a}, so the other part is ${B} ÷ ${k} = ${b}.`,
+  };
+}
+
+/**
+ * Two multipliers of the same base ratio, neither a whole number of times the
+ * other -- 6 : 8 against 9 : 12, both of them 3 : 4.
+ *
+ * Equivalent Ratios and Simplest Form both start from a coprime pair, which
+ * means one multiplication or one division always does it and the level can
+ * be cleared by spotting a factor. Here there is no factor to spot, and the
+ * only way across is simplest form. Same shape as frac-equiv's Through
+ * Simplest Form, in the other notation, on purpose.
+ */
+function awkwardPair(rng, parts) {
+  const fits = [];
+  for (let j = 2; j <= 6; j++) {
+    for (let k = 2; k <= 6; k++) {
+      if (j === k || j % k === 0 || k % j === 0) continue;
+      if (parts * Math.max(j, k) <= MAX_PARTS) fits.push([j, k]);
+    }
+  }
+  return fits.length ? rng.pick(fits) : null;
+}
+
+function notInSimplestForm(rng) {
+  let base, pair;
+  do {
+    base = rng.pick(SIMPLE.filter(([x, y]) => x + y <= 8));
+    pair = awkwardPair(rng, base[0] + base[1]);
+  } while (!pair);
+  const [p, q] = base;
+  const [j, k] = pair;
+  const [a, b] = [p * j, q * j];
+  const [A, B] = [p * k, q * k];
+  const askSecond = rng.chance(0.5);
+
+  return {
+    prompt: askSecond
+      ? [T.num(a, 1), T.op(':'), T.num(b, 2), T.op('='), T.num(A, 1), T.op(':'), T.blank()]
+      : [T.num(a, 1), T.op(':'), T.num(b, 2), T.op('='), T.blank(), T.op(':'), T.num(B, 2)],
+    text: askSecond ? `${a} : ${b} = ${A} : ?` : `${a} : ${b} = ? : ${B}`,
+    answer: { type: 'int', value: askSecond ? B : A },
+    visual: {
+      kind: 'ratiomodel',
+      a, b, to: { a: A, b: B }, via: { a: p, b: q },
+      note: `${parts(a)} to ${b}. Is that already as few parts as it could be?`,
+    },
+    explain: `${a} : ${b} is not ${A} : ${B} by any whole number of times, so simplify. `
+      + `Both are ${p} : ${q} -- ${a} ÷ ${j} = ${p} and ${A} ÷ ${k} = ${p} -- `
+      + `so the missing part is ${askSecond ? `${q} × ${k} = ${B}` : `${p} × ${k} = ${A}`}.`,
   };
 }
 
@@ -122,11 +175,13 @@ function partAndWhole(rng) {
     visual: {
       kind: 'ratiomodel',
       a, b, to: { a: a * m, b: b * m }, by: `× ${m}, to make ${total} in all`,
-      note: `${a} parts to ${b} is ${a + b} parts in all — not ${a} out of ${b}.`,
+      note: `${parts(a)} to ${b} is ${a + b} parts in all — not ${a} out of ${b}.`,
     },
     explain: `${a} : ${b} means ${a + b} equal parts, not ${a} out of ${b}. `
       + `${total} ÷ ${a + b} = ${m} in each part, and ${name} is ${want} of them, `
-      + `so ${want} × ${m} = ${want * m}.`,
+      + `so ${want} × ${m} = ${want * m}. `
+      + `Which is the same as taking ${want}/${a + b} of ${total} -- a share of a total is a `
+      + `fraction of a quantity, and ${want}/${a + b} × ${total} = ${want * m} either way.`,
   };
 }
 
@@ -255,12 +310,13 @@ export function generate(rng, level) {
     switch (lv) {
       case 0: return equivalentRatios(rng);
       case 1: return simplestForm(rng);
-      case 2: return partAndWhole(rng);
-      case 3: return unitRate(rng);
-      case 4: return scaling(rng);
-      case 5: return scaleOrFindOne(rng);
-      default: return rng.pick([equivalentRatios, simplestForm, partAndWhole, unitRate,
-                                scaling])(rng);
+      case 2: return notInSimplestForm(rng);
+      case 3: return partAndWhole(rng);
+      case 4: return unitRate(rng);
+      case 5: return scaling(rng);
+      case 6: return scaleOrFindOne(rng);
+      default: return rng.pick([equivalentRatios, simplestForm, notInSimplestForm, partAndWhole,
+                                unitRate, scaling])(rng);
     }
   };
   const p = build(level >= LAST_LEVEL ? rng.int(0, LAST_LEVEL - 2) : level);

@@ -1,5 +1,5 @@
 {
-  "built": 107,
+  "built": 111,
   "order": {
     "int-addsub": [
       "first-steps",
@@ -37,6 +37,7 @@
     "frac-muldiv": [
       "a-part-of-a-part",
       "multiplying-any-two",
+      "a-fraction-of-a-quantity",
       "how-many-fit",
       "dividing-fractions",
       "simplify-the-answer",
@@ -57,11 +58,14 @@
       "cut-it-down",
       "all-the-way-down",
       "missing-piece",
+      "through-simplest-form",
+      "straight-up-or-simplify",
       "all-together"
     ],
     "ratio": [
       "equivalent-ratios",
       "simplest-form",
+      "not-in-simplest-form",
       "part-and-whole",
       "unit-rate",
       "scaling-up-and-down",
@@ -143,7 +147,7 @@
       "all-together"
     ]
   },
-  "sources": "a71d3b8506734714bd8dacf3e7e767e41d0205aa80c45fa0c0f52c4086df617f",
+  "sources": "018ad44cb2733c5ade6be348596cab8efa953be338d4d994991e8e6b275f9bd8",
   "levels": [
     {
       "skill": "int-addsub",
@@ -418,9 +422,9 @@
     {
       "skill": "frac-muldiv",
       "level": 2,
-      "slug": "how-many-fit",
-      "name": "How Many Fit",
-      "count": 68,
+      "slug": "a-fraction-of-a-quantity",
+      "name": "A Fraction of a Quantity",
+      "count": 322,
       "exhaustive": true,
       "signed": false,
       "file": "frac-muldiv-2.json"
@@ -428,18 +432,18 @@
     {
       "skill": "frac-muldiv",
       "level": 3,
-      "slug": "dividing-fractions",
-      "name": "Dividing Fractions",
-      "count": 880,
-      "exhaustive": false,
+      "slug": "how-many-fit",
+      "name": "How Many Fit",
+      "count": 68,
+      "exhaustive": true,
       "signed": false,
       "file": "frac-muldiv-3.json"
     },
     {
       "skill": "frac-muldiv",
       "level": 4,
-      "slug": "simplify-the-answer",
-      "name": "Simplify the Answer",
+      "slug": "dividing-fractions",
+      "name": "Dividing Fractions",
       "count": 879,
       "exhaustive": false,
       "signed": false,
@@ -448,12 +452,22 @@
     {
       "skill": "frac-muldiv",
       "level": 5,
+      "slug": "simplify-the-answer",
+      "name": "Simplify the Answer",
+      "count": 879,
+      "exhaustive": true,
+      "signed": false,
+      "file": "frac-muldiv-5.json"
+    },
+    {
+      "skill": "frac-muldiv",
+      "level": 6,
       "slug": "all-together",
       "name": "All Together",
       "count": 1000,
       "exhaustive": false,
       "signed": false,
-      "file": "frac-muldiv-5.json"
+      "file": "frac-muldiv-6.json"
     },
     {
       "skill": "frac-mixed",
@@ -570,7 +584,7 @@
       "level": 4,
       "slug": "missing-piece",
       "name": "Missing Piece",
-      "count": 122,
+      "count": 244,
       "exhaustive": true,
       "signed": false,
       "file": "frac-equiv-4.json"
@@ -578,12 +592,32 @@
     {
       "skill": "frac-equiv",
       "level": 5,
-      "slug": "all-together",
-      "name": "All Together",
-      "count": 516,
+      "slug": "through-simplest-form",
+      "name": "Through Simplest Form",
+      "count": 214,
       "exhaustive": true,
       "signed": false,
       "file": "frac-equiv-5.json"
+    },
+    {
+      "skill": "frac-equiv",
+      "level": 6,
+      "slug": "straight-up-or-simplify",
+      "name": "Straight Up, or Simplify?",
+      "count": 400,
+      "exhaustive": true,
+      "signed": false,
+      "file": "frac-equiv-6.json"
+    },
+    {
+      "skill": "frac-equiv",
+      "level": 7,
+      "slug": "all-together",
+      "name": "All Together",
+      "count": 852,
+      "exhaustive": true,
+      "signed": false,
+      "file": "frac-equiv-7.json"
     },
     {
       "skill": "ratio",
@@ -608,9 +642,9 @@
     {
       "skill": "ratio",
       "level": 2,
-      "slug": "part-and-whole",
-      "name": "Part and Whole",
-      "count": 428,
+      "slug": "not-in-simplest-form",
+      "name": "Not in Simplest Form",
+      "count": 560,
       "exhaustive": true,
       "signed": false,
       "file": "ratio-2.json"
@@ -618,9 +652,9 @@
     {
       "skill": "ratio",
       "level": 3,
-      "slug": "unit-rate",
-      "name": "Unit Rate",
-      "count": 448,
+      "slug": "part-and-whole",
+      "name": "Part and Whole",
+      "count": 428,
       "exhaustive": true,
       "signed": false,
       "file": "ratio-3.json"
@@ -628,18 +662,18 @@
     {
       "skill": "ratio",
       "level": 4,
-      "slug": "scaling-up-and-down",
-      "name": "Scaling Up and Down",
-      "count": 1000,
-      "exhaustive": false,
+      "slug": "unit-rate",
+      "name": "Unit Rate",
+      "count": 448,
+      "exhaustive": true,
       "signed": false,
       "file": "ratio-4.json"
     },
     {
       "skill": "ratio",
       "level": 5,
-      "slug": "scale-or-find-one",
-      "name": "Scale, or Find One?",
+      "slug": "scaling-up-and-down",
+      "name": "Scaling Up and Down",
       "count": 1000,
       "exhaustive": false,
       "signed": false,
@@ -648,12 +682,22 @@
     {
       "skill": "ratio",
       "level": 6,
+      "slug": "scale-or-find-one",
+      "name": "Scale, or Find One?",
+      "count": 1000,
+      "exhaustive": false,
+      "signed": false,
+      "file": "ratio-6.json"
+    },
+    {
+      "skill": "ratio",
+      "level": 7,
       "slug": "all-together",
       "name": "All Together",
       "count": 1000,
       "exhaustive": false,
       "signed": false,
-      "file": "ratio-6.json"
+      "file": "ratio-7.json"
     },
     {
       "skill": "order-ops",

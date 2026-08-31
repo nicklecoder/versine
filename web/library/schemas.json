@@ -150,6 +150,10 @@
         "required": true,
         "phase": "answer"
       },
+      "via": {
+        "type": "frac",
+        "phase": "answer"
+      },
       "reveal": {
         "type": "enum",
         "values": [
@@ -157,6 +161,32 @@
           "from",
           "none"
         ]
+      }
+    },
+    "quantitymodel": {
+      "n": {
+        "type": "int",
+        "min": 1,
+        "required": true
+      },
+      "d": {
+        "type": "int",
+        "min": 2,
+        "max": 40,
+        "required": true
+      },
+      "whole": {
+        "type": "int",
+        "min": 1,
+        "required": true
+      },
+      "each": {
+        "type": "int",
+        "phase": "answer"
+      },
+      "value": {
+        "type": "int",
+        "phase": "answer"
       }
     },
     "ratiomodel": {
@@ -171,6 +201,10 @@
         "required": true
       },
       "to": {
+        "type": "object",
+        "phase": "answer"
+      },
+      "via": {
         "type": "object",
         "phase": "answer"
       },

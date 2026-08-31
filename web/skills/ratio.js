@@ -7,11 +7,12 @@
  * unknown, and a trigonometric ratio is a ratio -- none of which is available
  * to a student who has only ever met ratios as a notation.
  *
- * Scaling a ratio is the same move as building an equivalent fraction, and
+ * Scaling a ratio is the same move as building an equivalent fraction,
  * putting one in simplest form is dividing both parts by their greatest
- * common factor. Both edges are declared rather than left implied, because
- * meeting the move a second time under a new name is where it either
- * generalises or becomes a second thing to remember.
+ * common factor, and taking a share of a total is multiplying by a fraction.
+ * All three edges are declared rather than left implied, because meeting a
+ * move a second time under a new name is where it either generalises or
+ * becomes a second thing to remember.
  *
  * The confusion the skill is built around is part-to-part against
  * part-to-whole. Told that red and blue are in the ratio 3 : 5, a student who
@@ -35,8 +36,23 @@ export const LEVELS = [
     // "What they share", taken all the way, is the greatest common factor.
     dependsOn: [{ skill: 'factors', level: 3 }],
   },
-  { name: 'Part and Whole', slug: 'part-and-whole',
-    blurb: '3 : 5 is three parts in every eight, not three fifths. The one that catches everyone.' },
+  {
+    name: 'Not in Simplest Form', slug: 'not-in-simplest-form',
+    blurb: '6 : 8 = ? : 12. Neither is a whole number of times the other, so simplify first.',
+    // The same awkward case as frac-equiv's Through Simplest Form, in ratio
+    // notation, and declared against it so the second meeting is a second
+    // meeting rather than a new topic.
+    dependsOn: [{ skill: 'frac-equiv', level: 5 }],
+  },
+  {
+    name: 'Part and Whole', slug: 'part-and-whole',
+    blurb: '3 : 5 is three parts in every eight, not three fifths. The one that catches everyone.',
+    // Taking the first share of a total IS a fraction of a quantity: 3 : 5 of
+    // 24 is 3/8 × 24. The level teaches the unitary route and names the
+    // fraction one beside it, because a student who sees them as two methods
+    // has to learn twice and will trust neither.
+    dependsOn: [{ skill: 'frac-muldiv', level: 2 }],
+  },
   { name: 'Unit Rate', slug: 'unit-rate',
     blurb: 'What one of them is worth. Divide, and everything else follows from it.' },
   { name: 'Scaling Up and Down', slug: 'scaling-up-and-down',
@@ -54,7 +70,7 @@ export const LEVELS = [
 ];
 
 export const LAST_LEVEL = LEVELS.length - 1;
-export const PAR_SECONDS = [14, 14, 22, 16, 24, 16, 24];
+export const PAR_SECONDS = [14, 14, 20, 22, 16, 24, 16, 24];
 
 /**
  * The runtime definition of this skill: what the student sees and how the
@@ -69,7 +85,7 @@ export default {
   glyph: '3:4',
   blurb: 'Comparing two amounts, and keeping the comparison when the amounts change.',
   answerInput: 'int',
-  dependsOn: ['frac-equiv', 'factors', 'int-muldiv'],
+  dependsOn: ['frac-equiv', 'frac-muldiv', 'factors', 'int-muldiv'],
   levels: LEVELS,
 
   /**

@@ -132,12 +132,18 @@ def var_in(text: str) -> str | None:
     return next((c for c in VARS if c in text), None)
 
 
-# Questions asked in words rather than in symbols. The evaluator above can
-# only re-derive something it can read as an expression, which leaves every
-# prose-asked level -- a whole skill's worth, here -- resting on nothing but
-# the generator agreeing with itself. These re-derive the answer from the two
-# numbers in the sentence, by a different route than the generator took.
-ASKED_IN_WORDS = (
+def as_fraction(v):
+    """An answer value, whatever shape it was stored in, as an exact rational."""
+    return Fraction(v["n"], v["d"]) if isinstance(v, dict) else Fraction(v)
+
+
+# Questions the evaluator cannot read as an expression: asked in words, or
+# written with a blank in them. Both left whole levels resting on nothing but
+# the generator agreeing with itself -- every prose-asked level, and, less
+# obviously, every equivalence, since "2/3 = ?/12" is not an expression and
+# fell through every branch below in silence. These re-derive the answer from
+# the numbers in the question, by a different route than the generator took.
+BY_RULE = (
     (re.compile(r"^GCF of (\d+) and (\d+)$"),
      lambda a, b: math.gcd(a, b)),
     (re.compile(r"^LCM of (\d+) and (\d+)$"),
@@ -154,6 +160,15 @@ ASKED_IN_WORDS = (
      lambda total, n: Fraction(total, n)),
     (re.compile(r"^(\d+) for (\d+), then (\d+)$"),
      lambda cost, n, want: Fraction(cost * want, n)),
+    # Equivalent fractions, either part missing. Cross-multiplication, which
+    # is not the route any generator takes: they all build outwards from a
+    # base fraction and a multiplier.
+    (re.compile(r"^(\d+)/(\d+) = \?/(\d+)$"),
+     lambda n, d, big_d: Fraction(n * big_d, d)),
+    (re.compile(r"^(\d+)/(\d+) = (\d+)/\?$"),
+     lambda n, d, big_n: Fraction(big_n * d, n)),
+    (re.compile(r"^(\d+)/(\d+) in lowest terms$"),
+     lambda n, d: Fraction(n, d)),
 )
 
 
@@ -178,13 +193,13 @@ for path in sorted(LIB.glob("*.json")):
             except Exception:
                 checked -= 1
 
-        # Asked in words: re-derive it from the numbers in the sentence.
-        elif any(rule.match(text) for rule, _ in ASKED_IN_WORDS):
-            rule, solve = next(r for r in ASKED_IN_WORDS if r[0].match(text))
+        # Asked in words, or written with a blank: re-derive from the numbers.
+        elif any(rule.match(text) for rule, _ in BY_RULE):
+            rule, solve = next(r for r in BY_RULE if r[0].match(text))
             args = [g if not g.isdigit() else int(g) for g in rule.match(text).groups()]
             want = Fraction(solve(*args))
             checked += 1
-            if want != Fraction(answer["value"]):
+            if want != as_fraction(answer["value"]):
                 problems.append(f"{where}: {text} is {want}, not {answer['value']}")
 
         # A plain arithmetic expression: work it out and compare.
@@ -195,8 +210,7 @@ for path in sorted(LIB.glob("*.json")):
                 want = evaluate(text)
             except Exception:
                 continue
-            v = answer["value"]
-            got = Fraction(v["n"], v["d"]) if isinstance(v, dict) else Fraction(v)
+            got = as_fraction(answer["value"])
             checked += 1
             if want != got:
                 problems.append(f"{where}: {text} is {want}, not {got}")

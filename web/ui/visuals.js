@@ -7,6 +7,7 @@ import { drawWholesModel } from './wholesmodel.js';
 import { drawEquivModel } from './equivmodel.js';
 import { drawEvalModel } from './evalmodel.js';
 import { drawRatioModel } from './ratiomodel.js';
+import { drawQuantityModel } from './quantitymodel.js';
 import { drawPlane } from './plane.js';
 
 /**
@@ -44,9 +45,11 @@ import { drawPlane } from './plane.js';
  * prompted it rather than the shape it draws. `barmodel`, `fitsmodel`,
  * `wholesmodel` and `equivmodel` are all a length cut into segments with some
  * emphasised. Name a primitive after its geometry, not its pedagogy, and it
- * gets reused; name it after the lesson and it never will. `ratiomodel` is
- * the first entry to arrive as an adapter over that primitive rather than
- * as a renderer of its own, which is what the lesson was for.
+ * gets reused; name it after the lesson and it never will. `ratiomodel` and
+ * `quantitymodel` are the two entries that arrived as adapters over that
+ * primitive rather than as renderers of their own, which is what the lesson
+ * was for -- and they draw deliberately similar pictures, because a ratio
+ * share and a fraction of a quantity are the same question twice.
  */
 const FRAC = { type: 'frac' };
 
@@ -101,11 +104,27 @@ export const VISUALS = {
       d: { type: 'int', min: 1, max: 64, required: true },
     },
   },
+  // `via` is the simplest form the awkward cases route through. It is
+  // withheld too: from 4/6 = ?/9, being shown 2/3 leaves only "× 3", which
+  // is most of the answer.
   equivmodel: {
     schema: {
       from: { ...FRAC, required: true },
       to: { ...FRAC, required: true, phase: 'answer' },
+      via: { ...FRAC, phase: 'answer' },
       reveal: { type: 'enum', values: ['to', 'from', 'none'] },
+    },
+  },
+  // A fraction of a quantity, which is the ratio bar in fraction notation.
+  // What one part is worth is a division away from the answer, so it is
+  // withheld alongside it.
+  quantitymodel: {
+    schema: {
+      n: { type: 'int', min: 1, required: true },
+      d: { type: 'int', min: 2, max: 40, required: true },
+      whole: { type: 'int', min: 1, required: true },
+      each: { type: 'int', phase: 'answer' },
+      value: { type: 'int', phase: 'answer' },
     },
   },
   // A ratio and, once answered, the same ratio scaled. `to` carries the
@@ -115,6 +134,7 @@ export const VISUALS = {
       a: { type: 'int', min: 1, required: true },
       b: { type: 'int', min: 1, required: true },
       to: { type: 'object', phase: 'answer' },
+      via: { type: 'object', phase: 'answer' },
       by: { type: 'string' },
       note: { type: 'string' },
     },
@@ -176,6 +196,10 @@ const RENDERERS = {
 
   ratiomodel(container, spec, opts) {
     drawRatioModel(container, spec, { reveal: opts.showAnswer, verdict: opts.verdict });
+  },
+
+  quantitymodel(container, spec, opts) {
+    drawQuantityModel(container, spec, { reveal: opts.showAnswer, verdict: opts.verdict });
   },
 
   evalmodel(container, spec, opts) {

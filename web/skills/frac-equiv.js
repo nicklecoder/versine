@@ -8,6 +8,12 @@
  *
  * Levels that ask for a missing number want a single integer; levels that ask
  * for a simplified fraction want two boxes. The input follows the problem.
+ *
+ * The first five levels can all be cleared by spotting a whole-number
+ * multiplier, which is a lookup rather than a piece of reasoning -- and a
+ * student who has only ever done that is stuck the moment the bottoms are
+ * 6 and 9. Through Simplest Form is that case, and the strategy level after
+ * it is the judgement of which situation you are in.
  */
 
 export const LEVELS = [
@@ -25,6 +31,23 @@ export const LEVELS = [
   },
   { name: 'Missing Piece', slug: 'missing-piece', blurb: 'An equivalence that shrinks — what fits the gap?' },
   {
+    name: 'Through Simplest Form', slug: 'through-simplest-form',
+    blurb: 'Neither bottom is a multiple of the other. Go down to lowest terms, then up.',
+    // The case every level before this one avoids. 2/3 = ?/12 can be cleared
+    // by spotting "× 4" without ever thinking about equivalence; 4/6 = ?/9
+    // cannot, because there is no whole number to spot. Which is why it needs
+    // the greatest common factor by name rather than "a factor you noticed".
+    dependsOn: [{ skill: 'factors', level: 3 }],
+  },
+  {
+    name: 'Straight Up, or Simplify?', slug: 'straight-up-or-simplify', kind: 'strategy',
+    blurb: 'One multiplication, or a detour through lowest terms? The bottoms decide.',
+    // Sits after both routes exist, which is the first point at which
+    // reaching for the wrong one costs anything. The discriminator is
+    // whether one bottom divides the other -- a factor question.
+    dependsOn: [{ skill: 'factors', level: 0 }],
+  },
+  {
     name: 'All Together', slug: 'all-together',
     blurb: 'Everything mixed, in lowest terms. Clear this against the clock '
       + 'to finish the skill for the day.',
@@ -33,7 +56,7 @@ export const LEVELS = [
 ];
 
 export const LAST_LEVEL = LEVELS.length - 1;
-export const PAR_SECONDS = [14, 14, 14, 18, 16, 16];
+export const PAR_SECONDS = [14, 14, 14, 18, 16, 22, 16, 16];
 
 /**
  * The runtime definition of this skill: what the student sees and how the
