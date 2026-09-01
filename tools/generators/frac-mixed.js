@@ -153,14 +153,39 @@ function whichForm(rng) {
     explain: fill(situation.why),
   };
 }
-/** A mixed number as a term, and as an improper fraction. */
-function mixedNumber(rng) {
+/**
+ * One side of a mixed-number calculation, in whichever form it is written.
+ *
+ * Four forms, because all four turn up and a student who has only ever seen
+ * one of them meets the others as new topics. `2 1/2` is the skill's subject;
+ * `5/2` is the same number top-heavy, which is what the conversions were for;
+ * `3` is a whole, and `3 − 1/4` is the borrowing case that mixed-number
+ * subtraction is famous for; `1/4` is an ordinary proper fraction, which is
+ * what makes the whole-number case a question at all.
+ *
+ * Each carries its own drawn term and its own text, because the *value* is
+ * the same in every form and only the writing differs — which is the one
+ * sentence this skill exists to install.
+ */
+function operand(rng, form, slot) {
+  if (form === 'whole') {
+    const k = rng.int(2, 9);
+    return { form, value: frac(k, 1), term: T.num(k, slot), text: String(k) };
+  }
   const d = denominator(rng);
-  const w = rng.int(1, 5);
-  // As a book would print it: the fractional part is already in lowest terms.
   const n = leftover(rng, d, false);
-  return { w, n, d, improper: frac(w * d + n, d) };
+  if (form === 'proper') {
+    return { form, value: frac(n, d), term: T.frac(n, d, slot), text: `${n}/${d}` };
+  }
+  const w = rng.int(1, 5);
+  const value = frac(w * d + n, d);
+  return form === 'improper'
+    ? { form, value, term: T.frac(value.n, value.d, slot), text: `${value.n}/${value.d}` }
+    : { form, value, term: T.mixed(w, n, d, slot), text: `${w} ${n}/${d}` };
 }
+
+/** Always written over its denominator, so "3" shows as the 3/1 it becomes. */
+const topHeavy = (f) => `${f.n}/${f.d}`;
 
 /**
  * How the answer is written: a whole, a whole and a bit, or -- when the
@@ -176,6 +201,8 @@ const asMixed = (f) => {
   return w ? `${w} ${rest}/${f.d}` : `${rest}/${f.d}`;
 };
 
+const FORMS = ['mixed', 'mixed', 'improper', 'proper', 'whole'];
+
 /**
  * Arithmetic on mixed numbers, which nothing in the catalogue asked for.
  *
@@ -189,17 +216,23 @@ const asMixed = (f) => {
  * It is also, plainly, the form these numbers turn up in. A recipe says 2 1/2
  * cups and a plank is 6 3/4 feet; nobody outside a worksheet says 5/2.
  *
- * Both operations that need converting and both that do not, because the
- * strategy level after this one arbitrates between exactly those two cases
- * and needs each to have been met. The working goes through improper
- * fractions on the way, which is the other thing this level is for: the
- * middle of the calculation is top-heavy even when neither end is.
+ * All four operations, because the strategy level after this one arbitrates
+ * between the two that need converting and the two that do not, and needs
+ * each to have been met. The working goes through the top-heavy form on the
+ * way, which is the other thing this level is for: the middle of the
+ * calculation is improper even when neither end is.
  */
 function mixedArithmetic(rng) {
-  const a = mixedNumber(rng);
-  const b = mixedNumber(rng);
   const op = rng.pick(['+', '−', '×', '÷']);
   const times = op === '×' || op === '÷';
+  const a = operand(rng, rng.pick(FORMS), 1);
+  const b = operand(rng, rng.pick(FORMS), 2);
+  // Two whole numbers is integer arithmetic, and two proper fractions is the
+  // fraction skills. At least one side has to be a whole and a bit, or the
+  // level is not about anything it names.
+  const atLeastOne = (f) => f.form === 'mixed' || f.form === 'improper' || f.form === 'whole';
+  if (a.form === 'whole' && b.form === 'whole') return mixedArithmetic(rng);
+  if (!atLeastOne(a) && !atLeastOne(b)) return mixedArithmetic(rng);
 
   // Subtraction stays above zero: this skill's answer type is a mixed number
   // and a mixed number has no way to write a minus. Signed fractions are a
@@ -209,48 +242,62 @@ function mixedArithmetic(rng) {
   // across different denominators made 1 16/18 come out "bigger" than 5 1/4,
   // and the build refused the negative answer that followed -- which is the
   // round-trip check doing exactly the job it exists for.
-  const bigger = a.improper.n * b.improper.d >= b.improper.n * a.improper.d;
+  const bigger = a.value.n * b.value.d >= b.value.n * a.value.d;
   const [x, y] = op === '−' && !bigger ? [b, a] : [a, b];
-  const work = times ? null : combine(x.improper, y.improper, op === '−' ? '-' : '+');
-  const raw = op === '×' ? multiply(x.improper, y.improper)
-    : op === '÷' ? divide(x.improper, y.improper)
+  const work = times ? null : combine(x.value, y.value, op === '−' ? '-' : '+');
+  const raw = op === '×' ? multiply(x.value, y.value)
+    : op === '÷' ? divide(x.value, y.value)
     : work.result;
   const value = reduce(raw);
-  // Nothing to convert back is a different question, and Exactly Whole is it.
-  if (value.n === 0 || value.d === 1) return mixedArithmetic(rng);
+  if (value.n === 0) return mixedArithmetic(rng);
   if (value.n > 400 || value.d > 60) return mixedArithmetic(rng);
 
-  const lhs = `${x.w} ${x.n}/${x.d}`;
-  const rhs = `${y.w} ${y.n}/${y.d}`;
-  const improperLine = `${format(x.improper)} ${op} ${format(y.improper)}`;
-  const middle = times
-    ? format(raw)
-    : `${format(work.left)} ${op} ${format(work.right)}`;
+  const asked = `${x.text} ${op} ${y.text}`;
+  const improperLine = `${topHeavy(x.value)} ${op} ${topHeavy(y.value)}`;
+  const whole = value.d === 1;
+  // Converting back is the last step, and there is nothing to convert when
+  // the answer came out whole -- so that line does not claim there was.
+  const lines = times
+    ? [asked, improperLine, topHeavy(raw), asMixed(value)]
+    : [asked, improperLine, `${topHeavy(work.left)} ${op} ${topHeavy(work.right)}`,
+       topHeavy(raw), asMixed(value)];
+  const rules = times
+    ? ['each one over a denominator', 'then it is ordinary fraction arithmetic',
+       whole ? 'and it comes out whole' : 'and back to a whole and a bit']
+    : ['each one over a denominator', `over ${nths(work.common)}, so the pieces match`,
+       'work it out', whole ? 'and it comes out whole' : 'and back to a whole and a bit'];
 
+  // Whichever sides were not already top-heavy are the ones worth naming.
+  const converted = [x, y].filter((f) => f.form !== 'improper' && f.form !== 'proper');
   return {
-    promptTerms: [T.mixed(x.w, x.n, x.d, 1), T.op(op), T.mixed(y.w, y.n, y.d, 2)],
-    text: `${lhs} ${op} ${rhs}`,
+    promptTerms: [x.term, T.op(op), y.term],
+    text: asked,
     answer: { type: 'mixed', value, requireSimplest: true },
     visual: {
-      kind: 'evalmodel',
-      lines: [`${lhs} ${op} ${rhs}`, improperLine, middle,
-              format(raw), asMixed(value)],
-      rules: ['each one as a top-heavy fraction',
-              times ? 'then it is ordinary fraction arithmetic'
-                : `over ${nths(work.common)}, so the pieces match`,
-              'work it out', 'and back to a whole and a bit'],
+      kind: 'evalmodel', lines, rules,
       hint: 'What has to happen before these can be combined?',
     },
-    explain: `${lhs} is ${format(x.improper)} and ${rhs} is ${format(y.improper)}. `
+    explain: (converted.length
+      ? converted.map((f) => `${f.text} is ${topHeavy(f.value)}`).join(' and ') + '. '
+      : '')
       + (times
-        ? `${improperLine} = ${format(raw)}`
-        : `Over ${nths(work.common)} that is ${middle} = ${format(raw)}`)
+        ? `${improperLine} = ${topHeavy(raw)}`
+        : `Over ${nths(work.common)} that is ${topHeavy(work.left)} ${op} `
+          + `${topHeavy(work.right)} = ${topHeavy(raw)}`)
       + `, which is ${asMixed(value)}. `
       + (times
         ? 'Multiplying and dividing need the top-heavy form — there is no way to '
           + 'multiply the wholes and the parts separately and get the right answer.'
         : 'Adding and subtracting could be done by keeping the wholes apart, but the '
-          + 'top-heavy form never needs a borrow, which is why it is the safer habit.'),
+          + 'top-heavy form never needs a borrow, which is why it is the safer habit.')
+      // Dividing by something under one makes the answer bigger, which looks
+      // like a mistake until it is named. It is the same fact frac-muldiv's
+      // "how many fit" level is built on, and it is worth saying again the
+      // first time it turns up with a whole number in front of it.
+      + (op === '÷' && y.value.n < y.value.d
+        ? ` Dividing by something less than one makes the answer bigger: there are `
+          + `${asMixed(value)} lots of ${y.text} in ${x.text}.`
+        : ''),
   };
 }
 

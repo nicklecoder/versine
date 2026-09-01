@@ -196,12 +196,15 @@ BY_RULE = (
     (re.compile(r"^estimate ([\d.]+) ([×+]) ([\d.]+)$"),
      lambda a, op, b: (half_up(Fraction(a), 0) * half_up(Fraction(b), 0) if op == "×"
                        else half_up(Fraction(a), 0) + half_up(Fraction(b), 0))),
-    # Mixed-number arithmetic. The evaluator cannot read "1 1/10 + 2 1/2" --
-    # a whole beside a fraction is juxtaposition meaning addition, which is
-    # not what juxtaposition means anywhere else in this notation -- so the
-    # conversion to improper happens here, by the same route a student takes.
-    (re.compile(r"^(\d+) (\d+)/(\d+) ([+\u2212×÷]) (\d+) (\d+)/(\d+)$"),
-     lambda aw, an, ad, op, bw, bn, bd: mixed_op(aw, an, ad, op, bw, bn, bd)),
+    # Two amounts combined, each written in whichever form the question used:
+    # a mixed number, a top-heavy fraction, a proper fraction or a whole. The
+    # evaluator cannot read "1 1/10 + 2 1/2" -- a whole beside a fraction is
+    # juxtaposition meaning addition, which is not what juxtaposition means
+    # anywhere else in this notation -- so the conversion happens here, by the
+    # same route a student takes.
+    (re.compile(r"^(\d+ \d+/\d+|\d+/\d+|\d+) ([+\u2212×÷]) "
+                r"(\d+ \d+/\d+|\d+/\d+|\d+)$"),
+     lambda a, op, b: mixed_op(a, op, b)),
     # A linear inequality, solved from scratch -- including the flip, which is
     # derived here from the sign of the coefficient rather than copied from
     # the generator's own reasoning about it.
@@ -212,11 +215,23 @@ BY_RULE = (
 )
 
 
-def mixed_op(aw, an, ad, op, bw, bn, bd):
-    """Two mixed numbers combined, each converted to an improper fraction first."""
-    a = Fraction(aw * ad + an, ad)
-    b = Fraction(bw * bd + bn, bd)
-    return {"+": a + b, "\u2212": a - b, "×": a * b, "÷": a / b}[op]
+def amount(text: str) -> Fraction:
+    """"2 1/2", "5/2", "1/4" or "3" — all one number, read whichever way it is written."""
+    text = str(text)
+    if " " in text:
+        whole, rest = text.split(" ")
+        n, d = rest.split("/")
+        return Fraction(int(whole) * int(d) + int(n), int(d))
+    if "/" in text:
+        n, d = text.split("/")
+        return Fraction(int(n), int(d))
+    return Fraction(int(text))
+
+
+def mixed_op(a, op, b):
+    """Two amounts combined, each converted to a single fraction first."""
+    x, y = amount(a), amount(b)
+    return {"+": x + y, "\u2212": x - y, "×": x * y, "÷": x / y}[op]
 
 
 def solve_inequality(neg, coeff, op, b, sign, rhs, want):
