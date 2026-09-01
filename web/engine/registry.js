@@ -160,6 +160,40 @@ export function depthOf(skillId, seen = new Set()) {
  * enough to call anywhere.
  * @returns {string[]} problems found, empty when the graph is sound
  */
+/**
+ * Has this skill been finished, ever?
+ *
+ * Finishing is clearing the *last* level against the clock, which is already
+ * the app's own definition -- the "done for today" banner has meant exactly
+ * this since before anything gated on it. The last level mixes every level
+ * before it, so clearing it cannot be done without the rest, and nothing new
+ * had to be recorded to support the gate below.
+ */
+export function skillCompleted(skillId, progress) {
+  const skill = getSkill(skillId);
+  if (!skill) return false;
+  const mastered = progress?.skills?.[skillId]?.mastered ?? [];
+  return mastered.includes(skill.levels.length - 1);
+}
+
+/**
+ * The skills standing between a student and this one, unfinished.
+ *
+ * `dependsOn` used to be purely advisory -- "this builds on that", never
+ * "this is forbidden until that is done". It is now the gate, which is a
+ * deliberate reversal and changes what an edge costs: declaring one closes a
+ * skill until the other is finished. Connective edges that are true but not
+ * needed to *start* are therefore no longer free, and coords/steepness is the
+ * one that had to give.
+ *
+ * Empty means the skill is open. Skills with no dependencies at all are the
+ * roots, and are what a student sees on their first day.
+ */
+export function lockedBy(skillId, progress) {
+  return dependenciesOf(getSkill(skillId) ?? {})
+    .filter((id) => !skillCompleted(id, progress));
+}
+
 export function validateGraph() {
   const problems = [];
   const byId = new Map(SKILLS.map((s) => [s.id, s]));
@@ -186,6 +220,14 @@ export function validateGraph() {
         }
       }
     });
+  }
+
+  // Something has to be playable on day one. With dependencies gating access,
+  // a catalogue where every skill depends on another is one nobody can start
+  // -- and a cycle check alone would not notice, because the graph could be
+  // perfectly acyclic and still have no root.
+  if (!SKILLS.some((s) => !dependenciesOf(s).length)) {
+    problems.push('no skill has zero dependencies, so nothing is open on day one');
   }
 
   // No cycles: a skill must not, through any chain, depend on itself.

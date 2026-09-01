@@ -1,6 +1,6 @@
 import { api } from '../engine/api.js';
-import { SKILLS, CATEGORIES, SUBJECTS, subjectOf, getSkill, dependenciesOf, levelDependencies }
-  from '../engine/registry.js';
+import { SKILLS, CATEGORIES, SUBJECTS, subjectOf, getSkill, dependenciesOf, levelDependencies,
+  lockedBy, skillCompleted } from '../engine/registry.js';
 import { MODES, MODE_ORDER, trialSettings, formatDuration } from '../engine/modes.js';
 import { computeRating, biggestGain, needsReview, staleDependencies }
   from '../engine/rating.js';
@@ -191,19 +191,34 @@ export function mapScreen() {
     el('div.grid.grid--skills', {}, ordered.map(({ skill, cat }) => skillTile(skill, cat))),
     levelBreakdown(),
     el('p.tiny.muted.center', {},
-      'More skills land here as they are built — exponents, equations, ratios.'));
+      'Finish a skill\u2019s last level to open what depends on it.'));
 }
 
+/**
+ * A skill on the map: open, locked, or open and never yet finished.
+ *
+ * "New" marks a skill whose every level has not yet been cleared -- not one
+ * that has merely been started. It is shown only on open skills: on a locked
+ * one it would be noise, since the thing it invites cannot be done yet.
+ */
 function skillTile(skill, cat) {
   const rec = recordFor(skill.id);
+  const blocking = lockedBy(skill.id, state.progress);
+  const locked = blocking.length > 0;
+  const isNew = !locked && rec.mastered.length < skill.levels.length;
+  const names = blocking.map((id) => getSkill(id)?.name ?? id);
+
   return el('button.tile', {
-    class: `${rec.doneToday ? 'tile--done ' : ''}cat-${skill.category}`,
+    class: `${rec.doneToday ? 'tile--done ' : ''}${locked ? 'tile--locked ' : ''}cat-${skill.category}`,
+    disabled: locked,
+    title: locked ? `Finish ${names.join(' and ')} first` : '',
     onclick: () => go({ name: 'skill', skillId: skill.id }),
   },
     el('div.tile__head', {},
-      el('div.tile__glyph', {}, skill.glyph),
+      el('div.tile__glyph', {}, locked ? '🔒' : skill.glyph),
       el('div.grow', {},
-        el('div.tile__name', {}, skill.name),
+        el('div.tile__name', {}, skill.name,
+          isNew ? el('span.badge-new', { title: 'Not every level cleared yet' }, 'new') : null),
         // Subject then category, so the broad territory is readable without a
         // heading -- headings would force a row break per group and leave the
         // grid full of gaps, which is what the one continuous grid avoids.
@@ -212,7 +227,9 @@ function skillTile(skill, cat) {
             ? `${cat.glyph} ${subjectOf(cat.id)?.name ?? ''} · ${cat.name} · ${rec.solved} solved`
             : `${rec.solved} solved`)),
       rec.doneToday ? el('div.done-tick', { title: 'Done for today' }, '✓') : null),
-    el('div.tile__blurb', {}, skill.blurb),
+    el('div.tile__blurb', {}, locked
+      ? `Finish ${names.join(' and ')} to open this.`
+      : skill.blurb),
     el('div.pips', {}, skill.levels.map((_, i) =>
       el('div', {
         class: `pip ${rec.mastered.includes(i) ? 'is-mastered' : i <= rec.level ? 'is-open' : ''}`,
@@ -312,6 +329,28 @@ function dailyBanner(skill, rec) {
 export function skillScreen(skillId) {
   const skill = SKILLS.find((s) => s.id === skillId);
   const rec = recordFor(skillId);
+
+  // The map disables a locked tile, but a bookmarked or hand-typed URL routes
+  // straight here. The gate has to live where the skill is entered, not only
+  // where it is drawn.
+  const blocking = lockedBy(skillId, state.progress);
+  if (blocking.length) {
+    const names = blocking.map((id) => getSkill(id)?.name ?? id);
+    return el('div.shell', {},
+      topbar(),
+      crumbs([{ label: 'Map', go: () => go({ name: 'map' }) }, { label: skill.name }]),
+      el('div.card.stack--sm', {},
+        el('div.banner.banner--violet', {},
+          el('span', {}, '🔒'),
+          el('span', {}, `${skill.name} opens once you have finished `
+            + `${names.join(' and ')}.`)),
+        el('p.tiny.muted', {},
+          'Finishing a skill means clearing its last level against the clock — '
+          + 'that level mixes every level before it, so there is nothing else to do first.'),
+        ...blocking.map((id) => el('button.btn.btn--sm', {
+          onclick: () => go({ name: 'skill', skillId: id }),
+        }, `Go to ${getSkill(id)?.name ?? id}`))));
+  }
 
   const levelRows = el('div.card.card--flush', {},
     el('div.rows', {}, skill.levels.map((t, i) => {

@@ -331,15 +331,44 @@ levels: [
 ]
 ```
 
-**`depends_on` is soft.** It means "this builds on that", not "this is
-forbidden until that is finished". Level unlocking *inside* a Skill is a
-separate, hard rule; these edges only inform. A student who wants to jump
-straight into multiplication may.
+**`depends_on` is the gate.** A Skill is closed until every Skill it depends
+on has been *finished* — which means clearing that skill's last level against
+the clock, the same thing the "done for today" banner has always meant. The
+last level mixes every level before it, so it cannot be cleared without the
+rest, and nothing new had to be recorded to support this.
+
+This reverses an earlier rule, and the reversal is worth recording because
+the original reasoning was not wrong so much as incomplete. The edges were
+advisory on the grounds that a student who wants to jump ahead should be
+allowed to. What that missed is what a beginner actually sees: twenty skills
+at once, no indication of where to start, and no way to tell which of them
+they have the arithmetic for. Gating costs the confident student almost
+nothing — clearing a foundational skill's last level once is quick if you can
+already do it, and if it is *not* quick then the gate has just told them
+something true. It is a placement test that happens to also be practice.
+
+Levels inside a Skill unlock in order and stay unlocked: `level` is a
+high-water mark that never regresses, so a student returns to a finished skill
+and plays only its last level, which is what marks the skill done for that day.
+A skill that has not had *every* level cleared carries a **new** badge, so
+"there is more in here than you have seen" is visible from the map.
 
 A Level may only depend on Skills its parent Skill already declares, so the
-precise edges can never contradict the coarse ones. `validateGraph()` in
-`web/engine/registry.js` checks that, plus unknown ids, out-of-range levels and
-cycles.
+precise edges can never contradict the coarse ones. Access is decided by the
+coarse edges alone — a level-precise edge never gates a skill, or one level
+deep inside a skill could close the whole thing. `validateGraph()` in
+`web/engine/registry.js` checks that, plus unknown ids, out-of-range levels,
+cycles, and that at least one Skill has no dependencies at all; without a root,
+nothing is open on day one and the catalogue is unplayable. `check-catalogue`
+then drives the real gate from an empty account and fails if any Skill can
+never be reached.
+
+Since an edge now costs access, a connective edge is no longer free. Coordinates
+had one to Ratio — a gradient is a unit rate, which is true and worth saying —
+and it put reading a point off a grid behind eight skills. The edge went; the
+sentence stayed, in the explanation a student reads when they get one wrong.
+Declare an edge when the second skill is genuinely needed to *do* the first;
+say the rest in words.
 
 The edges worth the most are the ones that say **this is that move again**.
 Scaling a ratio is building an equivalent fraction, putting a ratio in

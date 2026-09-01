@@ -18,7 +18,8 @@ const stub = () => ({
 globalThis.document = { createElement: stub, createTextNode: (t) => ({ t }), activeElement: null };
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const { SKILLS, CATEGORIES, SUBJECTS, validateGraph } = await import(join(ROOT, 'web/engine/registry.js'));
+const { SKILLS, CATEGORIES, SUBJECTS, validateGraph, lockedBy, skillCompleted } =
+  await import(join(ROOT, 'web/engine/registry.js'));
 
 const fail = [];
 
@@ -103,6 +104,42 @@ for (const s of SKILLS) {
   });
 }
 
+let gateInfo = '';
+// Every skill has to be reachable from a standing start.
+//
+// `validateGraph` already rules out cycles and insists a root exists, which
+// between them make this true by construction -- but this drives the real
+// `lockedBy` from an empty account rather than reasoning about the graph, so
+// a mistake in the gate itself is caught rather than argued away. A student
+// who cannot get to a skill by any route has a skill that does not exist.
+{
+  const progress = { skills: {} };
+  let reached = 0, passes = 0;
+  for (;;) {
+    const open = SKILLS.filter((s) => !skillCompleted(s.id, progress)
+      && !lockedBy(s.id, progress).length);
+    if (!open.length) break;
+    for (const s of open) progress.skills[s.id] = { mastered: s.levels.map((_, i) => i) };
+    reached += open.length;
+    passes++;
+  }
+  if (reached !== SKILLS.length) {
+    const stuck = SKILLS.filter((s) => !skillCompleted(s.id, progress)).map((s) => s.id);
+    fail.push(`${stuck.length} skill(s) can never be opened: ${stuck.join(', ')}`);
+  }
+  // Finishing a skill means clearing its LAST level. Anything less must not
+  // open what depends on it, or the gate is checking attendance.
+  const [root] = SKILLS.filter((s) => !(s.dependsOn ?? []).length);
+  const dependent = SKILLS.find((s) => (s.dependsOn ?? []).includes(root?.id));
+  if (root && dependent) {
+    const short = { skills: { [root.id]: { mastered: root.levels.map((_, i) => i).slice(0, -1) } } };
+    if (!lockedBy(dependent.id, short).length) {
+      fail.push(`${dependent.id} opened without ${root.id}'s last level being cleared`);
+    }
+  }
+  gateInfo = `${passes} passes from a standing start`;
+}
+
 const levels = SKILLS.reduce((n, s) => n + s.levels.length, 0);
 const filled = CATEGORIES.filter((c) => SKILLS.some((s) => s.category === c.id)).length;
 const subjectsUsed = SUBJECTS.filter((sub) =>
@@ -115,4 +152,5 @@ if (fail.length) {
   process.exit(1);
 }
 console.log(`${SKILLS.length} skills, ${levels} levels (${strategy} strategy), `
-  + `${filled}/${CATEGORIES.length} categories in ${subjectsUsed}/${SUBJECTS.length} subjects — catalogue valid`);
+  + `${filled}/${CATEGORIES.length} categories in ${subjectsUsed}/${SUBJECTS.length} subjects, `
+  + `all reachable in ${gateInfo} — catalogue valid`);

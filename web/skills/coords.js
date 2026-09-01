@@ -24,9 +24,17 @@ export const LEVELS = [
   {
     name: 'Steepness', slug: 'steepness',
     blurb: 'Up divided by along. A gradient is a rate, and a rate is a ratio.',
-    // This is the edge the whole ratio skill was built to make available:
-    // rise over run is a unit rate, and the line is the picture of it.
-    dependsOn: [{ skill: 'ratio', level: 4 }],
+    // No declared edge to ratio, deliberately, and it is worth saying why
+    // because the connection is real and the explain leans on it.
+    //
+    // Dependencies gate access now: a skill is closed until everything it
+    // depends on has been finished. Under that rule a connective edge is not
+    // free — declaring "rise over run is a unit rate" would have made the
+    // whole of Coordinates unreachable until Ratio was done, and reading a
+    // point off a grid is the most beginner-accessible thing in the
+    // catalogue. A gradient needs a division, not a ratio skill. So the
+    // connection lives where it costs nothing and still does its work: in
+    // the sentence the student reads when they get one wrong.
   },
   {
     name: 'All Together', slug: 'all-together',
@@ -51,6 +59,6 @@ export default {
   glyph: '⊹',
   blurb: 'Where a pair of numbers puts you, and how to read one off.',
   answerInput: 'int',
-  dependsOn: ['int-addsub', 'ratio'],
+  dependsOn: ['int-addsub'],
   levels: LEVELS,
 };

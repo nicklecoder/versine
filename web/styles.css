@@ -766,7 +766,23 @@ h1, h2, h3, .display { font-family: var(--display); font-weight: 700; letter-spa
 
 /* Where a Time Trial clock came from. */
 .clock-note { font-size: .72rem; color: var(--dim); line-height: 1.45; }
-.tile--locked { opacity: .55; }
+.tile--locked { opacity: .55; cursor: not-allowed; }
+
+/* "New" — a skill that is open but has not had every level cleared yet. It
+   marks what is worth starting, so it never appears on a locked tile. */
+.badge-new {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-family: var(--display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  color: var(--bg);
+  background: var(--gold);
+}
 .tile--locked .tile__cta { color: var(--muted); }
 
 /* ── Fractions in the problem line ────────────────────────────────────── */
