@@ -4,6 +4,7 @@ import { mount } from './ui/dom.js';
 import { state, setRenderer, go } from './ui/router.js';
 import { loginScreen, setupScreen } from './ui/auth.js';
 import { mapScreen, skillScreen, modeScreen } from './ui/map.js';
+import { lockedBy } from './engine/registry.js';
 import { playScreen, summaryScreen } from './ui/play.js';
 import { teacherScreen, studentScreen } from './ui/teacher.js';
 
@@ -13,6 +14,21 @@ function render() {
   const r = state.route;
   if (state.needsSetup) return mount(root, setupScreen());
   if (!state.me) return mount(root, loginScreen());
+
+  // The gate lives here rather than in each screen, because a locked skill
+  // has three ways in and a guard on one of them is not a gate. The map
+  // disables the tile, but a bookmark, a shared link or a typed URL routes
+  // straight to a level or a mode picker -- and `play` would have started a
+  // run in a skill the student cannot see. `skillScreen` renders the lock and
+  // says what to finish first, so every route lands on the same explanation.
+  //
+  // Teachers are exempt: they are inspecting the catalogue, not working
+  // through it, and they have no progress of their own to unlock anything.
+  if (state.me.role !== 'teacher'
+      && ['skill', 'mode', 'play'].includes(r.name)
+      && lockedBy(r.skillId, state.progress).length) {
+    return mount(root, skillScreen(r.skillId));
+  }
 
   switch (r.name) {
     case 'skill':   return mount(root, skillScreen(r.skillId));
