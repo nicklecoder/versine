@@ -258,16 +258,43 @@ def get_clocks(conn: sqlite3.Connection, user_id: int) -> dict:
 
 
 def get_progress(conn: sqlite3.Connection, user_id: int) -> dict:
-    """Everything the client needs to draw the map for one user."""
+    """Everything the client needs to draw the map for one user.
+
+    Positions are re-derived from slugs on the way out, every time.
+
+    A level index is only meaningful against the version of the catalogue that
+    produced it, which is why `mastered_slugs` and `level_slug` exist -- but
+    the index columns were being served as stored, so inserting a level into a
+    skill silently reattributed a student's history. A real record read
+    [0,1,2,3,4,5] against a skill that had since grown a level in the middle:
+    it credited them with a level they had never opened and dropped the one
+    they had actually finished. The slugs were right the whole time and nobody
+    was reading them.
+
+    The index columns are now a cache of the last write, and the slugs are the
+    record. Anything that has to be true across a catalogue change reads this.
+    """
     finished = done_today(conn, user_id)
+    order = level_order()
     skills: dict[str, dict] = {}
     for r in conn.execute(
-        "SELECT skill_id, level, mastered, solved, level_count FROM skill_progress WHERE user_id = ?",
+        "SELECT skill_id, level, level_slug, mastered, mastered_slugs, solved, level_count "
+        "FROM skill_progress WHERE user_id = ?",
         (user_id,),
     ):
+        slugs = json.loads(r["mastered_slugs"] or "[]")
+        ids = order.get(r["skill_id"], [])
+        mastered = (sorted(ids.index(s) for s in slugs if s in ids)
+                    if ids and slugs else json.loads(r["mastered"]))
+        # The furthest level opened. A level inserted *behind* where a student
+        # had already reached stays open to them, which is the point of
+        # keeping this as a high-water mark rather than a count.
+        level = ids.index(r["level_slug"]) if ids and r["level_slug"] in ids else r["level"]
+        if mastered:
+            level = max(level, max(mastered))
         skills[r["skill_id"]] = {
-            "level": r["level"],
-            "mastered": json.loads(r["mastered"]),
+            "level": level,
+            "mastered": mastered,
             "solved": r["solved"],
             "levelCount": r["level_count"],
             "doneToday": r["skill_id"] in finished,

@@ -190,6 +190,20 @@ export function skillCompleted(skillId, progress) {
  * roots, and are what a student sees on their first day.
  */
 export function lockedBy(skillId, progress) {
+  // Never close something already begun.
+  //
+  // The gate arrived after students did. One of them had eighty problems'
+  // worth of Add & Subtract Fractions and had not finished Factors, so
+  // switching it on would have taken away a skill they were in the middle
+  // of -- which is not a gate doing its job, it is work disappearing.
+  //
+  // It matters beyond that migration: adding a dependency to a skill is a
+  // normal thing to do, and it must not retroactively shut out the people
+  // already working in it. A locked skill cannot be started, so the only way
+  // to have progress in one is to have started before it was locked.
+  const record = progress?.skills?.[skillId];
+  if ((record?.mastered ?? []).length || record?.solved) return [];
+
   return dependenciesOf(getSkill(skillId) ?? {})
     .filter((id) => !skillCompleted(id, progress));
 }
