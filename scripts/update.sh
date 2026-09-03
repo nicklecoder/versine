@@ -95,6 +95,17 @@ libraries_valid() {
     [ "${PIPESTATUS[0]}" = "0" ] || return 1
   fi
 
+  # The server itself, against a throwaway database. Every check above is
+  # about the problems; this one is about the records, and a version that
+  # would mis-read a student's progress must not start. It skips itself if
+  # the web framework is not installed for this interpreter, the same bargain
+  # the JavaScript checks strike below.
+  local server="$ROOT/scripts/check-server.py"
+  if [ -f "$server" ]; then
+    python3 "$server" 2>&1 | while IFS= read -r line; do log "  $line"; done
+    [ "${PIPESTATUS[0]}" = "0" ] || return 1
+  fi
+
   # The catalogue's shape as well as its contents -- but only if node is here.
   # A server without a JavaScript runtime still gets the library check above,
   # which is the one that catches a broken problem reaching a student.

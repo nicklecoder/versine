@@ -615,10 +615,16 @@ def level_stats(conn, user_id: int) -> list[dict]:
         one interrupted problem produces a 400-second outlier that would
         drag an average into nonsense.
     """
+    # `id DESC` as the tiebreaker, not decoration: `at` is stored to the
+    # second and every attempt in a run is written in the same one, so
+    # ordering by it alone leaves "the most recent forty answers" undefined
+    # -- sqlite is free to hand back the oldest. A student who had a bad run
+    # and then a long clean one could have their headline accuracy computed
+    # from the bad half. The id is insertion order and settles it exactly.
     rows = conn.execute(
         """SELECT skill_id, level, correct, ms, date(at) day
            FROM attempts WHERE user_id = ?
-           ORDER BY at DESC LIMIT 20000""",
+           ORDER BY at DESC, id DESC LIMIT 20000""",
         (user_id,),
     ).fetchall()
 
