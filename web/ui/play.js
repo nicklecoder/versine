@@ -465,6 +465,19 @@ export function summaryScreen(route) {
   const stat = (label, value) =>
     el('div.stat', {}, el('div.stat__label', {}, label), el('div.stat__value', {}, String(value)));
 
+  const fmt = (sec) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+
+  // A trial that did not come off is very often one a student wants straight
+  // away, and the only way back in was four screens of navigation. The clock
+  // is re-derived here rather than carried over from the run just finished:
+  // the server adapts it on every trial, and `state.progress` already holds
+  // the new one by the time this screen is built. So "try again" always means
+  // the clock they have now, not the one they just lost on.
+  const retryable = mode.gate && !summary.passed;
+  const retryClock = retryable
+    ? clockFor(skill.levels[route.level], state.progress, skill.id, route.level)
+    : null;
+
   const banners = [];
   if (outcome?.unlockedLevel != null && skill.levels[outcome.unlockedLevel]) {
     banners.push(el('div.banner.banner--gold', {},
@@ -475,7 +488,6 @@ export function summaryScreen(route) {
   }
   if (outcome?.clockNext && outcome.clockWas) {
     const delta = outcome.clockNext - outcome.clockWas;
-    const fmt = (sec) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
     if (delta !== 0) {
       banners.push(el('div.banner.banner--cool', {},
         el('span', {}, delta > 0 ? '⏱' : '⚡'),
@@ -494,8 +506,14 @@ export function summaryScreen(route) {
     banners.push(el('div.banner.banner--violet', {}, '⚠ Not saved — server unreachable'));
   }
 
-  /** One way off this screen: back to the levels list. */
+  /** Out to the levels list. */
   const dismiss = () => { cleanup(); go({ name: 'skill', skillId: route.skillId }); };
+
+  /** Straight back into the same level and mode, on the freshly set clock. */
+  const retry = () => {
+    cleanup();
+    go({ name: 'play', skillId: route.skillId, level: route.level, modeId: route.modeId });
+  };
 
   // Enter is deaf for a moment first -- the keystroke that finished the last
   // problem often arrives just after the run ends, and would skip the score.
@@ -503,6 +521,14 @@ export function summaryScreen(route) {
   setTimeout(() => { armed = true; }, 700);
 
   const onKey = (e) => {
+    // R rather than Enter: a run ends on a keystroke, and Enter restarting a
+    // timed run would drop a student into a countdown they never asked for.
+    if (retryable && (e.key === 'r' || e.key === 'R')
+        && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault();
+      retry();
+      return;
+    }
     if (e.key === 'Enter' || e.key === 'Escape') {
       e.preventDefault();
       if (e.key === 'Enter' && !armed) return;
@@ -535,5 +561,14 @@ export function summaryScreen(route) {
         stat('Best run', summary.bestStreak),
         stat('Avg', `${summary.avgSeconds.toFixed(1)}s`)),
       ...banners,
-      el('button.btn.btn--go.btn--ok', { onclick: dismiss }, 'OK ⏎')));
+      retryable
+        ? el('div.summary__actions', {},
+            el('div.row-flex', {},
+              el('button.btn.btn--go.btn--ok', { onclick: retry },
+                retryClock?.duration
+                  ? `↻ Try again · ${fmt(retryClock.duration)}`
+                  : '↻ Try again'),
+              el('button.btn.btn--ghost', { onclick: dismiss }, 'Levels ⏎')),
+            el('p.tiny.muted', {}, 'R to go again · Enter for the levels list'))
+        : el('button.btn.btn--go.btn--ok', { onclick: dismiss }, 'OK ⏎')));
 }
