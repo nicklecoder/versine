@@ -23,6 +23,14 @@ export function playScreen(route) {
   const mode = MODES[route.modeId];
   // Derived here rather than carried in the route, so it can never go stale.
   const trial = clockFor(skill.levels[route.level], state.progress, skill.id, route.level);
+  /**
+   * What stopping is called. Only a timed run can be abandoned; Practice has
+   * no clock and no target, so you leave it when you have had enough — that is
+   * finishing, not giving up, and the button should not suggest otherwise.
+   */
+  const stopLabel = mode.gate ? 'Quit' : 'Done';
+  /** The same act, as a verb, for the keyboard hint. */
+  const stopVerb = mode.gate ? 'quit' : 'finish';
 
   // ── Elements ────────────────────────────────────────────────────────────
   const hud = el('div.hud');
@@ -313,7 +321,7 @@ export function playScreen(route) {
     }
   }
 
-  /** Quit shows the summary, since they didn't ask for anywhere in particular. */
+  /** Stopping shows the summary, since they didn't ask for anywhere in particular. */
   function quit() {
     if (session.answered > 0 && !session.over) session.end('quit');
     else { teardown(); go({ name: 'skill', skillId: route.skillId }); }
@@ -346,7 +354,8 @@ export function playScreen(route) {
 
   /** What the keys do, phrased for whichever input this skill uses. */
   function keyboardHint() {
-    const tail = (mode.allowExplain ? ', ? to explain' : '') + ', Esc to quit.';
+    const tail = (mode.allowExplain ? ', ? to explain' : '')
+      + `, Esc to ${stopVerb}.`;
     if (answerKind === 'mixed') {
       return 'Whole number, then / for the fraction. Enter answers' + tail;
     }
@@ -445,7 +454,7 @@ export function playScreen(route) {
         el('div.row__title', {}, mode.name)),
       el('div.row-flex', {},
         soundToggle(),
-        el('button.btn.btn--sm.btn--ghost', { onclick: quit, ...noSteal }, 'Quit'))),
+        el('button.btn.btn--sm.btn--ghost', { onclick: quit, ...noSteal }, stopLabel))),
     hud,
     session.timed ? timebar : null,
     card,
